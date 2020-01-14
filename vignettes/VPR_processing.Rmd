@@ -1,0 +1,230 @@
+---
+title: "VPR_processing"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{VPR_processing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+author: Emily Chisholm
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(vprr)
+```
+
+
+#Introduction
+
+This document was produced at Bedford Institute of Oceanogrpahy (BIO) to accompany the vprr package, a data analysis and visualization package for the Visual Plankton Recorder (VPR). It will summarize the characteristics of the VPR instrument and it's usage, as well as the processing procedure followed at BIO and the data products produced. It will also describe visualization techniques and give an overview of file types and directory structures. A glossary section is included at the end of this document.
+
+The scope of this document is focused on the portion of data analysis done in R. Before data is cleaned and visulaized in R it goes through initial image processing software (autoDeck) and machine learning classification software in MATLAB (Visual Plankton).
+
+#The Instrument
+
+The Visual Plankton Recorder (VPR) was initially designed at Woods Hole Oceanographic Institute (WHOI), where Cabell Davis was a key contributor. It is an oceanogrpahic instrument which combines the properties of a CTD and high quality underwater photography with plankton nets and microscopy. The VPR itself contains two distinct instruments which log data simultaneously, the CTD and the camera. These two instruments work together to give a detailed picture of the microscopic plankton community in the ocean. 
+
+The CTD which is connected to the VPR is a seaBird product and can accomodate many of the sensors typically found on a CTD which would be deployed with a Rosette. At BIO we have typically included fluorescence and turbidity sensors to accompany standard depth, temperature and salinity measurements. This CTD is consistently logging data throughout the VPR cast. 
+
+The camera which is attached to the VPR is capturing approximately 15 frames per second of a very small volume of water directly in front of the instrument. The volume of water captured in the frame depends on the optical setting of the VPR, which can be S0, S1, S2 or S3, where S0 has the greatest magnification and smallest image volume, and S3 has the least magnification and largest image volume. The types of organisms captured depends on the magnification and image volume to some extent and has been optimized at BIO to target the size range of our species of interest.
+
+The output of the instrument is a series of image files as well as CTD data files. 
+
+The instrument can be deployed in either a tow yo or profile pattern. The instrument at BIO has been optimized for tow yo deployments with a large  fin which encourages the instrument to glide smoothly through the water column. This document will not cover profile deployment data.
+
+#Summary of Processing Steps
+
+The processing of VPR data in R can be broken down into 4 steps. 
+
+1. AutoID Copying - Organizing VPR images into appropriate folders
+2. Reclassification - A manual check of Visual Plankton's classifications which allows expert corrections
+3. Processing - Formatting raw VPR data and images into dataframes which are quality controlled and can then be exported, analyzed and visualized
+4. Plotting - Visualization of processed data frames using ggplot2
+
+Before beginning processing, it is reccommended to create a VPR processing environment which will contain commonly used variables and file paths. The simplest and most reproducible way to achieve this is to write an R script where all your cruise and system specific varibales are contained, then save the environement as an RData file to be loaded in at the start of any processing scripts. 
+
+```
+#set VPR processing environment
+
+#SET WORKING DIRECTORY
+wd <- "C:/VPR_PROJECT/COR2019002/SCRIPTS"
+setwd(wd)
+
+#CRUISE
+cruise <- 'COR2019002'
+
+#CSV FILE WITH STATION NAMES AND CORRESPONDING DAY/HOUR INFO
+station_names_file <- paste0("station_names_", cruise, ".csv")
+#example: 'C:/VPR_PROJECT/vp_info/station_names_COR2019002.csv'
+
+#DIRECTORY FOR FULL CTD CAST DATA
+castdir <- paste0('D:/', cruise, "/", cruise, "_autodeck/")
+#example: 'D:/COR2019002/COR2019002_autodeck/'
+
+
+#AUTOID FOLDER FOR MEASUREMENT DATA
+drive <- 'C:/'
+auto_id_folder <- paste0(drive, "cruise_", cruise, "/", autoid)
+#example: 'E:/COR2019002/autoid' #!!NO BACKSLASH AT END OF STRING
+
+#Path to autoids for each taxa
+auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T) #caution if there are autoid versions
+
+#create standard directory for saved data files per cruise
+savedir <- paste0(cruise, '_data_files')
+dir.create(savedir, showWarnings = FALSE)
+
+#create standard directory for saved data products per cruise and station
+stdir <- paste('data_product/', cruise, sep = "")
+dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
+
+#DEPTH BIN SIZE FOR AVERAGING
+binSize <- 3
+
+####SAVE####
+#SAVE ALL FILE PATHS AND SETTINGS AS PROJECT ENVIRONMENT
+
+save.image(file = paste0(cruise,'_env.RData'))
+```
+
+Once this environment is set, it can be loaded into any processing session by using
+```
+load('COR2019002_env.RData')
+```
+These variable names will be kept consistent throughout this document for simplicity.
+
+These variables could also be set at the start of each processing script, or manually as you run through processing but containing them all within an environnment allows for neater code. It also means file paths and specifics are easier to change if needed, for example if processing a new cruise. If sharing your processing code with colleagues on version control, keeping your environment variables seperate (outside of your git project) will allow you to collaborate without breaking each other's code due to difference in file paths or folder names. 
+
+
+#1. AutoID Copying
+
+The first step in processing VPR data is to organize the images in relevant folders, based on the day and hour of data collection as well as the classification of the organism in the image, as decided by the machine learning software in Visual Plankton (VP). The images are originally organized by day and hour but reorganizing them based on classification allows easier human interaction with the images and data. Directory structure will be considered in more depth in a later section.
+
+To properly organize the images for a given cruise, use the function `vprr::autoid_copy()`. This function will automatically organize your VPR image files into folders based on day and hour of data collection as well as classification value of the image from Visual Plankton. This structure is used by the next step of processing in order to confirm Visual Plankton's classifications.
+
+```
+# create variables
+# ---------------------
+basepath <- "C:\\data\\cruise_COR2019002\\autoid\\" 
+# note this is the same as your auto_id_folder environment variable excpet the file seperator is different, 
+# because this script will run source code in command line which does not recognize '/' as a file seperator
+day <- "123"
+hour <- "01" # note leading zero is kept
+classifier_type <- "svm"
+classifier_name <- "myclassifier"
+
+# run file organizer
+# ---------------------
+autoid_copy(basepath, day, hour, classifer_type, classifier_name)
+```
+
+Once image files are organized you can easily look through classification groups manually (in file explorer) to get a sense of which groups are well classified by Visual Plankton and which could benefit from some additional sorting - Step 2.
+
+#2. Reclassification
+
+This step is optional although it is reccommended by folks at BIO have processed this data. 
+
+The goal of this step is to improve upon the automatic classifications produced by Visual Plankton (VP). The supervised machine learning in VP is a great tool for sorting VPR images but cannot capture some of the finer resolution desired by oceanographers concerned with plankton community dynamics. For example, the VP software is great at distinguishing marine snow from copepods but not good at distinguishing between species of copepods. The level of detail desired for most projects is in line with an expert taxonomic analysis, so further sorting is required after VP. The key to this step being successful is a patient taxonomic expert who is able to properly identify organisms. 
+
+There are a series of functions written to achieve this goal. VPR images are displayed on the screen one at a time for analysis and classification, if VP has misclassified an image or if it can be recognized as falling into a finer resolution category the image can be reclassified. At the end of this process text files which match the formats produced by VP are reproduced with new classifications. 
+
+The reclassification process is reccommended to be run for only specific taxa which VP has clearly struggled to classify based on manual inspection of image folders. This will also depend on the groups of interest to researchers. In analysis performed by BIO, Calanus and krill were the main species of interest. VP frequently misclassified krill images in the chaetognath and ctenophore categories, so reclassification experts went through the calanus, krill, chaetognath and ctenophore image folders. It is ideal to not have to reclassify all image folders to improve efficiency, at the very least, we would reccommend not sorting through marine snow or blurry image folders, as VP does a good job of classifying these images and the folders can be extremely large and time consuming to sort through. 
+
+```
+#### STEP 2- A : CLASSIFICATION CHECK
+# -------------------------------------
+
+# Once classified images are sorted by taxa
+# ensure classification accuracy by manually 
+# looking through classified images
+
+#### USER INPUT REQUIRED ####     
+
+basepath <- 'E:/COR2019002/image pulls/image_pull_6/' # must end with /
+day <- '235' 
+hr <- '19' # keep leading zeros, must be two characters
+
+
+taxa_of_interest <-
+  c(
+    'krill',
+    'Calanus',
+    'chaetognaths',
+    'ctenophores',
+    'Other',
+    'larval_fish',
+    'marine_snow',
+    'small_copepod',
+    'other_copepods',
+    'larval_crab',
+    'amphipod',
+    'Metridia',
+    'Paraeuchaeta',
+    'cnidarians'
+    
+  )
+
+
+# add new taxa (optional)
+
+add_new_taxa(taxa = taxa_of_interest, basepath)
+# ensures there are folders for all taxa of interest
+
+# reclassify images
+clf_check(day = day, hour= hr, basepath = basepath,gr = FALSE, 
+          taxa_of_interest = taxa_of_interest, scale = 'x300',
+          opticalSetting = 'S3')
+
+
+#### STEP 2 - B: REORGANIZE ROIS 
+# -----------------------------------------
+
+day_hour_files <-  paste0('d', day, '.h', hr)
+
+misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
+
+reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
+
+
+# MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES
+new_aids(reclassify, misclassified, basepath)
+
+
+
+
+#ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT #
+#==========================================================================================#
+#                            ONCE ALL AID FILES ARE COMPLETE                               #
+#==========================================================================================#
+#                                     REQUIRED!!!!                                         #
+#       manual organization of new aid and aidmeas files into basepath directory           #
+#==========================================================================================#
+
+
+#### STEP 2 - C: CHECK FILES
+# --------------------------------
+
+
+# aid check step
+# removes empty aid files, and checks for errors in writing
+
+aid_file_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt in working directory
+
+
+# optional -----------------------------------------------------------------------------------------------------------------------------------
+# manual krill check can be done to verfiy krill images. 
+# Sometimes this is required because of the low volume of krill, means high sensitivity to error.
+# Use: krill_check2.R
+
+
+```
+
+
+
