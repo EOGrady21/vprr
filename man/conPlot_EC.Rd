@@ -2,9 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{conPlot_EC}
 \alias{conPlot_EC}
-\title{make interpolated contour plot of particular variable
-creates ggplot object onto which you can add binned number of rois
-automatically zeros time axis}
+\title{Interpolated contour plot of particular variable}
 \usage{
 conPlot_EC(data, var, dup = "mean", method = "interp", labels = TRUE, bw = 1)
 }
@@ -25,9 +23,7 @@ slightly different method (oce is least error prone)}
 \item{bw}{bin width defining interval at which contours are labeled}
 }
 \description{
-make interpolated contour plot of particular variable
-creates ggplot object onto which you can add binned number of rois
-automatically zeros time axis
+Creates interpolated contour plot, can be used as a background for ROI or tow yo information
 }
 \author{
 E. Chisholm

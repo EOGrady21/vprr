@@ -2,8 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{get_trrois_size}
 \alias{get_trrois_size}
-\title{Get size data from idsize files produced when training classifier
-useful for getting size distribution of known rois from each taxa}
+\title{Get size data from idsize files}
 \usage{
 get_trrois_size(directory, taxa, opticalSetting)
 }
@@ -15,6 +14,7 @@ get_trrois_size(directory, taxa, opticalSetting)
 \item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')}
 }
 \description{
-Get size data from idsize files produced when training classifier
-useful for getting size distribution of known rois from each taxa
+useful for getting size distribution of known rois from each taxa. gathers
+size information from idsize text files produced when training a new
+classifier in VP (Visual Plankton)
 }

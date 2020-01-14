@@ -18,7 +18,7 @@ Get TS bubble plot for rois - number of rois
 Includes hard coded plotting options and variable names, not used in final product scripts
 }
 \note{
-EC: (to do) not used in either Rmd file (deprecated older version?) 
+EC: (to do) not used in either Rmd file (deprecated older version?)
 not exported
 }
 \author{

@@ -12,25 +12,19 @@ myCTDplot(x, x_pos, y_pos)
 \item{x_pos}{numeric vector containing longitude information, where first value is used to determine minimum
 longitude limits on plot}
 
-\item{y_pos}{numeric vector containing latitude information, where first value is used as minimum latitude 
+\item{y_pos}{numeric vector containing latitude information, where first value is used as minimum latitude
 value on plot}
 }
 \value{
 CTD plot
 }
 \description{
-CTD data plot
+Returns a series of plots for summarizing ctd data,
+including position, and profiles of temperature, salinity,
+sigmaTheta and fluorescence
 }
 \details{
-returns a series of plots for summarizing ctd data, 
-  including position, and profiles of temperature, salinity, 
-  sigmaTheta and fluorescence
-  !!!WARNING: this function contains hard coding for both CTD variables and lat/lon ranges
-}
-\examples{
-
-TODO EC: (to do) Improvement could be made by using lat/lon values within ctd
-  object rather than inputting arguments
+\strong{!!!WARNING:} this function contains hard coding for both CTD variables and lat/lon ranges
 }
 \author{
 R. Klaver & K. Sorochan

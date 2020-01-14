@@ -2,7 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{plot_profile_conc}
 \alias{plot_profile_conc}
-\title{plot a profile of taxa specific ROI concetntration}
+\title{Plot a profile of taxa specific ROI concentration}
 \usage{
 plot_profile_conc(data, taxa, binSize, imageVolume)
 }
@@ -16,10 +16,10 @@ plot_profile_conc(data, taxa, binSize, imageVolume)
 \item{imageVolume}{required for bin_profile_taxa (volume of ROI images calculated in mm^3)}
 }
 \description{
-plot a profile of taxa specific ROI concetntration
+Plot a profile of taxa specific ROI concentration
 }
 \note{
-this function contains hard coding of concentration calculation based on image volume 
+this function contains hard coding of concentration calculation based on image volume
 and may require updates with different sampling methods
 }
 \author{

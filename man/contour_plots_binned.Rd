@@ -11,7 +11,7 @@ contour_plots_binned(
 )
 }
 \arguments{
-\item{contour_binned_data}{a list of data frames containing x, y, z columns, this should be interpolated 
+\item{contour_binned_data}{a list of data frames containing x, y, z columns, this should be interpolated
 data to fill the contours of the plot}
 
 \item{binned_cont_tmp}{data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
@@ -22,19 +22,16 @@ PLOTTED AS BUBBLES}
 }
 \value{
 filled contour VPR plot
+
+ @export
 }
 \description{
-contour plots for binned VPR and CTD data
+This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
 }
 \details{
-This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
-!!!WARNING: It is hard coded and depends on variables which are not listed in function arguments, 
-I was unable to find the origin of these variables. This function also contains hard coding for 
+\strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
+I was unable to find the origin of these variables. This function also contains hard coding for
 plot options and sizing
-}
-\examples{
-
- @note EC: (to do) make sure these data structures are stable add in ... for other plotting arguments
 }
 \author{
 R. Klaver & K. Sorochan

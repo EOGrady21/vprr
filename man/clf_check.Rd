@@ -2,11 +2,7 @@
 % Please edit documentation in R/clf_check_test.R
 \name{clf_check}
 \alias{clf_check}
-\title{Function to check results of classification manually
-displays each image in day hour specified
-prompts user to confirm or deny classification
-if classification is denied, asks for a reclassification
- value based on available taxa}
+\title{Function to check results of classification manually}
 \usage{
 clf_check(
   day,
@@ -30,7 +26,7 @@ clf_check(
 
 \item{gr}{logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)}
 
-\item{scale}{argument passed to image_scale, default = 'x300'}
+\item{scale}{argument passed to \code{\link{image_scale}}, default = 'x300'}
 
 \item{opticalSetting}{specifies optical setting of VPR, defining image frame
 size, current options are 'S0', 'S1', 'S2' (default), 'S3', see further
@@ -41,10 +37,9 @@ out high brightness version of image (can be helpful for viewing dark field
 fine appendages)}
 }
 \description{
-Function to check results of classification manually
-displays each image in day hour specified
-prompts user to confirm or deny classification
-if classification is denied, asks for a reclassification
+Displays each image in day hour specified,
+prompts user to confirm or deny classification.
+If classification is denied, asks for a reclassification
  value based on available taxa
 }
 \details{
@@ -52,11 +47,13 @@ Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
   24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
   pixels to millimetres and calculate image size for classification
   reference
-
-
-  Development
-      - Add "undo" functionality to go back on a typing mistake
-      - Fix scaling/ size issue so images are consistently sized
-      - show ROI number for image somewhere for reference when in doubt of classification
-      -
 }
+\section{Development}{
+
+  \itemize{
+      \item Add "undo" functionality to go back on a typing mistake
+      \item  Fix scaling/ size issue so images are consistently sized
+      \item show ROI number for image somewhere for reference when in doubt of classification
+      }
+}
+

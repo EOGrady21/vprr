@@ -2,8 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{plotTS_balloon_EC}
 \alias{plotTS_balloon_EC}
-\title{Make a balloon plot against a TS plot with ROI concentration and sort by taxa
-includes isopycnal line calculations}
+\title{Make a balloon plot}
 \usage{
 plotTS_balloon_EC(x, reference.p = 0)
 }
@@ -13,9 +12,13 @@ plotTS_balloon_EC(x, reference.p = 0)
 \item{reference.p}{reference pressure (default at 0 for surface)- used to calculate ispycnals}
 }
 \description{
-WARNING HARD CODED FOR  5 TAXA, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
-!! Uses isopycnal labelling method which does not label every contour
+Balloon plot against a TS plot with ROI concentration and sorted by taxa
+includes isopycnal line calculations. Version of \code{\link{plotTS_balloon}}, with only relevant* taxa specified.
+*to current analysis and research objectives (See note).
 }
 \note{
-modified from source: https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R
+\strong{WARNING HARD CODED} FOR  5 TAXA, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
+!! Uses isopycnal labelling method which does not label every contour
+
+modified from source: \url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
 }

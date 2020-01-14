@@ -2,37 +2,34 @@
 % Please edit documentation in R/EC_functions.R
 \name{bin_average_vpr}
 \alias{bin_average_vpr}
-\title{Get bin averages for VPR and CTD data
-Bins CTD data for an individual cast to avoid depth averaging across tow yos}
+\title{Get bin averages for VPR and CTD data}
 \usage{
 bin_average_vpr(data, binSize = 1, imageVolume)
 }
 \arguments{
 \item{data}{ctd data frame object including scan, salinity, temperature,
 pressure, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
-altitude, cast_id, n_roi
-@param binSize the height of bins over which to average, default is 1 metre}
+altitude, cast_id, n_roi}
+
+\item{binSize}{the height of bins over which to average, default is 1 metre}
 
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
-Get bin averages for VPR and CTD data
 Bins CTD data for an individual cast to avoid depth averaging across tow yos
 }
 \details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
-For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
+Used internally ( \code{\link{bin_vpr_data}} ) after \code{\link{getCast_EC}} on a single ascending or descending section of VPR cast
 
 
- 
+
   @note binSize should be carefully considered for best results
-  
+
   @export
 }
 \author{
 E. Chisholm, K. Sorochan
-June 18 2019
-
-used internally ( \code{\link{bin_vpr_data}} ) after \code{\link{getCast_EC}} on a single ascending or descending section of VPR cast
 }

@@ -15,10 +15,7 @@ bubble_plotTS(x, r)
 TS bubble plot
 }
 \description{
-TS bubble plot for VPR data
-}
-\details{
-!!WARNING: This function is vulnerable to changes in oce structures and has some minimal hard coding 
+\strong{ !!WARNING:} This function is vulnerable to changes in oce structures and has some minimal hard coding
 with plotting details
 }
 \author{

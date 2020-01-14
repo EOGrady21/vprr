@@ -13,10 +13,7 @@ roi_concentration_plot(x)
 Concentration profile plot
 }
 \description{
-Concentration profile plot
-}
-\details{
-Uses oce PlotProfile function to plot concentration from data frame
+Uses  \code{\link{plotProfile}} function to plot concentration from data frame
 }
 \author{
 R. Klaver & K. Sorochan

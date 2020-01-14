@@ -2,8 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{bin_profile_taxa}
 \alias{bin_profile_taxa}
-\title{bin vpr data for a specific taxa
-bins all CTD data but n_roi_bin value will be only for taxa specified}
+\title{Bin VPR data for a specific taxa}
 \usage{
 bin_profile_taxa(data, taxa, binSize, imageVolume)
 }
@@ -16,8 +15,7 @@ bin_profile_taxa(data, taxa, binSize, imageVolume)
 @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
-bin vpr data for a specific taxa
-bins all CTD data but n_roi_bin value will be only for taxa specified
+Bins all CTD data but n_roi_bin value will be only for taxa specified
 }
 \details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
@@ -26,4 +24,7 @@ For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume 
 
 
 bins data based on KS/RK method
+}
+\note{
+This function is deprecated
 }

@@ -7,9 +7,9 @@
 merge_ctd_roi(ctd_dat_combine, roi_dat_combine)
 }
 \arguments{
-\item{ctd_dat_combine}{a CTD dataframe from VPR processing from \code{\link{read.ctd.vpr}}}
+\item{ctd_dat_combine}{a CTD dataframe from VPR processing from \code{\link{read_ctd_vpr}}}
 
-\item{roi_dat_combine}{a data frame of roi aid data from \code{\link{read.aid}}}
+\item{roi_dat_combine}{a data frame of roi aid data from \code{\link{read_aid}}}
 }
 \description{
 Combines CTD data (time, hydrographic parameters), with ROI information
@@ -17,5 +17,5 @@ Combines CTD data (time, hydrographic parameters), with ROI information
 numbers and taxa classifications with time and hydrographic parameters
 }
 \author{
-E. Chisholm & K. SOrochan
+E. Chisholm & K. Sorochan
 }

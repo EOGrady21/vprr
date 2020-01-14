@@ -13,8 +13,11 @@ bin_vpr_data(ctd_roi_oce, imageVolume, binSize)
 
 \item{binSize}{passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged}
 }
+\value{
+A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values
+}
 \description{
-Bin vpr data
+Formats \code{oce} style VPR data into depth averaged bins using \code{\link{getCast_EC}} and \code{\link{bin_average_vpr}}
 }
 \details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images

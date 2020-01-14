@@ -16,12 +16,10 @@ conc_byTaxa(data, taxa, binSize, imageVolume)
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
-Binned concentrations
-}
-\details{
 This function produces depth binned concentrations for a specificied taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
 Used inside \code{\link{calculate_vpr_concentrations}}
-
+}
+\details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
 For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3

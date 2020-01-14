@@ -2,9 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{normalize}
 \alias{normalize}
-\title{scale matrix between 0-1
-take each element of matrix dived by column total
-Make sure to remove total rows before using}
+\title{Normalize a matrix}
 \usage{
 normalize(mat)
 }
@@ -12,9 +10,10 @@ normalize(mat)
 \item{mat}{a matrix to normalize}
 }
 \description{
-scale matrix between 0-1
 take each element of matrix dived by column total
-Make sure to remove total rows before using
+}
+\details{
+Make sure to remove total rows before using with VP data
 }
 \note{
 used internally for visualization of confusion matrices

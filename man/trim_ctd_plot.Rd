@@ -15,7 +15,7 @@ Plot a list of CTD casts to determine if they require trimming
 Internally calls trim_ctd to trim casts based on user input
 }
 \note{
-If each ctd object contains multiple up/down casts, 
+If each ctd object contains multiple up/down casts,
 different procedure may be required
 this function only trims based on the start/end index of entire data
 }

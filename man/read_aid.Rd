@@ -19,6 +19,9 @@ Read aid text files containing ROI string information or measurement data and ou
 \details{
 Only outputs either ROI string information OR measurement data but both file types must be provided
 }
+\note{
+Full paths to each file should be specified
+}
 \author{
 E. Chisholm & K. Sorochan
 }

@@ -17,11 +17,8 @@ size_freq_plots(x, number_of_classes, colour_of_bar)
 
 }
 \description{
-Size Frequency plots for vPR data
-}
-\details{
-This uses the hist() plot function in base R to give a histogram of size (long axis length) frequency within a taxa. 
-!!WARNING: this function uses hard coded plot attributes
+This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
+\strong{!!WARNING:} this function uses hard coded plot attributes
 }
 \author{
 R. Klaver & K. Sorochan

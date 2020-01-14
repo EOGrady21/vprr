@@ -30,7 +30,7 @@ Get TS bubble plot for rois - concentration
 \note{
 EC: (to do) Arguments could be reduced , try using ggplot with data classed
   with size, might be cleaner code (ref =
-  https://r4ds.had.co.nz/data-visualisation.html , aes scaling... 
+  https://r4ds.had.co.nz/data-visualisation.html , aes scaling...
   aes(size = class))
 }
 \author{

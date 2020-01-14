@@ -2,22 +2,25 @@
 % Please edit documentation in R/EC_functions.R
 \name{get_isopycnals}
 \alias{get_isopycnals}
-\title{get vector to draw isopycnal lines on TS plot
+\title{Get vector to draw isopycnal lines on TS plot
 Used internally to create TS plots}
 \usage{
 get_isopycnals(sal, pot.temp, reference.p = 0)
 }
 \arguments{
+\item{sal}{salinity vector}
+
 \item{pot.temp}{temperature vector in deg C}
 
 \item{reference.p}{reference pressure for calculation, set to 0}
 }
 \description{
-get vector to draw isopycnal lines on TS plot
+Get vector to draw isopycnal lines on TS plot
 Used internally to create TS plots
+}
+\note{
+: modified from source:\url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
 }
 \author{
 E. Chisholm
- 
-   @param sal salinity vector
 }

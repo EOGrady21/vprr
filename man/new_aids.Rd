@@ -16,6 +16,16 @@ new_aids(reclassify, misclassified, basepath)
 \description{
 Modifies aid and aid mea files based on manual reclassification
 }
+\examples{
+basepath <- 'E:/autoID_EC_07032019/'
+day <- '289'
+hr <- '08'
+day_hour_files <-  paste0('d', day, '.h', hr)
+misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
+reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
+new_aids(reclassify, misclassified, basepath)
+
+}
 \author{
 E. Chisholm
 }

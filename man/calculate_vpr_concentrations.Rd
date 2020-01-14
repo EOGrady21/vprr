@@ -14,8 +14,5 @@ calculate_vpr_concentrations(data, taxas_list, station_of_interest)
 \item{station_of_interest}{The station being processed}
 }
 \description{
-Calculate VPR concentrations
-}
-\details{
 Calculates concentrations for each named taxa in dataframe
 }

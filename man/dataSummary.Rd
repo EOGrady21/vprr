@@ -2,9 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{dataSummary}
 \alias{dataSummary}
-\title{Data Summary Report
- 
- Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data}
+\title{Data Summary Report}
 \usage{
 dataSummary(all_dat, fn, tow = tow, day = day, hour = hour)
 }
@@ -19,9 +17,7 @@ turbidity_mv, sigmaT}
 
 }
 \description{
-Data Summary Report
- 
- Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
+Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
 }
 \author{
 E Chisholm

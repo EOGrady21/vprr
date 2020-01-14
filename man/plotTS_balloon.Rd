@@ -2,8 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{plotTS_balloon}
 \alias{plotTS_balloon}
-\title{Make a balloon plot against a TS plot with ROI concentration and sort by taxa
-includes isopycnal line calculations}
+\title{Make a balloon plot against a TS plot}
 \usage{
 plotTS_balloon(x, reference.p = 0, var)
 }
@@ -15,11 +14,11 @@ plotTS_balloon(x, reference.p = 0, var)
 \item{var}{variable on which size of points will be based, eg conc_m3 or n_roi_bin}
 }
 \description{
-Make a balloon plot against a TS plot with ROI concentration and sort by taxa
+TS balloon plot with ROI concentration, sorted by taxa
 includes isopycnal line calculations
 }
 \note{
-modified from source: https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R
+modified from source: \url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
 }
 \author{
 E. Chisholm

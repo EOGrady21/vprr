@@ -20,7 +20,7 @@ size_histogram(data, param, title = NULL, bw = 0.1, xlim = NULL)
 \description{
 Plot size frequency histogram
 }
-\details{
+\note{
 param options are typically 'Perimeter', 'Area', 'width1','width2',
   'width3', 'short_axis_length', 'long_axis_length'
 }

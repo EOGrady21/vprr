@@ -2,9 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{list_ctd_files}
 \alias{list_ctd_files}
-\title{Create a list of ctd files to be read
-Searches through typical VP directory structure
-Use with caution}
+\title{Create a list of ctd files to be read}
 \usage{
 list_ctd_files(castdir, cruise, day_hour)
 }
@@ -19,8 +17,9 @@ list_ctd_files(castdir, cruise, day_hour)
 vector of ctd file paths matching days-hour combinations provided
 }
 \description{
-Create a list of ctd files to be read
 Searches through typical VP directory structure
+}
+\details{
 Use with caution
 }
 \author{

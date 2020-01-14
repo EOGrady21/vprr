@@ -15,7 +15,7 @@ read_ctd_vpr(ctd_files, station_of_interest)
 Acts as a wrapper for \code{\link{read.ctdvpr.data}}
 }
 \details{
-Reads CTD data and adds day, hour, and station information. 
+Reads CTD data and adds day, hour, and station information.
 If there are multiple hours of CTD data, combines them into single dataframe.
 }
 \author{

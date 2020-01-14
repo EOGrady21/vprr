@@ -22,6 +22,9 @@ plot (defaults to TRUE)}
 frequency labelled on the plot on a normalized scale of 0-1 (useful for highliighting significant
 disagreement)}
 }
+\value{
+a visualization of the confusion matrix, normalized
+}
 \description{
 Plots normalized confusion matrix
 }

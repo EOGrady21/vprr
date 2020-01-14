@@ -14,8 +14,8 @@ Internal use \code{\link{read_ctd_vpr}}
 }
 \details{
 Text file format .dat file
-Outputs ctd dataframe with variables time_ms, conductivity, temperature, 
-pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref, 
+Outputs ctd dataframe with variables time_ms, conductivity, temperature,
+pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
 turbidity_mv, altitude_NA
 }
 \author{

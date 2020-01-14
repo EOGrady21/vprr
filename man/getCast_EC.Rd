@@ -2,9 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{getCast_EC}
 \alias{getCast_EC}
-\title{Isolate ascending or descending section of ctd cast
-This is an internal step required to bin data 
-Updated from original K. Sorochan / R. Klaver function by E. Chisholm}
+\title{Isolate ascending or descending section of ctd cast}
 \usage{
 getCast_EC(
   data,
@@ -19,17 +17,18 @@ getCast_EC(
 
 \item{cast_direction}{'ascendcing' or 'descending' depending on desired section}
 
-\item{data_type}{specify 'oce' or 'df' depending on class of desired output
-
+\item{data_type}{specify 'oce' or 'df' depending on class of desired output}
+}
+\value{
 Outputs either data frame or oce ctd object
-
-
-
-NOTE: \code{\link{ctdFindProfiles}} arguments for \code{minLength} and \code{cutOff} were updated to
-prevent losing data (EC 2019/07/23)}
 }
 \description{
-Isolate ascending or descending section of ctd cast
-This is an internal step required to bin data 
-Updated from original K. Sorochan / R. Klaver function by E. Chisholm
+This is an internal step required to bin data
+}
+\note{
+\code{\link{ctdFindProfiles}} arguments for \code{minLength} and \code{cutOff} were updated to
+prevent losing data (EC 2019/07/23)
+}
+\author{
+K Sorochan, E Chisholm, R Klaver
 }
