@@ -17,9 +17,11 @@ clf_check <-
            opticalSetting = 'S2',
            img_bright = TRUE) {
     #' Function to check results of classification manually
-    #' displays each image in day hour specified
-    #' prompts user to confirm or deny classification
-    #' if classification is denied, asks for a reclassification
+    #'
+    #'
+    #' Displays each image in day hour specified,
+    #' prompts user to confirm or deny classification.
+    #' If classification is denied, asks for a reclassification
     #'  value based on available taxa
     #'
     #' @param day day of interest in autoid
@@ -27,7 +29,7 @@ clf_check <-
     #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
     #' @param taxa_of_interest list of taxa folders you wish you sort through
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
-    #' @param scale argument passed to image_scale, default = 'x300'
+    #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
     #' @param opticalSetting specifies optical setting of VPR, defining image frame
     #'   size, current options are 'S0', 'S1', 'S2' (default), 'S3', see further
     #'   info in details
@@ -41,11 +43,12 @@ clf_check <-
     #'   reference
     #'
     #'
-    #'   Development
-    #'       - Add "undo" functionality to go back on a typing mistake
-    #'       - Fix scaling/ size issue so images are consistently sized
-    #'       - show ROI number for image somewhere for reference when in doubt of classification
-    #'       -
+    #' @section Development:
+    #'   \itemize{
+    #'       \item Add "undo" functionality to go back on a typing mistake
+    #'       \item  Fix scaling/ size issue so images are consistently sized
+    #'       \item show ROI number for image somewhere for reference when in doubt of classification
+    #'       }
 
 
 
@@ -278,7 +281,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
   #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
   #'
   #'
-  #'@example
+  #'@examples
   #'basepath <- 'E:/autoID_EC_07032019/'
   #'day <- '289'
   #'hr <- '08'
@@ -652,7 +655,9 @@ new_aids <- function(reclassify, misclassified, basepath) {
 #' @return empty directory structure using new taxa name inside basepath
 #' @export
 #'
-#' @examples
+#'
+#'
+#'
 add_new_taxa <- function(taxa, basepath) {
   for (i in 1:length(taxa)) {
     # create new taxa folder
@@ -661,8 +666,8 @@ add_new_taxa <- function(taxa, basepath) {
 
     # create blank aid and aidmeas folders
 
-    dir.create(paste0(newtaxapath, '/aid'))
-    dir.create(paste0(newtaxapath, '/aidmea'))
+    dir.create(paste0(newtaxapath, '/aid'), showWarnings = FALSE)
+    dir.create(paste0(newtaxapath, '/aidmea'), showWarnings = FALSE)
 
   }
 }
