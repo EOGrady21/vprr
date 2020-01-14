@@ -1,0 +1,2759 @@
+# Functions for analysis and visualization of VPR data
+# E Chisholm, K Sorochan
+# May 2019
+
+# Last updated
+# January 2020
+
+
+##### Import packages ####
+#' VPR processing functions depend on these packages
+#' 
+#' 
+#' 
+#' @import dplyr ggplot2 oce gridExtra metR
+#' 
+#' 
+#' 
+NULL
+#### PROCESSING FUNCTIONS ####
+
+#'Calculate VPR concentrations 
+#'
+#'@details Calculates concentrations for each named taxa in dataframe
+#'
+#'@param data a VPR dataframe as produced by \code{\link{merge_ctd_roi}}
+#'@param taxas_list a list of character strings representing taxa present in the station being processed
+#'@param station_of_interest The station being processed
+#'
+#'
+#'@export
+#'
+#'
+calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest){
+
+  # check that taxa exist for this station
+  
+  taxa_in_data <- names(data) %in% taxas_list
+  
+  valid_taxa <- names(data)[taxa_in_data == TRUE]
+  
+  # calculate concentrations
+  conc_dat <- list()
+  for ( ii in 1:length(valid_taxa)){
+    conc_dat[[ii]] <- conc_byTaxa(data, valid_taxa[ii], binSize, imageVolume) %>%
+      dplyr::mutate(., taxa = valid_taxa[ii])
+  }
+  
+  names(conc_dat) <- valid_taxa
+  
+  taxa_conc <- do.call(rbind, conc_dat)
+  
+  taxa_conc_n <- taxa_conc %>%
+    dplyr::mutate(., station = station_of_interest)
+  
+  return(taxa_conc_n)
+}
+
+#' Binned concentrations
+#' 
+#' @details This function produces depth binned concentrations for a specificied taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
+#' Used inside \code{\link{calculate_vpr_concentrations}}
+#' 
+#' 
+#' @param data dataframe produced by processing
+#' @param taxa name of taxa isolated
+#' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
+#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' 
+#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+#'
+#' 
+#' @author E. Chisholm
+#' 
+#' @export
+conc_byTaxa <- function(data, taxa, binSize, imageVolume){
+  
+  # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
+  nontaxa <-
+    c(
+      'time_ms',
+      'conductivity',
+      'temperature',
+      'pressure',
+      'salinity',
+      'sigmaT',
+      'fluor_ref',
+      'fluorescence_mv',
+      'turbidity_ref',
+      'turbidity_mv',
+      'altitude_NA',
+      'day',
+      'hour',
+      'station',
+      'avg_hr',
+      'roi'
+    )
+  dt <- data %>%
+    dplyr::select(., nontaxa, taxa)
+  
+  # get n_roi of only one taxa
+  names(dt) <-
+    gsub(names(dt), pattern = taxa, replacement = 'n_roi')
+  
+  # format into oce ctd
+  ctd_roi_oce <- create_oce_vpr(dt)
+  
+  # bin data
+  final <- bin_vpr_data(ctd_roi_oce, imageVolume, binSize)
+ 
+  return(final)
+}
+
+
+#' Bin vpr data
+#' 
+#' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}
+#' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
+#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' 
+#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+#'
+#' @export
+#'
+#'
+bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize){
+
+  #find upcasts
+  upcast <- getCast_EC(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
+  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  upcast_df <- do.call(rbind, upcast2)
+  
+  #find downcasts
+  downcast <- getCast_EC(ctd_roi_oce, cast_direction = "descending", data_type = "df")
+  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  downcast_df <- do.call(rbind, downcast2)
+  
+  #combine_data in bins
+  vpr_depth_bin <- rbind(upcast_df, downcast_df)
+  vpr_depth_bin <- data.frame(vpr_depth_bin)
+  
+  #Remove infinite concentrations (why do these occur again?)
+  vpr_depth_bin <- vpr_depth_bin %>%
+    dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>%
+    dplyr::filter(., is.finite(conc_m3))
+  
+  return(vpr_depth_bin)
+}
+
+
+
+#' Create ctd oce object with vpr data
+#' 
+#' Formats VPR data frame into \code{oce} format CTD object
+#' 
+#' @author E. Chisholm
+#' 
+#' @param data data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}
+#' 
+#' @export
+create_oce_vpr <- function(data){
+ 
+  # create oce objects
+  ctd_roi_oce <- as.ctd(data)
+  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT')
+  for ( o in otherVars){
+    eval(parse(text = paste0("ctd_roi_oce <- oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
+  }
+  
+  return(ctd_roi_oce)
+}
+
+#' Read and format CTD VPR data
+#' 
+#' Acts as a wrapper for \code{\link{read.ctdvpr.data}}
+#' 
+#' Reads CTD data and adds day, hour, and station information. 
+#' If there are multiple hours of CTD data, combines them into single dataframe.
+#' 
+#' 
+#' @author E. Chisholm & K. Sorochan
+#' 
+#' 
+#' @param ctd_files full file paths to vpr ctd \code{.dat} files 
+#' @param station_of_interest VPR station name
+#' 
+#' @export
+
+read_ctd_vpr <- function(ctd_files, station_of_interest){
+ 
+  
+  ctd_dat <- list()
+  for (i in 1:length(ctd_files)){
+    
+    day_id <- unlist(getday(ctd_files[i]))
+    hour_id <- unlist(gethour(ctd_files[i]))
+    station_id <- station_of_interest
+    
+    ctd_dat_tmp <- read.ctdvpr.data(ctd_files[i])
+    ctd_dat[[i]] <- data.frame(ctd_dat_tmp, 
+                               day = day_id, 
+                               hour = hour_id, 
+                               station = station_id,
+                               stringsAsFactors = F)
+  }
+  
+  
+  # combine ctd dat
+  
+  ctd_dat_combine <- do.call(rbind, ctd_dat)
+  
+  return(ctd_dat_combine)
+}
+
+
+#'Merge CTD and ROI data from VPR
+#'
+#'Combines CTD data (time, hydrographic parameters), with ROI information
+#'(identification number) into single dataframe, aligning ROI identifcation
+#'numbers and taxa classifications with time and hydrographic parameters
+#'
+#'@author E. Chisholm & K. SOrochan
+#'
+#'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{read.ctd.vpr}}
+#'@param roi_dat_combine a data frame of roi aid data from \code{\link{read.aid}}
+#'
+#'@export
+#'
+merge_ctd_roi <- function(ctd_dat_combine, roi_dat_combine){
+  
+  # First subset ctd data by roi id
+  ctd_time <- ctd_dat_combine$time_ms
+  roi_time <- as.numeric(roi_dat_combine$time_ms)
+  
+  roi_index <- which(ctd_time %in% roi_time)
+  ctd_subset <- data.frame(ctd_dat_combine[roi_index, ])
+  
+  
+  # Get total number of rois per frame
+  taxas <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
+  taxa_col_id <- which(colnames(roi_dat_combine) %in% taxas)
+  taxa_subset <- roi_dat_combine[,taxa_col_id]
+  n_roi_total <- base::rowSums(taxa_subset)
+  roi_dat_2 <- data.frame(roi_dat_combine, n_roi_total)
+  
+  # Combine subsetted CTD and roi data
+  ctd_subset_roi <- full_join(ctd_subset, roi_dat_2)
+  
+  # combine subsetted roi data and all CTD data such that frames with zero rois are included
+  ctd_roi_merge <- ctd_subset_roi %>%
+    dplyr::right_join(., ctd_dat_combine)
+  
+  ctd_roi_merge[is.na(ctd_roi_merge)] <- 0
+  
+  ctd_roi_merge <- ctd_roi_merge %>%
+    dplyr::mutate(., roi = ifelse(roi == 0, NA, roi))
+  
+  return (ctd_roi_merge)
+}
+
+
+#'Read VPR aid files
+#'
+#'Read aid text files containing ROI string information or measurement data and output as a dataframe
+#'
+#'Only outputs either ROI string information OR measurement data but both file types must be provided
+#'
+#'
+#' @author E. Chisholm & K. Sorochan
+#'
+#'@param  file_list_aid a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software. 
+#'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.
+#'@param export a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)
+#'@Note Full paths to each file should be specified
+#'
+#' @export
+read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_interest){
+ 
+# aid 
+  
+  col_names <- c("roi")
+  dat <- list()
+  for(i in 1:length(file_list_aid)) {
+    
+    data_tmp <- read.table(file_list_aid[i], stringsAsFactors = F, col.names = col_names)
+
+    data_tmp$roi <- unlist(getroiid(data_tmp$roi))
+    
+   
+    
+    
+    data_tmp$taxa <- unlist(gettaxaid(file_list_aid[i]))
+    day <- unlist(getday(file_list_aid[i]))
+    hour <- unlist(gethour(file_list_aid[i]))
+    data_tmp$day_hour <- paste(day, hour, sep = ".")
+    dat[[i]]<- data_tmp
+    
+  }
+  
+  
+  dat_combine_aid <- do.call(rbind, dat)
+  
+  #browser()
+  remove(dat, data_tmp, day, hour)
+  
+# aidmeas 
+  
+  
+  dat <- list()
+  col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
+  for(i in 1:length(file_list_aidmeas)) {
+    
+    data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = F, col.names = col_names)
+    
+    
+ 
+      data_tmp <- px_to_mm(data_tmp, opticalSetting)
+   
+    
+  
+  
+  data_tmp$taxa <- unlist(gettaxaid(file_list_aidmeas[i]))
+  day <- unlist(getday(file_list_aidmeas[i]))
+  hour <- unlist(gethour(file_list_aidmeas[i]))
+  data_tmp$day_hour <- paste(day, hour, sep = ".")
+  dat[[i]]<- data_tmp
+  
+  }
+  
+  dat_combine_aidmeas <- do.call(rbind, dat)
+  
+  remove(dat, data_tmp, day, hour)
+  
+  
+# format 
+  dat_combine_aid$id <- row.names(dat_combine_aid)
+  dat_combine_aidmeas$id <- row.names(dat_combine_aidmeas)
+  
+  
+    # Get tabulated rois per time by taxa
+    roi_df <- dat_combine_aid %>%
+      dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
+      dplyr::group_by(., taxa, roi) %>%
+      dplyr::summarise(., n_roi = n()) %>%
+      tidyr::spread(., taxa, n_roi) %>%
+      dplyr::mutate(., time_ms = as.numeric(roi))
+    
+    roi_dat <- data.frame(roi_df)
+    roi_dat[is.na(roi_dat)] <- 0
+    
+    
+
+
+    # Get roi measurement data frame
+    dat_combine_selected <- dat_combine_aidmeas %>%
+      dplyr::select(., taxa, day_hour, id, long_axis_length)
+    
+    roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected) %>%
+      dplyr::select(., - id) %>%
+      dplyr::mutate(., station = station_of_interest) %>%
+      dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+      dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
+    
+# export 
+  if (export == 'aid'){
+    return(roi_dat)
+  }
+  
+  if (export == 'aidmeas'){
+    return(roimeas_dat_combine)
+  }
+  
+  
+  
+}
+
+
+
+#'Get conversion factor for pixels to mm for roi measurements
+#'
+#'Used internally
+#'
+#' @details converts pixels to mm using conversion factor specific to optical setting
+#' 
+#' @param x an aidmea data frame (standard) to be converted into mm from pixels
+#' @param opticalSetting the VPR setting determining the field of view and conversion factor between mm and pixels
+#' 
+#' @details Options for opticalSetting are 'S0', 'S1', 'S2', or 'S3'
+#' 
+#' @export
+px_to_mm <- function(x, opticalSetting) {
+  
+  
+  
+  #find correct conversion factor based on VPR optical setting
+  if (opticalSetting == 'S0'){
+    #px to mm conversion factor
+    frame_mm <- 7
+    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S1'){
+    #px to mm conversion factor
+    frame_mm <- 14
+    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S2'){
+    #px to mm conversion factor
+    frame_mm <- 24
+    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S3'){
+    #px to mm conversion factor
+    frame_mm <- 48
+    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  #original default to S2 setting
+  #mm_px <- 24/1024 #mm/pixel
+  
+  mm2_px2 <- (mm_px)^2 
+  
+  x[, c(1, 3:7)] <- x[, c(1, 3:7)]*mm_px
+  x[,2] <- x[,2]*mm2_px2
+  
+  return(x)
+  
+}
+
+
+#'Read CTD data (SBE49) and Fluorometer data from CTD- VPR package
+#'
+#'Internal use \code{\link{read_ctd_vpr}}
+#'
+#'Text file format .dat file
+#'Outputs ctd dataframe with variables time_ms, conductivity, temperature, 
+#'pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref, 
+#'turbidity_mv, altitude_NA
+#' @author K. Sorochan, R. Klaver, E. Chisholm
+#'
+#'
+#'
+#'@param x full filename (ctd .dat file)
+#'
+#'
+#'@export
+read.ctdvpr.data <- function(x) {
+  
+  
+  
+  data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
+  time <- data[,1]
+  time <- as.numeric(gsub("[^[:digit:]]", "", time))
+  
+  
+  data2 <- cbind(time, data[,-c(1)])
+  colnames(data2) <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv", 
+                       "turbidity_ref", "turbidity_mv", "altitude_NA")
+  data2 <- data2[!duplicated(data2), ]
+  data2
+}
+
+
+
+#' scale matrix between 0-1
+#' take each element of matrix dived by column total
+#' Make sure to remove total rows before using
+#' 
+#' @note used internally for visualization of confusion matrices
+#' 
+#' @param mat a matrix to normalize
+#' 
+#' @export
+normalize <- function(mat){
+  
+  
+  nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
+  for(i in 1:length(nm[,1])){
+    for (j in 1:length(nm[1,])){
+      nm[i,j] <- mat[i,j]/colSums(mat)[j]
+    }
+  }
+  return(nm)
+  
+}
+
+#' Get size data from idsize files produced when training classifier
+#' useful for getting size distribution of known rois from each taxa
+#'
+#'
+#'@param directory cruise directory eg. 'C:/data/IML2018051/'
+#'@param taxa list of character elements containing taxa of interest
+#'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+#'
+#' @export
+get_trrois_size <- function(directory, taxa, opticalSetting){
+  
+  #loop for each taxa of interest
+  for (t in taxa){
+    #check
+    # g <- grep(taxa_names, pattern = t)
+    # if (length(g) == 0){
+    #   stop(paste('Taxa of interest, ', t, 'not found in data provided!'))
+    # }
+    # 
+    size_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('mea.', t))
+    #roi_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('hid.v0.',t))
+    
+    #Get info
+    #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = F)
+    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+    
+    eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
+    
+    
+  }
+  #returns a data frame with size information and named columns
+  eval(parse(text = paste0('return(auto_measure_', t,'_mm)')))
+}
+
+
+
+#' Get bin averages for VPR and CTD data
+#' Bins CTD data for an individual cast to avoid depth averaging across tow yos
+#' @author E. Chisholm, K. Sorochan
+#' June 18 2019
+#' 
+#' used internally ( \code{\link{bin_vpr_data}} ) after \code{\link{getCast_EC}} on a single ascending or descending section of VPR cast
+#' 
+#' @param data ctd data frame object including scan, salinity, temperature,
+#'   pressure, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
+#'   altitude, cast_id, n_roi
+#'   @param binSize the height of bins over which to average, default is 1 metre
+#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' 
+#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+#'
+#' 
+#'  
+#'   @note binSize should be carefully considered for best results
+#'   
+#'   @export
+#'
+bin_average_vpr <- function(data, binSize = 1, imageVolume){
+
+  cast_id <-unique(data$cast_id)
+  
+  
+  cast_id <-unique(data$cast_id)
+  max_cast_pressure <- max(data$pressure) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
+  
+  p <- data$pressure
+  max_pressure <- max(p, na.rm = TRUE)
+  min_pressure <- min(p, na.rm = TRUE)
+  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = binSize) 
+  
+  # Get variables of interest using oce bin functions
+  
+  min_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, min)$result
+  max_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, max)$result
+  min_pressure <- binApply1D(p, data$pressure, xbreaks = x_breaks, min)$result
+  max_pressure <- binApply1D(p, data$pressure, xbreaks = x_breaks, max)$result
+  n_roi_bin <- binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
+  temperature <- binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
+  salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  density <- binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
+  fluorescence <- binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
+  turbidity <- binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
+  avg_hr <- binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
+  pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids # Could be any of the variables computed, but I just went with salinity
+  
+  # calculates number of frames captured per depth bin by counting number of pressure observations per bin
+  n_frames <- binApply1D(p, data$pressure, xbreaks = x_breaks, length)$result # KS edit 10/9/19
+  
+  # WARNING
+  # binApply1D does not calculate NAs, if there is binned depth range that does
+  # not contain any data, the binApply function will not create an empty or NA
+  # placeholder bin in that case the result length will be different than the
+  # length of midpoints since the variable "pressure" is a mid point calculation it is used to
+  # test for non existent empty bins. If there are non existant empty bins,
+  # binMean1D will calculate them as NA, this loop finds where the bins would
+  # have been located and removes those indexes from the pressure vector so the
+  # length of variables is all identical
+  
+  if (!(length(pressure) == length(salinity))) {
+    
+    salinity_mean <- binMean1D(p, data$salinity, xbreaks = x_breaks)$result
+    
+    idx_rm <- which(is.na(salinity_mean))
+    
+    # informs user where bins were removed due to NAs
+    # note if a bin is 'NA' typically because there is no valid data in that depth range,
+    # if you have a lot of NA bins, think about increasing your binSize
+    print(paste('Removed bins at', pressure[idx_rm]))
+    
+    lp <- length(pressure)
+    pressure <- pressure[-idx_rm]
+    if (length(n_frames) == lp){
+      n_frames <- n_frames[-idx_rm]
+    }
+    
+  }
+  # make sure n_frames matches the length of other data frame rows
+  if (length(n_frames) > length(pressure)){
+    n_frames <- n_frames[-length(n_frames)]
+  }
+  if( length(n_frames) < length(pressure)){
+    n_frames <- c(n_frames, 0)
+  }
+  if (length(n_frames) != length(pressure)){
+    length(n_frames) <- length(pressure)
+  }
+  # Get derived variables
+  
+  time_diff_s <- max_time_s - min_time_s
+  
+  # calculate concentration based on opticalSetting
+  
+  # "Old way" of calculating concentration assuming constant frame rate of 15 fps
+  # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s)) # 
+  
+  # "New way" of calculating concentration by summing volume associated with frames over depth bin
+  vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
+  conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) # KS edit 10/9/19
+  
+  pressure_diff <- max_pressure - min_pressure
+  
+  # Output  
+  data.frame(pressure, min_pressure, max_pressure, pressure_diff, min_time_s, max_time_s, time_diff_s, 
+             n_roi_bin, conc_m3,
+             temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3,
+             towyo = cast_id, max_cast_pressure) # MAX CAST PRESSURE ADDED BY KS
+  
+}
+
+
+#' Isolate ascending or descending section of ctd cast
+#' This is an internal step required to bin data 
+#' Updated from original K. Sorochan / R. Klaver function by E. Chisholm
+#' 
+#' @param data an \code{oce} ctd object 
+#' @param cast_direction 'ascendcing' or 'descending' depending on desired section
+#' @param data_type specify 'oce' or 'df' depending on class of desired output
+#' 
+#' Outputs either data frame or oce ctd object
+#' 
+#' 
+#' 
+#' NOTE: \code{\link{ctdFindProfiles}} arguments for \code{minLength} and \code{cutOff} were updated to
+#' prevent losing data (EC 2019/07/23)
+#' 
+#' 
+#' @export
+#'
+getCast_EC <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1, breaks = NULL) {
+  
+  cast_updated <- list()
+  
+  
+  if (is.null(breaks)){
+    cast <- ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff) 
+  }else{
+    cast <- ctdFindProfiles(data, breaks = breaks, direction = cast_direction) 
+    
+  }
+  
+  
+  
+  # append data with 'cast_id' to be able to identify/ combine data frames
+  for(i in 1:length(cast)) {
+    
+    data <- cast[[i]]
+    
+    n_obs <- length(data@data$pressure)
+    cast_number <- i
+    cast_id <- paste(cast_direction, i, sep = "_")
+    cast_id_vec <- rep(cast_id, n_obs)
+    
+    cast_updated[[i]] <- oceSetData(data, "cast_id", cast_id_vec, "no_unit")
+    
+  }
+  
+  # output in oce format
+  if(data_type == "oce") {
+    
+    cast_updated
+    
+  }
+  
+  # output in dataframe
+  if(data_type == "df") {
+    
+    getDf <- function(x) {
+      
+      data.frame(x@data, stringsAsFactors = F)
+      
+    }
+    
+    lapply(cast_updated, getDf)
+    
+  }
+  
+}
+
+#' Find day & hour info to match each station of interest for processing
+#' 
+#' 
+#'  @author E. Chisholm and K. Sorochan
+#' 
+#' @param stations a vector of character values naming stations of interest
+#' @param file CSV file containing 'day', 'hour', 'station', and 'day_hour' columns
+#'
+#' @return Vector of day-hour combinations corresponding to stations of interest
+#' 
+#' @export
+get_dayhour <- function(stations, file) {
+
+  #####DEFINE FOR MULTIPLE STATIONS 
+  stations_of_interest <- stations
+  
+  #USE STATION LIST WITH CORRESPONDING DAY AND HOUR TO MATCH AREA OF INTEREST
+  #match hour and day to station
+  station_info <- read.csv(file, stringsAsFactors = FALSE)
+  
+  soi_info <- station_info %>%
+    dplyr::filter(., station %in% stations_of_interest)
+  
+  dayhour <- unique(soi_info$day_hour)
+  
+  return(dayhour)
+  
+}
+
+
+
+#' Create a list of ctd files to be read
+#' Searches through typical VP directory structure
+#' Use with caution
+#' 
+#' 
+#' @param castdir root directory for ctd cast files
+#' @param cruise cruise name (exactly as in directory structure)
+#' @param day_hour vector of day-hour combinations (e.g, dXXX.hXX)
+#' @author E. Chisholm and K. Sorochan
+#' 
+#' @return vector of ctd file paths matching days-hour combinations provided
+#' 
+#' @export
+list_ctd_files <- function(castdir, cruise, day_hour) {
+  
+  
+  # ADDED BY KS
+  vpr_cast_folders <- list.files(castdir, pattern = '')
+  
+  # find right vpr cast -- subset by tow number #
+  # folder <- grep(vpr_cast_folders, pattern = paste0('AD_', vprnum,'.VPR.', cruise,'*'), value = T) #ADDED BY KS, AD PATTERN IS NOT CONSISTENT? 
+  
+  # not subset by tow number
+  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = T) # removed leading period before VPR to fit file naming scheme in COR2019002
+  
+  if (length(folder) == 0){stop("No CTD files found!")}
+  folder_path <- paste0(castdir, folder)
+  
+  # grab all days
+  full_path <- list.files(folder_path, full.names = TRUE)
+  
+  # extract for only specific days 
+  ctd_files_all <- list.files(full_path, pattern = '*ctd*', full.names = TRUE)
+  
+  day_id <- getday(ctd_files_all)
+  hour_id <- gethour(ctd_files_all)
+  day_hour_id <- paste(day_id, hour_id, sep = ".")
+  
+  ctd_files_idx <- which(day_hour_id %in% day_hour)
+  
+  ctd_files <- ctd_files_all[ctd_files_idx]
+  
+  return(ctd_files)
+  
+}
+
+
+#' Get roi ids from string
+#'
+#' @author K Sorochan
+#' @param x A string specifying directory and file name of roi
+#'
+#' @return A string of only the 10 digit roi identifier
+#' @export
+getroiid <- function(x) {
+
+  m <- gregexpr("\\d{10}", x)
+  
+  y <- regmatches(x, m)
+  
+  return(y)
+  
+}
+
+
+#' Get traxa ids from string
+#'
+#' @author K Sorochan
+#'
+#' @param x A string specifying the directory of the "taxafolder", containing the taxa id
+#'
+#' @return A string of only the taxa id
+#' @export
+gettaxaid <- function(x) {
+
+  taxa_ids <- c(
+    "bad_image_blurry",
+    "bad_image_malfunction",
+    "bad_image_strobe",
+    "Calanus",
+    "chaetognaths",
+    "ctenophores",
+    "Echinoderm_larvae",
+    "krill",
+    "marine_snow",
+    "Other",
+    "small_copepod",
+    "stick",
+    "larval_fish",
+    'other_copepods',
+    'larval_crab',
+    'amphipod',
+    'Metridia',
+    'Paraeuchaeta',
+    'cnidarians'
+  )
+  
+  for(i in 1:length(taxa_ids)) {
+    
+    taxa_id <- taxa_ids[i]
+    
+    m_tmp <- gregexpr(taxa_id, x)
+    
+    if (m_tmp[[1]][1] > 0) {
+      
+      m <- m_tmp
+      
+    } else{
+      # stop('Taxa ID not found! Check internal list of taxa options!')
+    }
+    
+  }
+  
+  y <- regmatches(x, m)
+  
+  return(y)
+  
+}
+
+
+
+#' Get day identifier
+#'
+#' @author K Sorochan
+#' @param x A string specifying the directory and file name of the size file
+#'
+#' @return A string of only the day identifier (i.e., "dXXX")
+#' @export
+getday <- function(x) {
+
+  m <- gregexpr("[d]+\\d{3}", x)
+  
+  y <- regmatches(x, m)
+  
+  return(y)
+  
+}
+
+
+
+gethour <- function(x) {
+  
+  #' Get hour identifier
+  #'
+  #' @author K Sorochan
+  #' @param x A string specifying the directory and file name of the size file
+  #'
+  #' @return A string of only the hour identifier (i.e., "hXX")
+  #' @export
+  
+  m <- gregexpr("[h]+\\d{2}", x)
+  
+  y <- regmatches(x, m)
+  
+  return(y)
+  
+}
+
+
+
+
+dataSummary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
+  #'  Data Summary Report
+  #'  
+  #'  Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
+  #'
+  #' @author E Chisholm
+  #' @param all_dat data frame containing VPR and CTD data including time_ms,
+  #'   avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
+  #'   turbidity_mv, sigmaT
+  #' @param fn file name to save data summary
+  #'
+  #' @return
+  #' @export
+  #'
+  #' @examples
+  #prints a data summary report, part of VP easyPlot
+  sink(fn)
+  
+  cat('                  Data Summary Report \n')
+  cat('Report processed:', as.character(Sys.time()), '\n')
+  cat('Cast: ', tow, '   Day: ', day, '   Hour: ', hour, '\n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Time \n')
+  cat('Data points: ', length(all_dat$time_ms),'\n')
+  cat('Range: ', min(all_dat$time_ms),' - ', max(all_dat$time_ms), ' (ms) \n')
+  cat('Range: ', min(all_dat$avg_hr),' - ', max(all_dat$avg_hr), ' (hr) \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Conductivity \n')
+  cat('Data points: ', length(all_dat$conductivity),'\n')
+  cat('Range: ', min(all_dat$conductivity),' - ', max(all_dat$conductivity), '  \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Temperature \n')
+  cat('Data points: ', length(all_dat$temperature),'\n')
+  cat('Range: ', min(all_dat$temperature),' - ', max(all_dat$temperature), ' (c) \n')
+  cat('QC: ', length(all_dat[all_dat$temperature < 0 ]), 'points below zero deg c \n')
+  cat('QC: ', length(all_dat[all_dat$temperature > 10]), 'points above ten deg c \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Pressure \n')
+  cat('Data points: ', length(all_dat$pressure),'\n')
+  cat('Range: ', min(all_dat$pressure),' - ', max(all_dat$pressure), ' (db) \n')
+  cat('QC: ', length(all_dat[all_dat$pressure < 0 ]), 'below zero db \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Salinity \n')
+  cat('Data points: ', length(all_dat$salinity),'\n')
+  cat('Range: ', min(all_dat$salinity),' - ', max(all_dat$salinity), ' (PSU) \n')
+  cat('QC: ', length(all_dat[all_dat$salinity < 28 ]), 'points below twenty-eight PSU \n')
+  cat('QC: ', length(all_dat[all_dat$salinity > 34 ]), 'points above thirty-four PSU \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Fluorescence \n')
+  cat('Data points: ', length(all_dat$fluorescence_mv),'\n')
+  cat('Range: ', min(all_dat$fluorescence_mv),' - ', max(all_dat$fluorescence_mv), ' (mv) \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Turbidity \n')
+  cat('Data points: ', length(all_dat$turbidity_mv),'\n')
+  cat('Range: ', min(all_dat$turbidity_mv),' - ', max(all_dat$turbidity_mv), ' (mv) \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  ROI count \n')
+  cat('Data points: ', length(all_dat$n_roi),'\n')
+  cat('Range: ', min(all_dat$n_roi),' - ', max(all_dat$n_roi), ' (counts) \n')
+  cat('\n')
+  cat('\n')
+  cat(' >>>>  Sigma T \n')
+  cat('Data points: ', length(all_dat$sigmaT),'\n')
+  cat('Range: ', min(all_dat$sigmaT),' - ', max(all_dat$sigmaT), '  \n')
+  cat('QC: ', length(all_dat[all_dat$sigmaT < 22 ]), 'points below twenty-two  \n')
+  cat('QC: ', length(all_dat[all_dat$sigmaT > 28 ]), 'points above twenty-eight  \n')
+  
+  sink()
+  
+}
+
+
+
+insertRow <- function(existingDF, newrow, r) {
+  #' INTERNAL USE ONLY
+  #' quick data frame function from github to insert row inside dat frame
+  #' 
+  #' 
+  
+  existingDF[seq(r+1,nrow(existingDF)+1),] <- existingDF[seq(r,nrow(existingDF)),]
+  existingDF[r,] <- newrow
+  existingDF
+}
+
+
+
+
+##check through new aid files and fix errors
+
+#outputs aid_file_check report with any errors 
+
+
+#' Checks manually created aid files for errors
+#' 
+#' Removes any empty aid files after manual reclassification, checks for tow
+#' numbers and other metadata to match. PErforms check to ensure measurement and
+#' ROI files are the same length
+#' 
+#' @author E Chisholm
+#'
+#' @param basepath basepath to autoid folder eg. C:/data/CRUISENAME/autoid/
+#' @param cruise name of cruise which is being checked
+#'
+#' @return text file (saved in working directory) named CRUISENAME_aid_file_check.txt 
+#' 
+#' 
+#' @export
+#'
+#' 
+aid_file_check <- function(basepath, cruise){
+  
+  
+  
+  taxa_folders <- list.files(basepath, full.names = TRUE)
+  
+  sink(paste0(cruise,'_aid_file_check.txt'))
+  # loop through each taxa
+  
+  for (i in 1:length(taxa_folders)){
+    path <- taxa_folders[i]
+    
+    # get all files (aid )
+    aid_fns <- list.files(file.path(path, 'aid'), full.names = TRUE)
+    
+    #### EMPTY FILE CHECK
+    # check for empty files
+    empty_ind <- list()
+    for (ii in 1:length(aid_fns)){
+      fn <- readLines(aid_fns[ii])
+      if(length(fn) == 0){
+        cat('\n')
+        cat(aid_fns[ii], '\n')
+        cat('File is empty, please delete! \n')
+        cat('\n')
+        
+        empty_ind[ii] <- TRUE
+      }else{
+        empty_ind[ii] <- FALSE
+      }
+    }
+    cat('Empty file check complete for', taxa_folders[i], '\n')
+    
+    # automated deleteion of empty files
+    
+    empty_aids <- aid_fns[empty_ind == TRUE]
+    
+    # find corresponding aid meas files
+    # get all files (aidmea )
+    aidmea_fns <- list.files(file.path(path, 'aidmea'), full.names = TRUE)
+    
+    empty_aidmeas <- aidmea_fns[empty_ind == TRUE]
+    
+    # double check that files are empty
+    empty_files <- c(empty_aids, empty_aidmeas)
+    
+    if (length(empty_files) != 0){ # only if empty files exist
+      for (ii in 1:length(empty_files)){
+        
+        check <- readLines(empty_files[ii])
+        
+        if (length(check) != 0){
+          
+          stop('Attempting to delete file which is not empty!')
+        }else{
+          cat('\n')
+          cat('Deleteing empty aid and aidmea files! \n')
+          cat(empty_files[ii], 'deleted! \n')
+          
+          unlink(empty_files[ii])
+          
+        }
+      }
+    }
+    
+    # remove any empty files from data frame before running next check
+    
+    aid_fns <- aid_fns[empty_ind == FALSE]
+    
+    if(length(aid_fns) != 0){
+      #### VPR TOW NUMBER CHECK
+      # check that all vpr two numbers are the same
+      
+      
+      # read each aid file
+      for (ii in 1:length(aid_fns)){
+        fn <- readLines(aid_fns[ii])
+        # check vpr tow number
+        
+        v_loc <- stringr::str_locate(fn, 'vpr')
+        
+        vpr_num <- list()
+        for (iii in 1:length(v_loc[,1])){
+          fn_str <- fn[iii]
+          fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
+          vpr_num[iii] <- fn_str_split[[1]][5]
+          
+        }
+        
+        # test that they are all the same
+        
+        un_num_vpr <- unique(vpr_num)
+        if(length(un_num_vpr) > 1){
+          cat('\n')
+          cat('Warning, multiple vpr tow numbers present in', aid_fns[ii], '\n')
+          cat(unlist(un_num_vpr), '\n')
+          
+          # get numeric tow numbers
+          tow_num <- as.numeric(substr(un_num_vpr,4,  nchar(un_num_vpr)))
+          
+          # should be less than 14 if duplicated
+          tow_num_final <- tow_num[tow_num <14]
+          
+          final_vpr <- paste0('vpr', tow_num_final)
+          cat('Changing', aid_fns[ii], '\n')
+          cat(final_vpr, '\n')
+          cat('\n')
+          # put strings back together and save file
+          
+          for(iii in 1:length(fn)){
+            fn_str <- fn[iii]
+            fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
+            fn_str_split[[1]][5] <- final_vpr
+            # paste string back together
+            s_str <- paste(fn_str_split[[1]][1], fn_str_split[[1]][2], fn_str_split[[1]][3], fn_str_split[[1]][4], fn_str_split[[1]][5], fn_str_split[[1]][6], fn_str_split[[1]][7], fn_str_split[[1]][8], sep = '\\')
+            
+            fn[iii] <- s_str
+            
+          }
+          write.table(file = aid_fns[ii], fn, quote = FALSE, col.names = FALSE, row.names = FALSE)
+          
+          
+        }
+        
+        
+      }
+      cat('VPR tow number check complete, ', taxa_folders[i], '\n')
+      
+      
+      #### SIZE / ROI FILE LENGTH CHECK
+      
+      # check that aid and aid mea files are same length
+      # find files
+      sizefiles <- list.files(paste(taxa_folders[i],'aidmea',sep='\\'), full.names = T)
+      roifiles <- list.files(paste(taxa_folders[i],'aid',sep='\\'), full.names=T)
+      
+      if(length(sizefiles) != length(roifiles)){
+        cat('Mismatched number of size and roi files! \n')
+      }
+      
+      for (ii in 1:length(sizefiles)){
+        s_fn <- readLines(sizefiles[[ii]])
+        r_fn <- readLines(roifiles[[ii]])
+        if (length(s_fn > 0)){
+          
+          if (length(s_fn[[1]]) != length(r_fn[[1]])){
+            cat('Warning mismatched file lengths! \n')
+            cat(sizefiles[[ii]], ',', roifiles[[ii]], '\n')
+            cat(length(s_fn[[1]]), ',', length(r_fn[[1]]), '\n')
+          }
+        }
+      }
+      
+      cat('File size check complete, ', taxa_folders[i], '\n')
+      cat('\n')
+      cat('------------ \n')
+      cat('\n')
+      
+    }else{
+      cat('All files are empty, ', taxa_folders[i], '\n')
+      cat('No other checks completed \n')
+      cat('\n')
+      cat('------------ \n')
+      cat('\n')
+      
+      
+    } # end if all files are empty for taxa
+    
+  }
+  
+  
+  sink()
+  
+}
+
+
+
+# deprecated ----------------------------------------------------------------------------------------------------
+ get_roi_data <- function(x) {
+#'   
+#'   #' Get time and number of ROIs from IDs
+#'   #'
+#'   #'
+#'   #' @details pulls time stamp and amount of rois from character string data
+#'   #'   using substr(), outputs a new data frame
+#'   #'
+#'   #' @param x character vector with roi Id
+#'   #'
+#'   #'
+#'   #'
+#'   #'
+#'   
+#'   #Get time and n_rio from ROI id
+#'   
+#'   rois <- x$roi
+#'   
+#'   roi_x <- substr(rois, 1, 8)
+#'   
+#'   
+#'   roi_df <- data.frame(roi = as.numeric(roi_x), taxa = x$taxa)
+#'   roi_df$taxa <- as.character(roi_df$taxa)
+#'   
+#'   roi_df2 <- roi_df %>%
+#'     dplyr::group_by(., taxa, roi) %>%
+#'     dplyr::summarise(., n_roi = n()) %>%
+#'     tidyr::spread(., taxa, n_roi)
+#'   
+#'   roi_df2 <- data.frame(roi_df2)
+#'   roi_df2[is.na(roi_df2)] <- 0
+#'   
+#'   return(roi_df2)
+#'   
+ }
+
+
+# deprecated ---------------------------------------------------------------------------------
+##subset CTD data to trim of bad data at start of cast
+#note: use this function before aligning CTD and ROi data to avoid mismatch
+
+trim_ctd <- function(ctd, trimLength, end = F, endTrim = NULL){
+  #' subset CTD data to remove bad data at start of cast
+  #' @author E. Chisholm
+  #'
+  #' @details Use this function to remove any anomolous data collected while CTD
+  #' was soaking or on deck before cast began Not if aligning ctd and ROI data
+  #' ensure that ctd data is trimmed before aligning roi data to avoid mismatch
+  #' Note that this method only works for towed or moored ctd data where time is
+  #' continuously sampled not profile CTD data without time recording. Currently
+  #' requires you to be consious of time sampling intervals and choose a trim
+  #' length which is a multiple of that so function is able to match time
+  #' values.
+  #'
+  #' @param ctd  oce CTD object
+  #' @param trimLength index of cut off point for trimming
+  #' @param end logical value (default FALSE) indicating whether to trim end of cast
+  #' @param endTrim defaults to NULL, supply number of values for trimming end of cast if end == TRUE
+  #' eg, endTrim = 5 will remove the last 5 measurmeents off the cast
+  #'
+  #'   
+  #'   
+  
+  # time <- ctd[['time_ms']][ctd[['time_ms']] == ctd[['time_ms']][1] + trimLength]
+  # ml <- match(time, ctd[['time_ms']], nomatch = 0)
+  # if (ml == 0){
+  #   warnings(print('Time values failed to match, please check that trim length is a multiple of sampling interval!'))
+  #   stop()
+  # }
+  # trimLength <- length(ctd[['time_ms']][1:ml])
+  # 
+  # 
+  # data_names <- names(ctd@data)
+  # for (dn in data_names){
+  #   ctd <- oceSetData(object = ctd, name = dn, value =  ctd@data[[dn]][trimLength: length(ctd@data[[dn]])])
+  # }
+  # 
+  # if(end == T){
+  #   
+  #   for (dn in data_names){
+  #     tend <- length(ctd@data[[dn]]) - endTrim
+  #     ctd <- oceSetData(object = ctd, name = dn, value = ctd@data[[dn]][1: tend])
+  #   }
+  # }
+  # 
+  # return(ctd)
+}
+
+
+# deprecated ? ----------------------------------------------------------------------------------------------------------
+bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
+  
+  #' bin vpr data for a specific taxa
+  #' bins all CTD data but n_roi_bin value will be only for taxa specified
+  #' 
+  #' @param data a dataframe object with rows, pressure, time_ms, and number of roi data for taxa specified
+  #' @param taxa the taxa for which you want to bin data
+  #' @param binSize size of depth bins over which to average
+  #'  @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' 
+  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+  #'
+  #' 
+  #' bins data based on KS/RK method
+  #' 
+  #' 
+  # 
+  # x_breaks <- seq(from = floor(min(data$pressure)), to = ceiling(max(data$pressure)), by = binSize) 
+  # 
+  # min_time_s <- binApply1D(data$pressure, data$time_ms/1000, xbreaks = x_breaks, min)$result
+  # max_time_s <- binApply1D(data$pressure, data$time_ms/1000, xbreaks = x_breaks, max)$result
+  # time_diff_s <- max_time_s - min_time_s
+  # n_roi_bin <- binApply1D(data$pressure, data[[taxa]], xbreaks = x_breaks, sum)$result
+  # min_pressure <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, min)$result
+  # max_pressure <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, max)$result
+  # #bin temp and salinity
+  # temperature <- binApply1D(data$pressure, data$temperature, xbreaks = x_breaks, mean)$result
+  # salinity <- binApply1D(data$pressure, data$salinity, xbreaks = x_breaks, mean)$result
+  # 
+  # 
+  # ###inserted new concentration calculation from bin_average_vpr
+  # 
+  # #calculates number of frames captured per depth bin by counting number of pressure observations per bin
+  # n_frames <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, length)$result #KS edit 10/9/19
+  # 
+  # #WARNING
+  # #binApply1D does not calculate NAs, if there is binned depth range that does
+  # #not contain any data, the binApply function will not create an empty or NA
+  # #placeholder bin in that case the result length will be different than the
+  # #length of midpoints since pressure is a mid point calculation it is used to
+  # #test for non existent empty bins If there are non existant empty bins,
+  # #binMean1D will calculate them as NA, this loop finds where the bins would
+  # #have been located and removes those indexes from the pressure vector so the
+  # #length of variables is all identical
+  # 
+  # # if (!(length(pressure) == length(salinity))) {
+  # #   
+  # #   salinity_mean <- binMean1D(data$pressure, data$salinity, xbreaks = x_breaks)$result
+  # #   
+  # #   idx_rm <- which(is.na(salinity_mean))
+  # #   
+  # #   #informs user where bins where removed due to NAs
+  # #   #note if a bin is 'NA' typically because there is no valid data in that depth range,
+  # #   #if you have a lot of NA bins, think about increasing your binSize
+  # #   browser()
+  # #   print(paste('Removed bins at', pressure[idx_rm]))
+  # #   
+  # #   lp <- length(pressure)
+  # #   pressure <- pressure[-idx_rm]
+  # #   if (length(n_frames) == lp){
+  # #     n_frames <- n_frames[-idx_rm]
+  # #   }
+  # #   
+  # # }
+  # # #make sure n_frames matches the length of other data frame rows
+  # # if (length(n_frames) > length(pressure)){
+  # #   n_frames <- n_frames[-length(n_frames)]
+  # # }
+  # # if( length(n_frames) < length(pressure)){
+  # #   n_frames <- c(n_frames, 0)
+  # # }
+  # # if (length(n_frames) != length(pressure)){
+  # #   length(n_frames) <- length(pressure)
+  # # }
+  # #Get derived variables
+  # time_diff_s <- max_time_s - min_time_s
+  # 
+  # #calculate concentration based on opticalSetting
+  # 
+  # 
+  # # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s)) 
+  # vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
+  # conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) #KS edit 10/9/19
+  # 
+  # #Assumes cubic image volume and 15 fps image aquisition (detailed in VPR manual), updated October 2019 EC
+  # #use imageVoume given in function (converted to m^3 from mm^3)  
+  # 
+  # #IML2018051 -- image volume updated with results from seascan (6.6 cubic inch = 0.000108155m^3)
+  # pressure_diff <- max_pressure - min_pressure
+  # 
+  # #Output is data frame 
+  # # df <- data.frame(pressure, min_pressure, max_pressure, pressure_diff, min_time_s, max_time_s, time_diff_s, 
+  # #            n_roi_bin, conc_m3,
+  # #           temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3)
+  # 
+  # df <- data.frame(time_diff_s, min_pressure, max_pressure, n_roi_bin, temperature, salinity)
+  # return (df)
+  # 
+}
+
+
+
+# deprecated -------------------------------------------------------------------------------
+binQC <- function(data){
+  
+  #' remove bins where less than 0.8 seconds was spent
+  #' removes spikes in binned data
+  #' based on  analysis done by R. Klaver
+  #' 
+  #' @note THIS ANALYSIS MAY NO LONGER BE VALID, REQUIRES A REVISIT TO DETERMINE
+  #'   IDEAL CUT OFF VALUE. USE WITH CAUTION AS MANY VALID DATA POINTS WERE
+  #'   BEING REMOVED BASED ON THIS QC PARAMETER
+  #' 
+  #' @param data binned data (must include 'time_diff_s' variable)
+  #' 
+  # 
+  # data %>%
+  #   dplyr::filter(., time_diff_s >= 0.8)
+  # 
+}
+
+
+# deprecated -----------------------------------------------------------------------------------------------------------------------------------
+format_oce <- function(dat, loop){
+  
+  #' Formats list of ctd data into oce ctd objects
+  #' Input: list of ctd data frames (including -- salinity, temperature, pressure, conductivity, time_ms)
+  #' plus any other variables
+  #' 
+  #' Output: oce format ctd objects (in list form)
+  #' 
+  #' @author E. Chisholm
+  #' 
+  #' @param dat list of ctd data frames, read by read.ctdvpr.dat()
+  #' @param loop logical value indicating whther or not there are multiple hours of data to be processed (loop = TRUE if there are multiple hours)
+  #' 
+  #' @example 
+  #' #READ CTD DATA
+  #' ctd_dat <- read.ctdvpr.data(ctd_file)
+  #' #CHANGE TO OCE FORMAT
+  #' ctd <- format_oce(ctd_dat)
+  #' 
+  # require(oce)
+  # 
+  # #if(length(dat) > 1){loop = TRUE}else{loop = FALSE}
+  # 
+  # #make oce ctd object
+  # if (loop == TRUE){
+  #   #IF for multiple hours at a time, creates CTD list
+  #   ctd <- list()
+  #   
+  #   for(i in 1:length(dat)){
+  #     ctd[[i]] <- as.ctd(salinity = dat[[i]]$salinity, temperature = dat[[i]]$temperature, pressure = dat[[i]]$pressure, conductivity = dat[[i]]$conductivity, time = dat[[i]]$time_ms)
+  #     otherVars <- names(dat[[i]])[!(names(dat[[i]]) %in% c('salinity', 'temperature', 'pressure', 'conductivity', 'time_ms'))]
+  #     
+  #     for ( o in otherVars){
+  #       eval(parse(text = paste0("ctd[[i]] <- oceSetData(ctd[[i]], name = '",o,"', value = dat[[i]]$",o,")")))
+  #     }
+  #     
+  #   }
+  # }else{
+  #   
+  #   ctd <- as.ctd(salinity = dat$salinity, temperature = dat$temperature, pressure = dat$pressure, conductivity = dat$conductivity, time = dat$time_ms)
+  #   otherVars <- names(dat)[!(names(dat) %in% c('salinity', 'temperature', 'pressure', 'conductivity', 'time_ms'))]
+  #   
+  #   for ( o in otherVars){
+  #     eval(parse(text = paste0("ctd <- oceSetData(ctd, name = '",o,"', value = dat$",o,")")))
+  #   }
+  # }
+  # 
+  # return(ctd)
+}
+
+# deprecated --------------------------------------------------------------------------------------------------------------------------------
+calc_roiL <- function(data, taxa, imageVolume, binSize){
+  #' calculate binned roi L-1 concentrion for a specific taxa
+  #' @author E. Chisholm
+  #' @param data data frame to be run through bin_profile_taxa
+  #' @param taxa taxa of interest
+  #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' @param binSize the size (in metres) of the depth bin over which data will be averaged
+  #' 
+  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+  #'  #' 
+  #' 
+  #' Uses hard coded values for image volume calculation, 
+  #' may require updating if there are changes in sampling method
+  #' 
+  
+  # 
+  # bin <- bin_profile_taxa(data, taxa, binSize, imageVolume)
+  # #bin <- binQC(bin) #removed QC limit due to data loss
+  # #(bin$n_roi_bin/((imageVolume/1e09)*(15)*(bin$time_diff_s)))/1024 #15fps detailed in VPR manual
+  # 
+  # #export roi/L data
+  # bin$conc_m3/1024 #convert from m3 to L
+}
+
+
+
+#deprecated ----------------------------------------------------------------------------------------------------------------------
+getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSetting) {
+  
+  #' pull roi measurements from all taxa, all files
+  #' 
+  #' @param taxafolder path to taxa folder (base -- autoid folder)
+  #' @param nchar_folder number of characters in basepath
+  #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
+  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+  #' 
+  #' @note This function is very finicky, easily broken because it relies on character string splitting. 
+  #' taxaFolder argument should not end in a backslash, please check output carefully to 
+  #' ensure taxa names or ROI numbers have been properly sub string'd
+  #browser()
+  
+  # 
+  # auto_measure_mm_alltaxa_ls <- list()
+  # # browser()
+  # for (i in 1:length(taxafolder)) {
+  #   # print(paste( 'i = ',i))
+  #   #find files
+  #   sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+  #   roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+  #   
+  #   #remove dummy files for clf_check
+  #   #check for dummy files
+  #   sfd <-  grep(sizefiles, pattern = 'dummy')
+  #   rfd <-  grep(roifiles, pattern = 'dummy')
+  #   
+  #   if (length(rfd) != 0){
+  #     # print('dummy files removed')
+  #     #remove dummy files from meas consideration to avoid error
+  #     sizefiles <- sizefiles[-sfd]
+  #     roifiles <- roifiles[-rfd]
+  #     
+  #   }
+  #   #skip for blank taxa
+  #   #browser()
+  #   if(length(roifiles) == 0){
+  #     SKIP = TRUE
+  #     # print(paste(i , ': SKIP == TRUE'))
+  #     #browser()
+  #     #i = i+1
+  #     #find files
+  #     # sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+  #     # roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+  #     
+  #   } else{
+  #     SKIP = FALSE
+  #     # print(paste(i, 'SKIP == FALSE'))
+  #     
+  #     #prevent mixing of taxa in same list where some hours were not properly being overwirtten
+  #     auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
+  #     
+  #     
+  #     for(j in 1:length(sizefiles)) {
+  #       #print(paste('j = ', j))
+  #       sizefile <- sizefiles[j]
+  #       roifile <- roifiles[j]
+  #       
+  #       ##make sure file will not produce error
+  #       mtry <- try(read.table(sizefile, sep = ",", header = TRUE), 
+  #                   silent = TRUE)
+  #       
+  #       if (class(mtry) != "try-error") {
+  #         # print('try error == FALSE')
+  #         #Get info
+  #         roi_ID <- read.table(roifile, stringsAsFactors = F)
+  #         auto_measure_px <- read.table(sizefile, stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+  #         
+  #       } else {
+  #         # print(paste('cannot open roi file from ', taxafolder[i]))
+  #         #      print(roifiles)
+  #         stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
+  #       }
+  #       
+  #       #convert to mm
+  #       if (unit == 'mm'){
+  #         auto_measure_mm_tmp <- px_to_mm(auto_measure_px, opticalSetting) #Convert to mm
+  #       }else{
+  #         #or leave in pixels
+  #         auto_measure_mm_tmp <- auto_measure_px
+  #       }
+  #       
+  #       #auto_measure_mm$roi_ID <- (roi_ID$V1) #Get roi ids
+  #       
+  #       #!!!!!!!!!!!!!!!!!!!!!!!!!#
+  #       #!! WARNING HARD CODING !!#
+  #       #!!!!!!!!!!!!!!!!!!!!!!!!!#
+  #       
+  #       #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
+  #       #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, getroiid)
+  #       
+  #       #taxa <- substr(taxafolder[i], nchar_folder + 2, nchar(taxafolder[i])) #Get taxa label
+  #       #taxa <- substr(taxafolder[i], nchar_folder + 1, nchar(taxafolder[i])) #Get taxa label
+  #       
+  #       #auto_measure_mm$taxa <- rep(taxa, nrow(auto_measure_mm)) #add taxa to dataset
+  #       
+  #       
+  #       #day_hour <- substr(sizefile, nchar(sizefile) - 7, nchar(sizefile))
+  #       #auto_measure_mm$day_hour <- rep(day_hour, nrow(auto_measure_mm))
+  #       #saveRDS(auto_measure_mm, paste(taxafolder, "/", "measurements_mm_", taxa[i], ".RDS", sep=""))
+  #       
+  #       taxafolder_tmp <- taxafolder[i]
+  #       # browser()
+  #       auto_measure_mm <- auto_measure_mm_tmp %>%
+  #         dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, getroiid))) %>%
+  #         dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, gettaxaid))) %>%
+  #         dplyr::mutate(., day = unlist(lapply(sizefile, getday))) %>%
+  #         dplyr::mutate(., hour = unlist(lapply(sizefile, gethour))) %>%
+  #         dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
+  #         dplyr::select(., -day, -hour)
+  #       
+  #       auto_measure_mm_ls[[j]] <- auto_measure_mm
+  #       
+  #       if(auto_measure_mm$day[1] == 'd240.h09' ){
+  #         # browser()
+  #         #cat('d240.h09')
+  #         # cat(taxafolder[i], '\n')
+  #         #cat('number of ROIs: ', length(auto_measure_mm$roi_ID), '\n')
+  #         #cat('number of unique ROIs: ', length(unique(auto_measure_mm$roi_ID)), '\n')
+  #         
+  #       }
+  #       #print(paste('completed', roifiles))
+  #       
+  #     }
+  #     
+  #     auto_measure_mm_alltaxa_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
+  #     #browser()
+  #     
+  #     # print(paste('completed', taxafolder[i]))
+  #   }
+  # } 
+  # 
+  # 
+  # 
+  # auto_measure_mm_alltaxa_df <- do.call(rbind, auto_measure_mm_alltaxa_ls)
+  # #browser()
+  # return(auto_measure_mm_alltaxa_df)
+  # 
+  
+  
+}
+
+
+
+# deprecated ---------------------------------------------------------------------------------------------------
+
+subset.ctdvpr.data <- function(x) {
+  #Write function to get subset of data for hydrography summary
+  #' CTD subsetting function 
+  #' 
+  #' @details Isolates hydrographic information from CTD dataframe output from `read.ctdvpr.data()`
+  #' Takes every 10th row of data from ctd object
+  #' 
+  #' !!!WARNING: This function is hard coded to row numbers inside CTD data frame, will not work with different
+  #' versions of VPR instrument or CTD package
+  #'
+  #'@author R. Klaver & K. Sorochan
+  #' @param x CTD data frame
+  #'
+  #' @return CTD data frame with only hydrographic data
+  #' @export
+  #'
+  #' @examples
+  # 
+  # row_id_ctd <- seq(from = 1, to = nrow(x), by = 10)
+  # x[row_id_ctd,]
+  # 
+}
+
+
+#deprecated ---------------------------------------------------------------------------------------------------------------
+getMinShipSpeed_knots <- function(frame_diff, tow_duration, x_dim) {
+  #get a rough idea of the minimum ship speed required such that VPR frames do not overlap
+  #' Calculate minimum ship speed in knots for VPR tow
+  #'
+  #' @details This function was written to calculate minimum ship speed in knots for IML2018051. 
+  #' !!WARNING: This function uses variables which are not present at function arguments, will not run on it's own. 
+  #' Also includes hard coding to convert from m/s to knots with only 3 decimal places
+  #' 
+  #' 
+  #' @author R. Klaver & K. Sorochan
+  #' 
+  #' @param frame_diff numeric value for difference between frames (?)
+  #' @param tow_duration This argument is not actually used in the function
+  #' @param x_dim numeric value, might be time dimension, used in context: this value is multiplied by frames per second to calculate speed in metres/second
+  #' 
+  #'
+  #' @return
+  #' @export
+  #'
+  #' @examples
+  # 
+  # fps <- frame_diff/time_sec #time_sec variable not present in function
+  # minspeed_m_s <- x_dim*fps #Min ship speed; units: m/s
+  # minspeed_knots <- minspeed_m_s/0.514 #hard coding!!!!!!
+  # 
+  # minspeed_knots
+  
+}
+
+
+#####PLOTTING FUNCTIONS#####
+
+bubble_plotTSconc <- function(x, r,lt, pos, inches, levels, round) {
+  #' Get TS bubble plot for rois - concentration
+  #' 
+  #' 
+  #' @details !!WARNING: Involves hard coded plot options
+  #' 
+  #' @author K. Sorochan & R. Klaver
+  #' 
+  #' @param pos position of legend (following legend() rules)
+  #' @param x oce CTD object
+  #' @param r VPR data frame  object with salinity, temperature, concentration, seems to be ctd data pulled to 'concentration' object
+  #' @param lt legend title
+  #' @param inches scales pt.cex of legend (set to 0.1)
+  #' @param levels number of legend intervals
+  #' @param round number of significant figures desired for size intervals
+  #' 
+  #' 
+  #' @export
+  #' 
+  #' @note EC: (to do) Arguments could be reduced , try using ggplot with data classed
+  #'   with size, might be cleaner code (ref =
+  #'   https://r4ds.had.co.nz/data-visualisation.html , aes scaling... 
+  #'   aes(size = class))
+  #'   
+  #'   
+  #'   
+  
+  #l is legend title, p is position of legend,
+  #scaling is ratio of pt.cex size to inches (might always be 2.7, not sure), 
+  #levels how many levels of legend you want.
+  # this will not work if mfrow = c(1,2)
+  #round is #sigfigs rounded to (14938 to 2 sigs = 150000)
+  par(mfrow = c(1, 2))
+  slim = c(min(x@data$salinity),max(x@data$salinity)) #removed hard coded minimum for better scales (EC) 
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$concentration, 
+          xlab  = "", ylab = "", fg = "grey22",
+          inches = inches, xlim = slim, ylim = tlim)
+  max <- max(r$concentration)
+  bigbubble <- signif(max,round)
+  leglev <- seq(0,bigbubble,bigbubble/levels)
+  leglev <- leglev[-1]
+  par(new = T)
+  legend(pos, legend=c(leglev), pt.cex=c((leglev/max)*((inches/0.1)*2.629)),
+         pch=1, title=lt)
+  
+  plot.new()
+}
+
+
+bubble_plotTSnroi <- function(x, r) {
+  #' Get TS bubble plot for rois - number of rois
+  #' 
+  #' @author K. Sorochan & R. Klaver
+  #' 
+  #' @details Includes hard coded plotting options and variable names, not used in final product scripts
+  #' 
+  #' @param x oce CTD object
+  #' @param r VPR data frame ( object with salinity, temperature, n_roi )
+  #' 
+  #' 
+  #' @note EC: (to do) not used in either Rmd file (deprecated older version?) 
+  #' not exported
+  
+  par(mfrow = c(1, 2))
+  slim = range(x@data$salinity)
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi, 
+          xlab  = "", ylab = "", fg = "blue",
+          inches = 0.1, xlim = slim, ylim = tlim)
+  plot.new()
+}
+
+
+
+#' Size Frequency plots for vPR data
+#'
+#' @details This uses the hist() plot function in base R to give a histogram of size (long axis length) frequency within a taxa. 
+#' !!WARNING: this function uses hard coded plot attributes
+#' 
+#' @author R. Klaver & K. Sorochan
+#' 
+#' @param x a dtaa frame with columns 'taxa', 'long_axis_length'
+#' @param number_of_classes numeric value passed to nclass argument in hist()
+#' @param colour_of_bar character value defining colour of plotted bars
+#'
+#' @return
+#' @export
+#'
+#' @examples
+size_freq_plots <- function(x, number_of_classes, colour_of_bar) {
+  
+  data <- x
+  taxa <- unique(data$taxa)
+  
+  for(i in 1:length(taxa)) {
+    
+    par(mfrow = c(1,2))
+    
+    taxa_id <- taxa[i]
+    
+    data_hist <- data %>%
+      dplyr::filter(., taxa == taxa_id)
+    
+    data_hist2 <- data_hist$long_axis_length
+    
+    hist(data_hist2, nclass = number_of_classes, col = colour_of_bar, xlab = "Long axis of bug (mm)", main = taxa_id) #Eventually you will want to loop through taxa
+    
+    if(length(taxa) == 1) {
+      
+      plot.new()
+      
+    }
+    
+  }
+  
+}
+
+
+
+contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_cont_tmp_subset) {
+  #' contour plots for binned VPR and CTD data
+  #'
+  #'
+  #' @details This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
+  #' !!!WARNING: It is hard coded and depends on variables which are not listed in function arguments, 
+  #' I was unable to find the origin of these variables. This function also contains hard coding for 
+  #' plot options and sizing
+  #' 
+  #' @author R. Klaver & K. Sorochan
+  #' 
+  #' 
+  #' @param contour_binned_data a list of data frames containing x, y, z columns, this should be interpolated 
+  #' data to fill the contours of the plot
+  #' @param binned_cont_tmp data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
+  #' PLOTTED AS VPR PATH
+  #' @param binned_cont_tmp_subset data frame containing vPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
+  #' PLOTTED AS BUBBLES
+  #' @return filled contour VPR plot
+  #' @export
+  #'
+  #' @examples
+  #' 
+  #'  @note EC: (to do) make sure these data structures are stable add in ... for other plotting arguments
+  for(j in 1:length(contour_binned_data)) {
+    
+    c_tmp <- contour_binned_data[[j]]
+    y_limits <- rev(range(c_tmp$y))
+    x_limits <- range(c_tmp$x)
+    hydro <- binned_vars[j] #not in function arguments
+    
+    
+    print(hydro)
+    
+    par(mar = c(4, 4, 2, 2) + 0.1)
+    
+    #INSERTED FROM CONFLICTING VERSIONS
+    if (hydro == 'conc_m3') {
+      #hydro=conc
+      x <- 10
+    }  else if (hydro == 'density') {
+      x <- length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm=T)),0.25))
+      
+      
+    } else {
+      
+      x <-  length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm = T)),0.5))
+      
+    }
+    
+    
+    
+    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                   color.palette = colorRampPalette(c("white", "blue")),
+                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+                   
+                   plot.axes = {
+                     points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
+                     axis(1)
+                     axis(2)
+                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels=x, add = T)
+                     symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3, 
+                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     #x was originally 'nlevels = 10'
+                     
+                     
+                     #ORIGINAL VERSION
+                     # filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                     #                color.palette = colorRampPalette(c("white", "blue")),
+                     #                ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+                     #                
+                     #                plot.axes = {
+                     #                  points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
+                     #                  symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3, 
+                     #                          fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     #                  axis(1)
+                     #                  axis(2)
+                     #                  contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
+                     #                  
+                     
+                   })
+  }
+  
+}
+#' contour plots for VPR and CTD data
+#'
+#'
+#' @details This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
+#' !!!WARNING: It is hard coded and depends on variables which are not listed in function arguments, 
+#' I was unable to find the origin of these variables. This function also contains hard coding for 
+#' plot options and sizing
+#' 
+#' @author R. Klaver & K. Sorochan
+#' 
+#' 
+#' @param contour_data a list of data frames which is looped from the second index, containing x, y, z columns
+#' @param ctd_cont_tmp CTD data frame containing columns time_h and pressure
+#' @param roi_cont_tmp ROI data from VPR, data frame containing columns time_h, pressure and n_roi
+#'
+#' @return fille dcontour VPR plot
+#' @export
+#'
+#' @examples
+#' 
+
+
+
+contour_plots <- function(contour_data, ctd_cont_tmp, roi_cont_tmp) {
+  
+  
+  for(j in 2:length(contour_data)) {
+    
+    c_tmp <- contour_data[[j]]
+    y_limits <- rev(range(c_tmp$y))
+    x_limits <- range(c_tmp$x)
+    hydro <- var_ts[j] #this variable is not present in function
+    
+    
+    
+    print(hydro)
+    
+    par(mar = c(4, 4, 2, 2) + 0.1)
+    
+    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                   color.palette = colorRampPalette(c("white", "blue")),
+                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+                   
+                   plot.axes = {
+                     points(ctd_cont_tmp$time_h, ctd_cont_tmp$pressure, pch = ".")
+                     symbols(roi_cont_tmp$time_h, roi_cont_tmp$pressure, circles = roi_cont_tmp$n_roi, 
+                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     axis(1)
+                     axis(2)
+                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
+                     
+                     
+                   })
+  }
+  
+}
+
+
+#Get TS bubble plot for rois
+#' TS bubble plot for VPR data
+#'
+#' @details !!WARNING: This function is vulnerable to changes in oce structures and has some minimal hard coding 
+#' with plotting details
+#' 
+#' @author R. Klaver & K. Sorochan
+#' 
+#' @param x oce CTD object
+#' @param r VPR / CTD data frame containing columns salinity, temperature, n_roi
+#'
+#' @return TS bubble plot
+#' @export
+#'
+#' @examples
+bubble_plotTS <- function(x, r) {
+  
+  par(mfrow = c(1, 2))
+  slim = range(x@data$salinity)
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi, 
+          xlab  = "", ylab = "", fg = "blue",
+          inches = 0.1, xlim = slim, ylim = tlim)
+  plot.new()
+}
+
+#' Concentration profile plot
+#'
+#'
+#' @details Uses oce PlotProfile function to plot concentration from data frame
+#' 
+#' @author R. Klaver & K. Sorochan
+#' 
+#' 
+#' @param x CTD / VPR data frame with column "concentration"
+#'
+#' @return Concentration profile plot
+#' @export
+#'
+#' @examples
+roi_concentration_plot <- function(x) {
+  require(oce)
+  par(mfrow = c(1,2))
+  plotProfile(x, xtype = "concentration", type = 'p', colour = "black")
+  
+}
+
+
+#Write function to plot CTD data (TS plot, map, depth profiles)
+#' CTD data plot
+#'
+#' @details returns a series of plots for summarizing ctd data, 
+#'   including position, and profiles of temperature, salinity, 
+#'   sigmaTheta and fluorescence
+#'   !!!WARNING: this function contains hard coding for both CTD variables and lat/lon ranges
+#'
+#' @author R. Klaver & K. Sorochan
+#'
+#' @param x CTD data frame
+#' @param x_pos numeric vector containing longitude information, where first value is used to determine minimum
+#' longitude limits on plot
+#' @param y_pos numeric vector containing latitude information, where first value is used as minimum latitude 
+#' value on plot
+#'
+#' @return CTD plot
+#' @export
+#'
+#' @examples
+#' 
+#' TODO EC: (to do) Improvement could be made by using lat/lon values within ctd
+#'   object rather than inputting arguments
+myCTDplot <- function(x, x_pos, y_pos) {
+  
+  require(oce)
+  par(mfrow=c(1, 2))
+  plotTS(x)
+  plot(coastlineWorldFine, clongitude = x_pos[1], clatitude = y_pos[1], span = 150)
+  #contour(bx, by, bz, levels = c(-100))
+  lines(x_pos, y_pos, col = "red", lwd = 2)
+  points(x_pos[1], y_pos[1], pch = 12)
+  
+  plotProfile(x, xtype='temperature', type = 'p', col = 'red')
+  plotProfile(x, xtype='salinity', type = 'p', col = 'blue')
+  plotProfile(x, xtype='sigmaTheta', type = 'p', col = 'magenta')
+  plotProfile(x, xtype='fluorescence', type = 'p', col = 'green')
+}
+#balloon plot with isopycnals final
+
+#create TS data frame
+get_isopycnals<- function(sal, pot.temp, reference.p = 0){
+  #' get vector to draw isopycnal lines on TS plot
+  #' Used internally to create TS plots
+  #' @author E. Chisholm
+  #'  
+  #'    @param sal salinity vector
+  #' @param pot.temp temperature vector in deg C
+  #' @param reference.p reference pressure for calculation, set to 0
+  #' 
+  #' @export
+  #' modified from source:https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R
+  
+  require(gsw)
+  TS <- expand.grid(
+    sal = seq(floor(min(sal, na.rm = TRUE)), ceiling(max(sal, na.rm = TRUE)), length.out = 100),
+    pot.temp = seq(floor(min(pot.temp, na.rm = TRUE)), ceiling(max(pot.temp, na.rm = TRUE)), length.out = 100)
+  )
+  TS$density <- gsw_rho_t_exact(SA = TS$sal, t = TS$pot.temp, p = reference.p) - 1000 # the function calculates in-situ density, but because potential temperature and a single reference pressure is used the result equals potential density at reference pressure
+  
+  # isopycnal labels 
+  # +- horizontal isopycnals
+  h.isopycnals <- subset(TS,
+                         sal == ceiling(max(TS$sal)) & # selects all rows where "sal" is the max limit of the x axis
+                           round(density,1) %in% seq(min(round(TS$density*2)/2, na.rm = TRUE),
+                                                     max(round(TS$density*2)/2, na.rm = TRUE),
+                                                     by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+  if(nrow(h.isopycnals)>0){
+    h.isopycnals$density <- round(h.isopycnals$density, 1) # rounds the density
+    h.isopycnals <- aggregate(pot.temp~density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  }
+  
+  # +- vertical isopycnals
+  if(nrow(h.isopycnals)==0){ # if the isopycnals are not +- horizontal then the df will have no rows
+    rm(h.isopycnals) # remove the no-line df
+    
+    v.isopycnals <- subset(TS, # make a df for labeling vertical isopycnals
+                           pot.temp == ceiling(max(TS$pot.temp)) & # selects all rows where "sal" is the max limit of the x axis
+                             round(density,1) %in% seq(min(round(TS$density*2)/2),
+                                                       max(round(TS$density*2)/2),
+                                                       by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+    v.isopycnals$density <- round(v.isopycnals$density, 1) # rounds the density
+    v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  }
+  
+  
+  return(TS)
+}
+
+plotTS_balloon <- function(x, reference.p = 0, var){
+  
+  #' Make a balloon plot against a TS plot with ROI concentration and sort by taxa
+  #' includes isopycnal line calculations
+  #' @author E. Chisholm
+  #' 
+  #' @param x dataframe with temperature, salinity, number of rois (n_roi_bin)
+  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate ispycnals
+  #' @param var variable on which size of points will be based, eg conc_m3 or n_roi_bin
+  #' @example 
+  #' p <- plotTS_balloon(x)
+  #' p + ggtitle('Concentration by taxa')
+  #'
+  #'  @export
+  #' 
+  #' @note modified from source: https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R
+  #' 
+  #' 
+  
+  
+  
+  #get isopycnal lines
+  sal <-  x$salinity
+  pot.temp <-  x$temperature
+  
+  # make TS long table
+  TS <- expand.grid(
+    sal = seq(floor(min(sal, na.rm = TRUE)), ceiling(max(sal, na.rm = TRUE)), length.out = 100),
+    pot.temp = seq(floor(min(pot.temp, na.rm = TRUE)), ceiling(max(pot.temp, na.rm = TRUE)), length.out = 100)
+  )
+  TS$density <- gsw::gsw_rho_t_exact(SA = TS$sal, t = TS$pot.temp, p = reference.p) - 1000 # the function calculates in-situ density, but because potential temperature and a single reference pressure is used the result equals potential density at reference pressure
+  
+  #removed isopycnal line labelling scheme so that every isopycnal line could be labelled using different method
+  # isopycnal labels for plotting
+  # +- horizontal isopycnals
+  # h.isopycnals <- subset(TS,
+  #                        sal == ceiling(max(TS$sal)) & # selects all rows where "sal" is the max limit of the x axis
+  #                          round(density,2) %in% seq(min(round(TS$density*2)/2, na.rm = TRUE),
+  #                                                    max(round(TS$density*2)/2, na.rm = TRUE),
+  #                                                    by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+  # if(nrow(h.isopycnals)>0){
+  #   h.isopycnals$density <- round(h.isopycnals$density, 2) # rounds the density
+  #   h.isopycnals <- aggregate(pot.temp~density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  # }
+  # 
+  # #removing this calculates more isopycnals to be labelled
+  # #otherwsie only labels one isopycnal line on plot
+  # # +- vertical isopycnals (labels for plotting)
+  # #if(nrow(h.isopycnals)==0){ # if the isopycnals are not +- horizontal then the df will have no rows
+  #  # rm(h.isopycnals) # remove the no-line df
+  #   
+  #   v.isopycnals <- subset(TS, # make a df for labeling vertical isopycnals
+  #                          pot.temp == ceiling(max(TS$pot.temp)) & # selects all rows where "sal" is the max limit of the x axis
+  #                            round(density,2) %in% seq(min(round(TS$density*2)/2),
+  #                                                      max(round(TS$density*2)/2),
+  #                                                      by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+  #   v.isopycnals$density <- round(v.isopycnals$density, 2) # rounds the density
+  #   v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  # #}
+  
+  #plot
+  eval(parse(text = paste0("p <- ggplot()+
+                           #isopycnal lines
+                           geom_contour(data = TS, aes(x = sal, y = pot.temp, z = density), col = 'grey', linetype = 'solid',
+                           breaks = seq(min(round(TS$density*2)/2, na.rm = TRUE), # taking density times 2, rounding and dividing by 2 rounds it to the neares 0.5
+                           max(round(TS$density*2)/2, na.rm = TRUE), 
+                           by = .5)) +
+                           geom_text_contour(data = TS, aes(x = sal, y =pot.temp, z= density),binwidth = 0.5, col = 'grey', nudge_x = 0.1)+ #CONTOUR LABELS
+                           #roi data sorted by number of rois and taxa
+                           geom_point(data = x, aes(x = salinity, y = temperature, size = ", var, "), shape = 21) +
+                           scale_size_area(max_size=10)+ #make balloons bigger
+                           #label legends
+                           labs(size = expression('Concentration /m'^3)) +
+                           labs(col = 'Taxa')+
+                           #set x axis (ensure scaling to data)
+                           scale_x_continuous(name = 'Salinity [PSU]', expand = c(0,0), 
+                           limits = c(floor(min(x$salinity, na.rm = TRUE)), ceiling(max(x$salinity, na.rm = TRUE)))) + # use range of 'sal' for x axis
+                           #set y axis (esure scaled to data)
+                           scale_y_continuous(name = expression(paste('potential temperature [ ',degree,' C]')), 
+                           limits = c(floor(min(x$temperature, na.rm = TRUE)), ceiling(max(x$temperature, na.rm = TRUE)))) +
+                           #get rid of grid lines and text formatting
+                           theme_classic() + theme(text = element_text(size=14)) "
+  )))
+  
+  #using geom_text_contour to label isopycnals instead
+  # add isopycnal labels if isopycnals run +- horizontal
+  # if(exists("h.isopycnals")){
+  #   p <- p + geom_text(data = h.isopycnals,
+  #                      aes(x = ceiling(max(TS$sal)), y = pot.temp, label = density),
+  #                      hjust = "inward", vjust = 0, col = "grey")
+  # }
+  # 
+  # # add isopycnal labels if isopycnals run +- vertical
+  # if(exists("v.isopycnals")){
+  #   p <- p + geom_text(data = v.isopycnals,
+  #                      aes(x = sal, y = ceiling(max(TS$pot.temp)), label = density),
+  #                      vjust = "inward", hjust = 0, col = "grey")
+  # }
+  
+  return(p)
+}
+
+
+plotTS_balloon_EC <- function(x, reference.p = 0){
+  
+  #' Make a balloon plot against a TS plot with ROI concentration and sort by taxa
+  #' includes isopycnal line calculations
+  #' 
+  #' 
+  #' WARNING HARD CODED FOR  5 TAXA, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
+  #' !! Uses isopycnal labelling method which does not label every contour
+  #' 
+  #' @param x dataframe with temperature, salinity, number of rois named by taxa
+  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate ispycnals
+  #' 
+  #' @example 
+  #' p <- plotTS_balloon(x)
+  #' p + ggtitle('Concentration by taxa')
+  #'
+  #'  @export
+  #' 
+  #' @note modified from source: https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R
+  #' 
+  #' 
+  
+ 
+  
+  #get isopycnal lines
+  sal <-  x$salinity
+  pot.temp <-  x$temperature
+  
+  # make TS long table
+  TS <- expand.grid(
+    sal = seq(floor(min(sal, na.rm = TRUE)), ceiling(max(sal, na.rm = TRUE)), length.out = 100),
+    pot.temp = seq(floor(min(pot.temp, na.rm = TRUE)), ceiling(max(pot.temp, na.rm = TRUE)), length.out = 100)
+  )
+  TS$density <- gsw::gsw_rho_t_exact(SA = TS$sal, t = TS$pot.temp, p = reference.p) - 1000 # the function calculates in-situ density, but because potential temperature and a single reference pressure is used the result equals potential density at reference pressure
+  
+  # isopycnal labels for plotting
+  # +- horizontal isopycnals
+  h.isopycnals <- subset(TS,
+                         sal == ceiling(max(TS$sal)) & # selects all rows where "sal" is the max limit of the x axis
+                           round(density,1) %in% seq(min(round(TS$density*2)/2, na.rm = TRUE),
+                                                     max(round(TS$density*2)/2, na.rm = TRUE),
+                                                     by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+  if(nrow(h.isopycnals)>0){
+    h.isopycnals$density <- round(h.isopycnals$density, 1) # rounds the density
+    h.isopycnals <- aggregate(pot.temp~density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  }
+  
+  # +- vertical isopycnals (labels for plotting)
+  if(nrow(h.isopycnals)==0){ # if the isopycnals are not +- horizontal then the df will have no rows
+    rm(h.isopycnals) # remove the no-line df
+    
+    v.isopycnals <- subset(TS, # make a df for labeling vertical isopycnals
+                           pot.temp == ceiling(max(TS$pot.temp)) & # selects all rows where "sal" is the max limit of the x axis
+                             round(density,1) %in% seq(min(round(TS$density*2)/2),
+                                                       max(round(TS$density*2)/2),
+                                                       by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
+    v.isopycnals$density <- round(v.isopycnals$density, 1) # rounds the density
+    v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+  }
+  
+  #initialize taxa
+  #WARNING HARD CODING, 5 TAXA
+  cols <- c('t1' = 'darkorchid3', 't2' = 'deeppink3', 't3' = 'dodgerblue3', 't4' = 'tomato3', 't5' = 'gold3')
+  taxas <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
+  #plot
+  p <- ggplot()+
+    #isopycnal lines
+    geom_contour(data = TS, aes(x = sal, y = pot.temp, z = density), col = "grey", linetype = "solid",
+                 breaks = seq(min(round(TS$density*2)/2, na.rm = TRUE), # taking density times 2, rounding and dividing by 2 rounds it to the neares 0.5
+                              max(round(TS$density*2)/2, na.rm = TRUE), 
+                              by = .5)) +
+    #roi data sorted by number of rois and taxa
+    geom_point(data = x, aes(x = salinity, y = temperature, size = calanus, col = 't1' ), shape = 21) +
+    #geom_point(data = x, aes(x = salinity, y = temperature, size = marine_snow), shape = 21) +
+    #geom_point(data = x, aes(x = salinity, y = temperature, size = stick), shape = 21) +
+    geom_point(data = x, aes(x = salinity, y = temperature, size = chaetognaths, col = 't2'), shape = 21) +
+    geom_point(data = x, aes(x = salinity, y = temperature, size = small_copepod, col = 't3'), shape = 21) +
+    geom_point(data = x, aes(x = salinity, y = temperature, size = krill, col = 't4'), shape = 21) +
+    geom_point(data = x, aes(x = salinity, y = temperature, size = echinoderm_larvae, col = 't5'), shape = 21) +
+    scale_colour_manual(name = 'Taxas', values = cols, guide = guide_legend(), labels = taxas) +
+    scale_size_area(max_size=10)+ #make balloons bigger
+    #label legends
+    labs(size = 'Number of \n ROIs') +
+    #labs(col = 'Taxa')+
+    #set x axis (ensure scaling to data)
+    scale_x_continuous(name = "salinity", expand = c(0,0), 
+                       limits = c(floor(min(x$salinity, na.rm = TRUE)), ceiling(max(x$salinity, na.rm = TRUE)))) + # use range of "sal" for x axis
+    #set y axis (esure scaled to data)
+    scale_y_continuous(name = "potential temperature [C]", 
+                       limits = c(floor(min(x$temperature, na.rm = TRUE)), ceiling(max(x$temperature, na.rm = TRUE)))) +
+    #get rid of grid lines and text formatting
+    theme_classic() + theme(text = element_text(size=14)) 
+  
+  # add isopycnal labels if isopycnals run +- horizontal
+  if(exists("h.isopycnals")){
+    p <- p + geom_text(data = h.isopycnals,
+                       aes(x = ceiling(max(TS$sal)), y = pot.temp, label = density),
+                       hjust = "inward", vjust = 0, col = "grey")
+  }
+  
+  # add isopycnal labels if isopycnals run +- vertical
+  if(exists("v.isopycnals")){
+    p <- p + geom_text(data = v.isopycnals,
+                       aes(x = sal, y = ceiling(max(TS$pot.temp)), label = density),
+                       vjust = "inward", hjust = 0, col = "grey")
+  }
+  
+  return(p)
+}
+
+
+
+vis_cm <- function(cm, classes, type, addLabels = T, threshold = NULL){
+  #' Plots normalized confusion matrix
+  #' @author E. Chisholm
+  #'
+  #' @param cm Confusion matrix (numeric)
+  #' @param classes character list of classes present in confusion matrix
+  #'   (ordered)
+  #' @param type character value 'NN', 'SVM' or 'Dual', appended to 'Confusion
+  #'   Matrix' to create title
+  #' @param addLabels logical value whetehr to add percentage accuracy labels to
+  #'   plot (defaults to TRUE)
+  #' @param threshold numeric value which determines the minimum value of
+  #'   frequency labelled on the plot on a normalized scale of 0-1 (useful for highliighting significant
+  #'   disagreement)
+  #'
+  #' @output a visualization of the confusion matrix, normalized
+  #'
+  #' @export
+  
+  #check dimensions
+  
+  # TODO check that this function runs , removed require(stringr), cant find stringr function 
+ 
+  dimcm <- dim(cm)
+  if (dimcm[1] != length(classes) +1){
+    stop(' Incorrect dimensions, matrix does not match classes given!')
+  }
+  
+  
+  
+  #remove total columns
+  conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
+  #create matrix and normalize
+  input.matrix.normalized <- data.matrix(normalize(conf))
+  
+  
+  #add labels
+  colnames(input.matrix.normalized) = classes
+  rownames(input.matrix.normalized) = classes
+  
+  #build conf mat
+  confusion <- as.data.frame(as.table(input.matrix.normalized))
+  
+  #basic plot
+  plot <- ggplot(confusion) 
+  
+  #add data
+  p <- plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq)) +  #adds data fill
+    theme(axis.text.x=element_text(angle=45, hjust=1)) + #fixes x axis labels
+    scale_x_discrete(name="Actual Class") + #names x axis
+    scale_y_discrete(name="Predicted Class") + #names y axis
+    scale_fill_gradient(breaks=seq(from=-.5, to=4, by=.2)) + #creates colour scale
+    labs(fill="Normalized\nFrequency") + #legend title
+    #theme(legend.position = "none" ) +  #removes legend
+    ggtitle(label = paste(type, 'Confusion Matrix')) 
+  
+  #accuracy labels along diagonal
+  
+  if (addLabels == T){
+    #find diagonal values
+    acc <- confusion$Freq[confusion$Var1 == confusion$Var2]
+    #for each taxa
+    for (i in 1:length(unique(confusion$Var1))){
+      #add text label
+      p <- p + annotate('text', x = i, y = i, #position on diagonal
+                        #label with frequency as percent rounded to 2 digits
+                        label = paste0(round(acc[i], digits = 2)*100, '%'), 
+                        #text formatting
+                        colour = 'white',
+                        size = 3)
+    }
+  }
+  
+  #threshold labels
+  
+  if ( !is.null(threshold)){
+    for (i in 1:length(confusion$Var1)){
+      #if frequency is above threshold
+      if (confusion$Freq[i] > threshold ){
+        #find x and y locations to plot
+        x <- grep(levels(confusion$Var1), pattern = as.character(confusion$Var1[i]) )
+        y <- grep(levels(confusion$Var2), pattern = as.character(confusion$Var2[i]) )
+        #not already labelled on diagonal
+        if( x != y){
+          #add text
+          p <- p + annotate('text', x = x, y = y,
+                            #label - frequency as percent, rounded
+                            label = paste0(round(confusion$Freq[i], digits = 2)*100, '%'),
+                            #text formatting
+                            colour = 'white',
+                            size = 3)
+        }
+      }
+    }
+  }
+  
+  return(p)
+  
+  
+  #end of function
+}
+
+
+
+
+size_histogram <- function(data, param, title = NULL , bw = 0.1, xlim = NULL){
+  #' Plot size frequency histogram
+  #' 
+  #' @param param size parameter of interest (corresponds to sub lists within data argument)
+  #' @param data  size data from auto_measure_mm subset into taxas
+  #' @param title main title for plot, if left null will default based on parameter and taxa   
+  #' @param bw bin width, defines width of bars on histogram, defaults to 0.1, decrease for more detail
+  #' @param xlim plot xlimit, defaults to min max of data if not provided
+  #' 
+  #' 
+  #' @details param options are typically 'Perimeter', 'Area', 'width1','width2',
+  #'   'width3', 'short_axis_length', 'long_axis_length'
+  #' 
+  #' @export
+  #' @author E. Chisholm
+  
+  require(ggplot2)
+  
+  if (is.null(title)){
+    title <- paste(param , ':', data$taxa[1])
+  }
+  if(is.null(xlim)){
+    xlim <- c(min(data[[param]]), max(data[[param]]))
+  }
+  qplot(data[[param]], geom = 'histogram', 
+        binwidth = bw, 
+        main = title, 
+        xlab = 'length (mm)', 
+        ylab = 'Frequency', 
+        fill = I('green'), 
+        col = I('green'), 
+        alpha = I(.2), 
+        xlim = xlim)
+}
+
+
+vis_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = NULL){
+  
+  #' Function to visualize losses to unknown category due to disagreement in Dual classifier
+  #' 
+  #' Makes confusion matrix like plot, where x axis represent SVM classification, y axis represent NN classification
+  #' Allows visual summary of data lost to unknown category
+  #' 
+  #' 
+  #' @param cm dual unknown confusion matrix from VP
+  #' @param classes taxa groups in order, from VP
+  #' @param threshold minimum value which will be labelled in plot
+  #' @param sample_size character string describes the sample size used to train the model being plotted (optional)
+  #' E. Chisholm May 2019
+  #' 
+  #' 
+  #' @export
+  
+  dimcm <- dim(cm)
+  #remove total columns
+  conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
+  #create matrix and normalize
+  input.matrix<- data.matrix(conf)
+  
+  
+  #add labels
+  colnames(input.matrix) = classes
+  rownames(input.matrix) = classes
+  
+  #build conf mat
+  confusion <- as.data.frame(as.table(input.matrix))
+  
+  #basic plot
+  plot <- ggplot(confusion) 
+  
+  #add data
+  p<- plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq, col = 'black')) +  #adds data fill
+    theme(axis.text.x=element_text(angle=90, hjust=1)) + #fixes x axis labels
+    scale_x_discrete(name="SVM Class") + #names x axis
+    scale_y_discrete(name="NN Class") + #names y axis
+    scale_fill_gradient(low = 'orchid', high = 'darkorchid4',breaks=seq(from=-.5, to=4, by=.2)) + #creates colour scale
+    #labs(fill="Normalized\nFrequency") + #legend title
+    theme(legend.position = "none" ) +  #removes legend
+    ggtitle(label = 'Disagreement in Dual Classifier') 
+  
+  
+  threshold<- 0
+  #labels
+  for (i in 1:length(confusion$Var1)){
+    #if frequency is above threshold
+    if (confusion$Freq[i] > threshold ){
+      #find x and y locations to plot
+      x <- grep(levels(confusion$Var1), pattern = as.character(confusion$Var1[i]) )
+      y <- grep(levels(confusion$Var2), pattern = as.character(confusion$Var2[i]) )
+      #not already labelled on diagonal
+      
+      #add text
+      p <- p + annotate('text', x = x, y = y,
+                        #label - frequency as percent, rounded
+                        label = round(confusion$Freq[i], digits = 2),
+                        #text formatting
+                        colour = 'white',
+                        size = 3)
+      
+    }
+  }
+  
+  #add summary text
+  if (summary == TRUE){
+    tab <- as.data.frame(
+      c(
+        'Sample Size' = sample_size , #update for different sizes
+        'Total Disagreement' = sum(confusion$Freq),
+        'Average loss per taxa' = round(sum(confusion$Freq)/length(taxas), digits = 0)
+      )
+    )
+    
+    # using gridExtra
+    
+    p_tab <- tableGrob(unname(tab))
+    grid.arrange(p, p_tab, heights = c(1, 0.2))
+  }
+  return(p)
+  
+}
+
+
+
+
+#contour plot with interpolation
+
+conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1){
+  
+  #' make interpolated contour plot of particular variable
+  #' creates ggplot object onto which you can add binned number of rois
+  #' automatically zeros time axis
+  #' @author E. Chisholm
+  #' 
+  #' @param data data frame needs to include avg_hr, pressure, and variable of
+  #'   choice (var)
+  #' @param var variable in dataframe which will be interpolated and plotted
+  #' @param dup if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')
+  #' @param method Specifies interpolation method, options are 'akima', 'interp'
+  #'   or 'oce', akima and interp produce indentical interpolations, oce uses
+  #'   slightly different method (oce is least error prone)
+  #' @param labels logical value indicating whether or not to plot contour labels
+  #' @param bw bin width defining interval at which contours are labeled
+  #' 
+  #' @export
+  
+  
+ 
+  #interpolate
+  #use interp package rather than akima to avoid breaking R
+  #ref: https://www.user2017.brussels/uploads/bivand_gebhardt_user17_a0.pdf
+  if(method == 'akima'){
+    interpdf <- akima::interp(x = data$avg_hr, y = data$pressure, z = data[[var]], duplicate = dup ,linear = TRUE  )
+  }
+  if(method == 'interp'){
+    interpdf <- interp::interp(x = data$avg_hr, y = data$pressure, z = data[[var]], duplicate = dup ,linear = TRUE  )
+  }
+  if(method == 'oce'){
+    interpdf_oce <- oce::interpBarnes(x = data$avg_hr, y = data$pressure, z = data[[var]] )
+    interpdf <- NULL
+    interpdf$x <- interpdf_oce$xg
+    interpdf$y <- interpdf_oce$yg
+    interpdf$z <- interpdf_oce$zg
+  }
+  #convert to dataframe
+  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
+  
+  #zero time values
+  df$x <- df$x - min(df$x)
+  
+  if(labels == TRUE){
+    p <- ggplot(df) +
+      geom_tile(aes(x = x, y = y, fill = z)) +
+      labs(fill = var) +
+      scale_y_reverse(name = 'Pressure [db]') +
+      scale_x_continuous(name = 'Time [hr]') +
+      theme_classic() +
+      geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+      geom_text_contour(aes(x = x, y = y, z= z),binwidth = bw, col = 'white', check_overlap = TRUE, size = 8)+ #CONTOUR LABELS
+      scale_fill_continuous(na.value = 'white')
+  }else{
+    p <- ggplot(df) +
+      geom_tile(aes(x = x, y = y, fill = z)) +
+      labs(fill = var) +
+      scale_y_reverse(name = 'Pressure (db)') +
+      scale_x_continuous(name = 'Time (hr)') +
+      theme_classic() +
+      geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+      scale_fill_continuous(na.value = 'white')
+  }
+  return(p)
+}
+
+
+
+
+plot_profile_conc <- function(data, taxa, binSize, imageVolume){
+  
+  #' plot a profile of taxa specific ROI concetntration
+  #' @author E. Chisholm
+  #' 
+  #' @param data dataframe which will be run through bin_profile_taxa (see function requirements)
+  #' @param binSize required for bin_profile_taxa (size in metres over which data will be averaged)
+  #' @param imageVolume required for bin_profile_taxa (volume of ROI images calculated in mm^3)
+  #' @param taxa taxa of interest
+  #' 
+  #' @note this function contains hard coding of concentration calculation based on image volume 
+  #' and may require updates with different sampling methods
+  #' 
+  #' @export
+  #' 
+  #'  TODO  !!!! FIX ROI/L CALCULATION INSIDE THIS FUNCTION
+  #create binned profile summary
+  
+  require(ggplot2)
+  bin <- bin_profile_taxa(data, taxa, binSize, imageVolume)
+  #bin <- binQC(bin) #removed QC step due to loss of data
+  roiL <- (bin$n_roi_bin/((0.000108155)*(13)*(bin$time_diff_s)))/1024
+  #calculate concentration in m3, convert to L
+  #subset to less than 100 roi/L
+  p <- ggplot(bin[roiL < 100, ]) +
+    geom_point(aes(y = roiL[roiL < 100], x = min_pressure[roiL< 100])) +
+    scale_x_reverse(name = 'Pressure (db)') +
+    scale_y_continuous(name = 'ROI L^-1') +
+    ggtitle(taxa) + 
+    geom_smooth(aes(y = roiL[roiL < 100], x = min_pressure[roiL < 100])) +
+    coord_flip() +
+    theme_classic()
+  
+  return(p)
+}
+
+
+conPlot_conc <- function(data, dup = 'mean', bw = 1){
+  #contour concentration plots
+  
+  #' @param data vpr depth binned data, with parmaeters avg_hr , pressure, and conc_m3
+  #' @param dup string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')
+  #' @param bw bin width defining contour label intervals
+  #' 
+  #' makes a contour plot of ROI concentration, interpolated over time and depth
+  #' 
+  #' @export
+  #' 
+  
+bindat <- data[is.finite(data$conc_m3),]
+  
+  interpdf <- akima::interp(x = bindat$avg_hr, y = bindat$pressure, z = bindat$conc_m3, duplicate = dup)
+  #convert to dataframe
+  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
+  
+  #zero time values
+  df$x <- df$x - min(df$x)
+  
+  p <- ggplot(df) +
+    geom_tile(aes(x = x, y = y, fill = z)) +
+    labs(fill = 'concentration \n (/m3)') +
+    scale_y_reverse(name = 'Pressure [db]') +
+    scale_x_continuous(name = 'Time [hr]') +
+    theme_classic() +
+    geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+    geom_text_contour(aes(x = x, y = y, z= z), col = 'white', binwidth = bw)+
+    scale_fill_continuous(na.value = 'white')
+  
+  return(p)
+  
+}
+
+
+
+# deprecated --------------------------------------------------------------------------
+#TRIM CTD DATA#
+trim_ctd_plot <- function(ctd){
+  
+  
+  #' 
+  #' 
+  #' Plot a list of CTD casts to determine if they require trimming
+  #' Internally calls trim_ctd to trim casts based on user input
+  #' 
+  #' @param ctd a list of oce CTD objects to be trimmed
+  #' 
+  #' @note If each ctd object contains multiple up/down casts, 
+  #' different procedure may be required
+  #' this function only trims based on the start/end index of entire data
+  #' 
+  
+  # 
+  # 
+  # for (i in 1 :length(ctd)){
+  #   
+  #   #trim ctd object
+  #   plot(ctd[[i]], which = 1)
+  #   par(new = TRUE)
+  #   title(main = i)
+  #   
+  #   trim <- readline('Does this cast require trimming? (y/n)')
+  #   end_Trim <- readline('Does this cast require trimming at the end? (y/n)')
+  #   
+  #   if(trim == 'y'){
+  #     plot(ctd[[i]][['salinity', 'data']][1:10000])
+  #     abline(v = 100, col = 'red')
+  #     abline(v = 200, col = 'orange')
+  #     abline(v = 300, col = 'yellow')
+  #     abline(v = 400, col = 'green')
+  #     abline(v = 500, col = 'blue')
+  #     abline(v = 600, col = 'orchid')
+  #     abline(v = 700, col = 'pink')
+  #     abline(v = 800, col = 'purple')
+  #     trimIndex <- readline('Provide desired index for trimming (numeric) **lines at 100 point intervals**')
+  #     trim_ctd(ctd[[i]], trimLength = trimIndex)
+  #     
+  #   }
+  #   
+  #   if (trim  == 'y' & end_Trim=='y'){
+  #     plot(ctd[[i]][['salinity', 'data']][1:10000])
+  #     abline(v = 100, col = 'red')
+  #     abline(v = 200, col = 'orange')
+  #     abline(v = 300, col = 'yellow')
+  #     abline(v = 400, col = 'green')
+  #     abline(v = 500, col = 'blue')
+  #     abline(v = 600, col = 'orchid')
+  #     abline(v = 700, col = 'pink')
+  #     abline(v = 800, col = 'purple')
+  #     trimIndex <- readline('Provide desired index for trimming (numeric)')
+  #     
+  #     plot(ctd[[i]][['salinity', 'data']][(length(ctd[[i]][['salinity', 'data']])-10000): length(ctd[[i]][['salinity', 'data']])], ylab = '' )
+  #     abline(v = 10000, col = 'red')
+  #     abline(v = 9900, col = 'orange')
+  #     abline(v = 9800, col = 'yellow')
+  #     abline(v = 9700, col = 'green')
+  #     abline(v = 9600, col = 'blue')
+  #     abline(v = 9500, col = 'orchid')
+  #     abline(v = 9400, col = 'pink')
+  #     abline(v = 9300, col = 'purple')
+  #     endIndex <- readline('Provide desired index for trimming end (numeric)')
+  #     
+  #     trim_ctd(ctd[[i]], trimLength = as.numeric(trimIndex), end = TRUE, endTrim = as.numeric(endIndex))
+  #     
+  #   }
+  # }
+}
