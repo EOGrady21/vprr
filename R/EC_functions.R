@@ -18,6 +18,170 @@
 NULL
 #### PROCESSING FUNCTIONS ####
 
+#' Load RData files
+#'
+#' Loads VPR processed RData files from station data, accounts for old naming
+#' scheme, will load either 'data' or 'auto_measure_ls' objects into
+#' consistently named list.
+#'
+#' @note \strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_ls'
+#'
+#' @author K Sorochan
+#'
+#' @param x data file names (with full path specified)
+#'
+#'
+#' @return a list of dataframe objects
+#' @export
+#'
+#' @examples
+#'
+#' # Get filenames
+#' path_name <- paste0(cruise, "_data_files")
+#'
+#' names_stationdata <- list.files(path = path_name, pattern = "stationData_W58", full.names = TRUE)
+#' names_measdata <- list.files(path = path_name, pattern = "meas_dat_W58", full.names = TRUE)
+#'
+#' # Read in roi and measdata
+#' stationdata <- loadrdata(names_stationdata)
+#' measdata <- loadrdata(names_measdata)
+
+loadrdata <- function(x) {
+
+  data_ls <- list()
+
+  for(i in x) {
+
+    load(x)
+
+    z <- load(x)
+
+    if(z == "data") {
+
+      data_ls[[which(i == x)]] <- data
+
+    }
+
+    if(z == "auto_measure_mm") {
+
+      data_ls[[which(i == x)]] <- auto_measure_mm
+
+    }
+
+  }
+
+  return(data_ls)
+
+}
+
+#' Bin VPR size data
+#'
+#' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
+#'
+#' @param data_all a VPR CTD and measurement dataframe from \code{\link{format_size_data}}
+#' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
+#'
+#' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
+#'
+#' @export
+#'
+#' @examples
+bin_size_data <- function(data_all, bin_mea){
+
+  #Bin by depth
+  p <- data_all$pressure
+  max_pressure <- max(p, na.rm = TRUE)
+  min_pressure <- min(p, na.rm = TRUE)
+  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = bin_mea)
+
+  #Get variables of interest using oce bin functions
+
+  med <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
+  iqr3 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
+  iqr1 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
+  n_obs <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
+  salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
+
+  if (!(length(pressure) == length(salinity))) {
+
+    salinity_mean <- binMean1D(p, data_all$salinity, xbreaks = x_breaks)$result
+
+    idx_rm <- which(is.na(salinity_mean))
+
+    #informs user where bins were removed due to NAs
+    #note if a bin is 'NA' typically because there is no valid data in that depth range,
+    #if you have a lot of NA bins, think about increasing your binSize
+    print(paste('Removed bins at', pressure[idx_rm]))
+
+    lp <- length(pressure)
+    pressure <- pressure[-idx_rm]
+
+  }
+
+  station_id <- unique(data$station)
+
+  box_p_data <- data.frame(pressure, median = med, iqr1, iqr3, n_obs, station_id)
+
+  return(box_p_data)
+}
+
+#' Format CTD and Size data from VPR
+#'
+#' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
+#'
+#' @param data VPR dataframe from \code{\link{merge_ctd_roi}}, with calculated variable sigmaT
+#' @param measdata VPR size data frame from \code{\link{read_aid}}
+#' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
+#' @param max_pressure maximum pressure cut off on data, allows comparison
+#'   between stations of different depths, should be the maximum depth which all
+#'   stations considered reach
+#'
+#' @return A dataframe containing VPR CTD and size data
+#' @export
+#'
+#' @examples
+#'
+#' stationdata <- loadrdata(names_stationdata, path_name)
+#' measdata <- loadrdata(names_measdata, path_name)
+#'
+#' data <- data.frame(stationdata)
+#'
+#' data_mea <- data.frame(measdata)
+#'
+#' data_all <- format_size_data(data, data_mea, taxa_of_interest = c("Calanus"))
+
+format_size_data <- function(data, data_mea, taxa_of_interest, max_pressure = 100){
+
+
+data <- data[!duplicated(data$time_ms),]
+
+#get CTD data
+data_ctd <- data %>%
+  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+  dplyr::mutate(., day_hour = paste(day, hour, sep = ".")) %>%
+  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+  dplyr::select(., frame_ID, pressure, temperature, salinity, sigmaT, fluorescence_mv, turbidity_mv)
+
+#get measurement data
+data_mea <- data_mea %>%
+  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+  dplyr::select(., -Perimeter, -Area, -width1, -width2, -width3, -short_axis_length)
+
+#combine measurement and ctd data
+data_all <- right_join(data_ctd, data_mea) %>%
+  dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
+  dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+  dplyr::filter(., taxa %in% taxa_of_interest)
+
+#cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
+data_all <- data_all %>%
+  dplyr::filter(., pressure <= max_pressure)
+
+return(data_all)
+
+}
 
 #' Copy VPR images into folders
 #'
