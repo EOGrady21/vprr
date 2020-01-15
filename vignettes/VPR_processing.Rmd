@@ -137,6 +137,14 @@ There are a series of functions written to achieve this goal. VPR images are dis
 
 The reclassification process is reccommended to be run for only specific taxa which VP has clearly struggled to classify based on manual inspection of image folders. This will also depend on the groups of interest to researchers. In analysis performed by BIO, Calanus and krill were the main species of interest. VP frequently misclassified krill images in the chaetognath and ctenophore categories, so reclassification experts went through the calanus, krill, chaetognath and ctenophore image folders. It is ideal to not have to reclassify all image folders to improve efficiency, at the very least, we would reccommend not sorting through marine snow or blurry image folders, as VP does a good job of classifying these images and the folders can be extremely large and time consuming to sort through. 
 
+Reclassification can also be an opportunity to create new, fine resolution classification groups which could not previously be identified by Visual Plankton. For example, if Visual Plankton identifies a classification group 'copepods' but it would be helpful to split this group into small and large copepods for analysis, small and large copepod classification groups can be added during reclassification. By adding new classification groups to your 'taxa of interest' (`taxa_of_interest` variable in example below), it allows the expert performing reclassification to label images with these new classification groups. In the example below, Metridia and Paraeuchaeta were added as new classification groups that allowed finer resolution zooplankton community data. After reclassification is run, new files are created for new taxa which are identical in format to original files produced by VP. This feature has become very useful for getting finer scale species data, it would also be useful if data was being reprocessed with a new focal species or group of interest because it would allow an expert to dig deeper into a specific classification group. It can also be useful if, during expert reclassification, a certain classification group which was not included in VP classifications, is noticed to be prominent.
+
+
+There are three sections of this reclassification. 
+
+Step A includes prepping the environment by setting some variables. The processing environment is loaded, which includes the `auto_id_folder` variable. Day and hour of interest should be set manually. Most experts would agree that an hour of data represents a significant chunk of work and you will likely want to take breaks in between reclassifying hours. Your taxa of interest should also be set, these taxa are the existing VP classification groups you will be sorting through, as well as the new taxa you may want to reclassify images under. The `vprr::add_new_taxa()` function sets up the folder structure for any new taxa which have been added to your list of interest. Then the reclassification is run with `vprr::clf_check()`. `vprr::clf_check()` has a few optional arguments to customize the reclassification experience, notably `gr` which is a logical value determining whether or not reclassification options appear as pop ups or in the ocmmand line, as well as `img_bright` which is a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows experts to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish. 
+
+
 ```
 #### STEP 2- A : CLASSIFICATION CHECK
 # -------------------------------------
@@ -147,7 +155,8 @@ The reclassification process is reccommended to be run for only specific taxa wh
 
 #### USER INPUT REQUIRED ####     
 
-basepath <- 'E:/COR2019002/image pulls/image_pull_6/' # must end with /
+load('COR2019002_env.RData')
+
 day <- '235' 
 hr <- '19' # keep leading zeros, must be two characters
 
@@ -174,14 +183,18 @@ taxa_of_interest <-
 
 # add new taxa (optional)
 
-add_new_taxa(taxa = taxa_of_interest, basepath)
-# ensures there are folders for all taxa of interest
+add_new_taxa(taxa = taxa_of_interest, auto_id_folder)
+# ensures there is proper folder structure for all taxa of interest
 
 # reclassify images
-clf_check(day = day, hour= hr, basepath = basepath,gr = FALSE, 
+clf_check(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
           taxa_of_interest = taxa_of_interest, scale = 'x300',
           opticalSetting = 'S3')
+```
 
+Step B should be run after each hour of data is completed although it can be run at any point following the reclassification of an hour of data. `vprr::clf_check()` produces two file types as a record of reclassification, this step takes those output files and uses them to appropriately modify the original VP files. These output files are found in your working directory, orgnized inside folders named by the day and hour that the data was collected. The function `vprr::new_aids()` takes these reclassification files and outputs VP format classification files, into your auto id folder directory. 
+
+```
 
 #### STEP 2 - B: REORGANIZE ROIS 
 # -----------------------------------------
@@ -194,17 +207,22 @@ reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = T
 
 
 # MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES
-new_aids(reclassify, misclassified, basepath)
+new_aids(reclassify, misclassified, auto_id_folder)
 
 
+```
 
+Step C, the last step of reclassifcation includes some manual file organization and final checks. Once all classification (aid & aidmeas) files have been created, they are contained in taxa folders inside your working directory. These files need to be reorganized within your original Visual Plankton directory. You should use the new aid and aidmeas files created to replace the original VP files where you have performed reclassification. Remember this may not be for all classification groups, or all days/hours of data. You may also want to archive a copy of the orginal classification files, in case you need to rerun processing, this will prevent you from having to rerun Visual Plankton in MATLAB which can be time consusming. Once files have been manually organized, there are two checks that can be performed. `vprr::aid_file_check()` is strongly recommended, it removes any empty aid files which can cause errors in processing down the line. It also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. Empty files are created if there are no images of a specific classification group in that hour of data, but should be removed as they do not contain any data. There have been bugs in the past where aid and aidmeas files within an hour were different lengths, because these files represent the same data but the only key between them is line number, it is important that they represent the same number of data points. There was also a bug in the past where some images from different VPR tows were getting pulled together due to a formatting error in raw data on IML2018051. 
+
+
+```
 
 #ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT #
 #==========================================================================================#
 #                            ONCE ALL AID FILES ARE COMPLETE                               #
 #==========================================================================================#
 #                                     REQUIRED!!!!                                         #
-#       manual organization of new aid and aidmeas files into basepath directory           #
+#       manual organization of new aid and aidmeas files into base path directory          #
 #==========================================================================================#
 
 
