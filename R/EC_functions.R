@@ -2906,3 +2906,103 @@ exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format =
   #
 }
 
+
+image_check <- function(folder_dir, basepath){
+
+  #' @param folder_dir directory path to day hour folders containing manually
+  #'   reorganized images of a specific taxa eg.
+  #'   'C:/data/cruise_IML2018051/krill/images/' where that folder contains
+  #'   '......d123.h01/' which contains manually sorted images of krill
+  #' @param basepath directory path to original Visual Plankton files, specified
+  #'   down to the classification group. eg.
+  #'   'C:/data/cruise_IML2018051/autoid/krill'
+  #'
+  #'
+# this function can be used to edit aid and aidmeas files based on the images contained in a folder
+  #useful if images were reorganized into classifciation groups manually in file explorer and then
+  #user wants to translate this reorganization into data files
+
+
+##part two of krill check to remove erroneus images
+
+#after having copied krill images into folder using get_autoid_mod.R
+
+#then manually removing any images which were not Krill
+
+#once this is run, processing and plotting can be done
+
+#E. Chisholm Sept 2019
+
+stfolders <- list.files(folder_dir, full.names = TRUE)
+
+for (i in 1:length(stfolders)){ #for each day/hour loop
+
+  krill_ver <- list.files(stfolders[i])
+
+
+  #find matching original files
+  #dh_ind <- stringr::str_locate(stfolders[i], pattern = 'aid.d')
+
+  #dayhr <- substr(stfolders[i], dh_ind[2], nchar(stfolders[i])-5 )
+
+  day <- getday(stfolders[i])
+  hour <- gethour(stfolders[i])
+
+  dayhr <- paste0('d', day, '.h', hour)
+
+  #aid and aidmea
+  aid_fns <- list.files(paste0(basepath, '/aid'), pattern = dayhr, full.names = TRUE)
+
+  aidmeas_fns <- list.files(paste0(basepath, '/aidmea'), pattern =  dayhr, full.names = TRUE)
+
+  #get indexes of aids which are not matched in krill_check and remove
+
+  #read in aid file
+
+  aid <- read.table(aid_fns ,stringsAsFactors = FALSE)
+
+  #get roi substring
+  #aid_old_gen <- substr(aid$V1, nchar(aid$V1) - 17, nchar(aid$V1))
+  #aid_old_gen <- trimws(aid_old_gen, which = 'both')
+
+  aid_old_gen <- getroiid(aid$V1)
+
+  #find index of images which are in maually verified folder
+
+  ver_ind <- aid_old_gen %in% krill_ver
+
+
+  ver_ind_unl <- grep(ver_ind, pattern = 'FALSE')
+
+  #remove any ROI number which do not match verified index
+  aid_new <- aid$V1[ -ver_ind_unl]
+
+
+
+  #read in aidmea file
+  aidMea_old <- read.table(aidmeas_fns)
+
+  #use same verified index to subset aidmea file
+  aidMea_new <- aidMea_old[-ver_ind_unl, ]
+
+
+  #check that files match
+
+  if( length(aidMea_new$V1) != length(aid_new)){
+    stop('roi and size files do not match!')
+  }
+
+  #print new aid and aidmea files
+
+  write.table(file = aidmeas_fns, aidMea_new, sep = "    ", quote = FALSE, col.names = FALSE, row.names = FALSE)
+
+  write.table(file = aid_fns, aid_new, quote = FALSE, col.names = FALSE, row.names = FALSE)
+
+  cat(' \n')
+  cat(aidmeas_fns, 'updated! \n')
+  cat(aid_fns, 'updated! \n')
+  cat('\n')
+
+}
+}
+
