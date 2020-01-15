@@ -22,15 +22,15 @@ consistently named list.
 }
 \examples{
 
-#Get filenames
+# Get filenames
 path_name <- paste0(cruise, "_data_files")
 
-names_stationdata <- list.files(path = path_name, pattern = "stationData_W58")
-names_measdata <- list.files(path = path_name, pattern = "meas_dat_W58")
+names_stationdata <- list.files(path = path_name, pattern = "stationData_W58", full.names = TRUE)
+names_measdata <- list.files(path = path_name, pattern = "meas_dat_W58", full.names = TRUE)
 
-#Read in roi and measdata
-stationdata <- loadrdata(names_stationdata, path_name)
-measdata <- loadrdata(names_measdata, path_name)
+# Read in roi and measdata
+stationdata <- loadrdata(names_stationdata)
+measdata <- loadrdata(names_measdata)
 }
 \author{
 K Sorochan

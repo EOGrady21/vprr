@@ -1047,6 +1047,8 @@ list_ctd_files <- function(castdir, cruise, day_hour) {
 #'
 #' @return A string of only the 10 digit roi identifier
 #' @export
+#'
+#'  @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
 getroiid <- function(x) {
 
   m <- gregexpr("\\d{10}", x)
@@ -1066,6 +1068,8 @@ getroiid <- function(x) {
 #'
 #' @return A string of only the taxa id
 #' @export
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}
 gettaxaid <- function(x) {
 
   taxa_ids <- c(
@@ -1121,6 +1125,8 @@ gettaxaid <- function(x) {
 #'
 #' @return A string of only the day identifier (i.e., "dXXX")
 #' @export
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
 getday <- function(x) {
 
   m <- gregexpr("[d]+\\d{3}", x)
@@ -1142,6 +1148,8 @@ gethour <- function(x) {
   #'
   #' @return A string of only the hour identifier (i.e., "hXX")
   #' @export
+  #'
+  #'  @seealso \code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
 
   m <- gregexpr("[h]+\\d{2}", x)
 

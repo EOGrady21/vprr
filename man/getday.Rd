@@ -15,6 +15,9 @@ A string of only the day identifier (i.e., "dXXX")
 \description{
 Get day identifier
 }
+\seealso{
+\code{\link{gethour}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+}
 \author{
 K Sorochan
 }
