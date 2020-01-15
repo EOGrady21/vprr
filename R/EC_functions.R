@@ -2630,3 +2630,279 @@ trim_ctd_plot <- function(ctd){
   #   }
   # }
 }
+
+
+#### IMAGE ANALYSIS FUNCTIONS ####
+
+#' Explore reclassified images
+#'
+#' Pull image from reclassified or misclassified files produced during \code{\link{clf_check}}
+#'
+#' @param day Character string, 3 digit day of interest of VPR data
+#' @param hour Character string, 2 digit hour of interest of VPR data
+#' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
+#' @param taxa_of_interest Classification group from which to pull images
+#' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file seperator MUST BE "\\\\" in order to be recognized
+#'
+#' @return folders of misclassified or reclassified images inside image_dir
+#' @export
+#'
+#'
+exploreImages_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_dir){
+
+  ####directory where misclassified/reclassified files
+  ####base_dir <- 'C:/VPR_PROJECT/r_project_data_vis/classification files/'
+
+
+  #basepath where ROI images are
+  ##image_dir <- 'E:\\data\\cruise_IML2018051\\'
+  ##setwd(image_dir)
+
+  #get misclassified/ reclassified images
+
+  day_hour <- paste0('d', day, '.h', hour)
+
+
+  folder <- list.files(base_dir, pattern = day_hour, full.names = TRUE)
+
+  files <- list.files(folder, pattern = taxa_of_interest)
+
+  #pulls out missclassified files
+  #(you only want to look at images
+  #you have reclassified as specific taxa - select "n" if pop up appears)
+
+  #only exception (reason to select "y",
+  #would be to look specifically at images that you pulled out of a taxa,
+  #for example to check the accuracy of an automatic ID scheme)
+  tt <- grep(files, pattern = 'misclassified')
+  if (length(tt) > 0 ){
+    print(paste('Warning, misclassified files found for ', taxa_of_interest))
+    ans <- readline('Would you like to include these files? (y/n)
+                    *NOTE, looking at misclassified images will show you images that were removed from you taxa of interest
+                    during reclassification, this may be useful to get an idea of the accuracy of your automatic
+                    classification or which images are confusing your automatic classification.')
+    if(ans == 'n'){
+      files <- files[-tt]
+      folder_name <- "reclassified_ROIS"
+    }else{
+      files <- files[tt]
+      folder_name <- "misclassified_ROIS"
+    }
+  }
+
+  print(paste('>>>>>', files, 'found for', taxa_of_interest, ' in ', day_hour, '!'))
+  print('>>>>> Copying images now!')
+
+
+
+  #runs through reclassified files (should only be one)
+  for(ii in files) {
+
+
+    #reads in roi strings
+    roi_path_str <- read.table(paste0(base_dir, '/', day_hour, '/', ii), stringsAsFactors = F)
+
+    #sub out for new basepath where rois are located
+    #note this is an extra step because I moved the "data" folder from my C drive
+    tt<- stringr::str_locate(string = roi_path_str$V1[1], pattern = 'rois')
+    sub_roi_path <- substr(roi_path_str$V1, tt[1], nchar(roi_path_str))
+    new_roi_path <- file.path(image_dir, sub_roi_path, fsep = "\\")
+
+    #Create a new folder for autoid rois (where images will be stored)
+    roi_folder <- file.path(image_dir, taxa_of_interest, folder_name, fsep = "\\")
+    command1 <- paste('mkdir', roi_folder, sep = " ")
+    shell(command1)
+
+    #Copy rois to this directory
+    for (iii in 1:length(new_roi_path)) {
+
+      dir_tmp <- as.character(new_roi_path[iii])
+      command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
+      shell(command2)
+
+      print(paste(iii, '/', length(new_roi_path),' completed!'))
+    }
+print(paste('Images saved to ', roi_folder))
+  }
+
+
+
+
+
+
+}
+
+
+exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format = 'list'){
+
+  #' Explore VPR images by depth bin
+  #'
+  #' Allows user to pull VPR images from specific depth ranges, to investigate trends before classification of images into taxa groups
+  #'
+  #'
+  #'
+  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param min.depth minimum depth of ROIs you are interested in looking at
+  #' @param max.depth maximum depth of ROIs you are interested in exploring
+  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list'
+  #'     a list of file names or 'image' where images will be displayed
+  #'
+  #' @export
+  #'
+  #' @examples
+  #' #determine range of interest
+  #' mid <- as.numeric(readline('Minimum depth of interest? '))
+  #' mad <- as.numeric(readline('Maximum depth of interest? '))
+  #' #run image exploration
+  #' roi_files <- exploreImages_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
+  #'
+  #' #copy image files into new directory to be browsed
+  #' roi_file_unlist <- unlist(roi_files)
+  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, ''))
+  #' dir.create(newdir)
+  #' file.copy(roi_file_unlist, newdir)
+  #'
+  #'
+  data_filtered <- data %>%
+    dplyr::filter(., pressure >= min.depth) %>%
+    dplyr::filter(., pressure <= max.depth)
+
+  if(length(data_filtered$roi) < 1){
+    stop('No data exists within this depth range!')
+  }
+
+
+  #search for ROI files based on data
+  roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
+  roi_file_list <- list()
+  options(warn = 1)
+  for (i in 1:length(roi_files)){
+    roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
+    if (length(roi_file_list[[i]]) >= 1){
+      print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
+    }else{
+      warning('No file found in directory (', roiFolder, ')  matching ', roi_files[i])
+    }
+  }
+
+  if( format == 'list'){
+    return(roi_file_list)
+  }
+  if (format == 'image'){
+    for(i in 1:length(roi_file_list)){
+      for(ii in 1:length(roi_file_list[[i]])){
+        data_roi <- data_filtered %>%
+          dplyr::filter(., roi == roi[i])
+        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
+          #print metadata on image
+          #image_annotate(text = roi_files[i], color = 'white', size = 10) %>%
+          #image_annotate(text = meta_str, color = 'white', location = '-100') %>%
+          magick::image_scale(geometry = 'x300')
+
+        print(pp)
+        #print metadata
+        #cat(paste0(roi_files[i], '\n'))
+        #cat( paste0('time (hr): ', data_roi$avg_hr, '\n temperature: ', data_roi$temperature, '\n pressure: ', data_roi$pressure, '\n salinity: ', data_roi$salinity, '\n'))
+
+      }
+    }
+  }
+
+
+
+
+  #
+}
+
+
+exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format = 'list', taxa_of_interest){
+
+  #' Explore images by depth and classification
+  #'
+  #' Pulls images from specific depth ranges in specific classification group
+  #'
+  #'
+  #'
+  #'
+  #'
+  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param min.depth minimum depth of ROIs you are interested in looking at
+  #' @param max.depth maximum depth of ROIs you are interested in exploring
+  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list'
+  #'     a list of file names or 'image' where images will be displayed
+  #' @param taxa_of_interest character string of classification group from which to pull images
+  #'
+  #' @export
+  #'
+  #' @examples
+  #' #determine range of interest
+  #' mid <- as.numeric(readline('Minimum depth of interest? '))
+  #' mad <- as.numeric(readline('Maximum depth of interest? '))
+  #' #run image exploration
+  #' roi_files <- exploreImages_taxa(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list', taxa = 'Calanus')
+  #'
+  #' #copy image files into new directory to be browsed
+  #' roi_file_unlist <- unlist(roi_files)
+  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', taxa))
+  #' dir.create(newdir)
+  #' file.copy(roi_file_unlist, newdir)
+  #'
+  #'
+
+  if(length(taxa_of_interest) > 1){
+    stop("Only explore one taxa at a time!")
+  }
+
+  data_filtered <- data %>%
+    dplyr::filter(., pressure >= min.depth) %>%
+    dplyr::filter(., pressure <= max.depth) %>%
+    dplyr::filter(., taxa %in% taxa_of_interest)
+
+  if(length(data_filtered$roi) < 1){
+    stop('No data exists within this depth and taxa range!')
+  }
+
+
+  #search for ROI files based on data
+  roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
+  roi_file_list <- list()
+  options(warn = 1)
+  for (i in 1:length(roi_files)){
+    roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
+    if (length(roi_file_list[[i]]) >= 1){
+      print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
+    }else{
+      warning('No file found in directory (', roiFolder, ')  matching ', roi_files[i])
+    }
+  }
+
+  if( format == 'list'){
+    return(roi_file_list)
+  }
+  if (format == 'image'){
+    for(i in 1:length(roi_file_list)){
+      for(ii in 1:length(roi_file_list[[i]])){
+        data_roi <- data_filtered %>%
+          dplyr::filter(., roi == roi[i])
+        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
+          magick::image_scale(geometry = 'x300')
+
+        print(pp)
+        #print metadata
+        cat(paste0(roi_files[i], '\n'))
+        cat( paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n'))
+
+      }
+    }
+  }
+
+
+
+
+  #
+}
+
