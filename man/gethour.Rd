@@ -15,6 +15,9 @@ A string of only the hour identifier (i.e., "hXX")
 \description{
 Get hour identifier
 }
+\seealso{
+\code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+}
 \author{
 K Sorochan
 }

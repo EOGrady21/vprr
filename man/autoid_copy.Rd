@@ -7,7 +7,7 @@
 autoid_copy(basepath, day, hour, classifier_type, classifier_name, taxa)
 }
 \arguments{
-\item{basepath}{A file path to your autoid folder where VP data is stored eg. "C:\\data\\cruise_XXXXXXXXXXXXXXX\\autoid\\"}
+\item{basepath}{A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"}
 
 \item{day}{character string representing numeric day of interest}
 
