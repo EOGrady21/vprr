@@ -18,6 +18,8 @@
 NULL
 #### PROCESSING FUNCTIONS ####
 
+
+
 #' Load RData files
 #'
 #' Loads VPR processed RData files from station data, accounts for old naming
@@ -187,7 +189,7 @@ return(data_all)
 #'
 #' Organize VPR images into folders based on classifications provided by visual plankton
 #'
-#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\data\\cruise_XXXXXXXXXXXXXXX\\autoid\\"
+#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"
 #' @param day character string representing numeric day of interest
 #' @param hour character string representing hour of interest
 #' @param classifier_type character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton
@@ -212,7 +214,7 @@ autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, t
   }
 
   day_hour <- paste0('d', day, '.h', hour)
-  type_day_hour <- paste0(type,'aid.', day_hour)
+  type_day_hour <- paste0(classifier_type,'aid.', day_hour)
 
 for (i in folder_names) {
 
@@ -225,7 +227,7 @@ for (i in folder_names) {
   subtxt <- grep(txt_roi, pattern = type_day_hour, value = TRUE)
   txt_roi <- subtxt
 
-  subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
+  subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
   txt_roi <- subtxt2
 
   for(ii in txt_roi) {
@@ -1046,9 +1048,11 @@ list_ctd_files <- function(castdir, cruise, day_hour) {
 #' @param x A string specifying directory and file name of roi
 #'
 #' @return A string of only the 10 digit roi identifier
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
 #' @export
 #'
-#'  @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
+#'
 getroiid <- function(x) {
 
   m <- gregexpr("\\d{10}", x)
@@ -1067,9 +1071,11 @@ getroiid <- function(x) {
 #' @param x A string specifying the directory of the "taxafolder", containing the taxa id
 #'
 #' @return A string of only the taxa id
-#' @export
 #'
 #' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}
+#' @export
+#'
+#'
 gettaxaid <- function(x) {
 
   taxa_ids <- c(
@@ -1124,9 +1130,11 @@ gettaxaid <- function(x) {
 #' @param x A string specifying the directory and file name of the size file
 #'
 #' @return A string of only the day identifier (i.e., "dXXX")
-#' @export
 #'
 #' @seealso \code{\link{gethour}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+#' @export
+#'
+#'
 getday <- function(x) {
 
   m <- gregexpr("[d]+\\d{3}", x)
@@ -1147,9 +1155,10 @@ gethour <- function(x) {
   #' @param x A string specifying the directory and file name of the size file
   #'
   #' @return A string of only the hour identifier (i.e., "hXX")
+  #' @seealso \code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
   #' @export
   #'
-  #'  @seealso \code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+  #'
 
   m <- gregexpr("[h]+\\d{2}", x)
 
@@ -1455,6 +1464,150 @@ aid_file_check <- function(basepath, cruise){
 
 
 
+#deprecated ----------------------------------------------------------------------------------------------------------------------
+getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSetting) {
+
+  #' pull roi measurements from all taxa, all files
+  #'
+  #' @param taxafolder path to taxa folder (base -- autoid folder)
+  #' @param nchar_folder number of characters in basepath
+  #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
+  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+  #'
+  #' @note This function is very finicky, easily broken because it relies on character string splitting.
+  #' taxaFolder argument should not end in a backslash, please check output carefully to
+  #' ensure taxa names or ROI numbers have been properly sub string'd
+  #' @export
+  #browser()
+
+
+  auto_measure_mm_alltaxa_ls <- list()
+  # browser()
+  for (i in 1:length(taxafolder)) {
+    # print(paste( 'i = ',i))
+    #find files
+    sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+    roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+
+    #remove dummy files for clf_check
+    #check for dummy files
+    sfd <-  grep(sizefiles, pattern = 'dummy')
+    rfd <-  grep(roifiles, pattern = 'dummy')
+
+    if (length(rfd) != 0){
+      # print('dummy files removed')
+      #remove dummy files from meas consideration to avoid error
+      sizefiles <- sizefiles[-sfd]
+      roifiles <- roifiles[-rfd]
+
+    }
+    #skip for blank taxa
+    #browser()
+    if(length(roifiles) == 0){
+      SKIP = TRUE
+      # print(paste(i , ': SKIP == TRUE'))
+      #browser()
+      #i = i+1
+      #find files
+      # sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+      # roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+
+    } else{
+      SKIP = FALSE
+      # print(paste(i, 'SKIP == FALSE'))
+
+      #prevent mixing of taxa in same list where some hours were not properly being overwirtten
+      auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
+
+
+      for(j in 1:length(sizefiles)) {
+        #print(paste('j = ', j))
+        sizefile <- sizefiles[j]
+        roifile <- roifiles[j]
+
+        ##make sure file will not produce error
+        mtry <- try(read.table(sizefile, sep = ",", header = TRUE),
+                    silent = TRUE)
+
+        if (class(mtry) != "try-error") {
+          # print('try error == FALSE')
+          #Get info
+          roi_ID <- read.table(roifile, stringsAsFactors = F)
+          auto_measure_px <- read.table(sizefile, stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+
+        } else {
+          # print(paste('cannot open roi file from ', taxafolder[i]))
+          #      print(roifiles)
+          stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
+        }
+
+        #convert to mm
+        if (unit == 'mm'){
+          auto_measure_mm_tmp <- px_to_mm(auto_measure_px, opticalSetting) #Convert to mm
+        }else{
+          #or leave in pixels
+          auto_measure_mm_tmp <- auto_measure_px
+        }
+
+        #auto_measure_mm$roi_ID <- (roi_ID$V1) #Get roi ids
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!#
+        #!! WARNING HARD CODING !!#
+        #!!!!!!!!!!!!!!!!!!!!!!!!!#
+
+        #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
+        #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, getroiid)
+
+        #taxa <- substr(taxafolder[i], nchar_folder + 2, nchar(taxafolder[i])) #Get taxa label
+        #taxa <- substr(taxafolder[i], nchar_folder + 1, nchar(taxafolder[i])) #Get taxa label
+
+        #auto_measure_mm$taxa <- rep(taxa, nrow(auto_measure_mm)) #add taxa to dataset
+
+
+        #day_hour <- substr(sizefile, nchar(sizefile) - 7, nchar(sizefile))
+        #auto_measure_mm$day_hour <- rep(day_hour, nrow(auto_measure_mm))
+        #saveRDS(auto_measure_mm, paste(taxafolder, "/", "measurements_mm_", taxa[i], ".RDS", sep=""))
+
+        taxafolder_tmp <- taxafolder[i]
+        # browser()
+        auto_measure_mm <- auto_measure_mm_tmp %>%
+          dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, getroiid))) %>%
+          dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, gettaxaid))) %>%
+          dplyr::mutate(., day = unlist(lapply(sizefile, getday))) %>%
+          dplyr::mutate(., hour = unlist(lapply(sizefile, gethour))) %>%
+          dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
+          dplyr::select(., -day, -hour)
+
+        auto_measure_mm_ls[[j]] <- auto_measure_mm
+
+        if(auto_measure_mm$day[1] == 'd240.h09' ){
+          # browser()
+          #cat('d240.h09')
+          # cat(taxafolder[i], '\n')
+          #cat('number of ROIs: ', length(auto_measure_mm$roi_ID), '\n')
+          #cat('number of unique ROIs: ', length(unique(auto_measure_mm$roi_ID)), '\n')
+
+        }
+        #print(paste('completed', roifiles))
+
+      }
+
+      auto_measure_mm_alltaxa_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
+      #browser()
+
+      # print(paste('completed', taxafolder[i]))
+    }
+  }
+
+
+
+  auto_measure_mm_alltaxa_df <- do.call(rbind, auto_measure_mm_alltaxa_ls)
+  #browser()
+  return(auto_measure_mm_alltaxa_df)
+
+
+
+}
 
 # deprecated ? ----------------------------------------------------------------------------------------------------------
 bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
