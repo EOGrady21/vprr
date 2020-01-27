@@ -118,7 +118,7 @@ clf_check <-
           aidFile <-
             list.files(aidFolder, pattern = day_hour, full.names = TRUE)
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
-          aid_dat <- aid_dat$V1
+          aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
 
           # find correct conversion factor based on VPR optical setting
