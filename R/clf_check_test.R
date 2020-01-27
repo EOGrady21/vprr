@@ -434,6 +434,8 @@ new_aids <- function(reclassify, misclassified, basepath) {
     } else{
       aidMea_old <- read.table(aidMeaFile)
 
+      aidMea_old <- unique(aidMea_old) # KS fix for bug duplicates
+
       aidMea_new <- aidMea_old[-ind,]
 
       cat(
