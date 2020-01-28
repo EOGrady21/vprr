@@ -3085,16 +3085,131 @@ exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format =
 }
 
 
+image_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
+  #' Image copying function for specific taxa of interest
+  #'
+  #' This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
+  #' This is useful for visualizing the ROIs of a particular classification group or for perfomring manual tertiary checks to remove
+  #' images not matching classification group descriptions.
+  #'
+  #'
+  #'
+  #' @param auto_id_folder eg "D:/VP_data/IML2018051/autoid"
+  #' @param taxas.of.interest eg. taxas.of.interest <- c('Calanus')
+  #' @param day character, day of interest
+  #' @param hour character, hour of interest
+  #'
+  #' @export
+
+  #This code extracts ROIs from the VPR cast folder into folders corresponding to their autoID (from Visual Plankton)
+
+
+  #modified for pulling reclassigfied images
+  folder_names <- list.files(auto_id_folder)
+
+
+  folder_names <- folder_names[folder_names %in% taxas.of.interest]
+
+
+
+  day_hour <- paste0('d', day, '.h', hour)
+  aid_day_hour <- paste0('aid.', day_hour)
+
+  #read all days and hours
+
+  # st_dat <- read.csv('C:/VPR_PROJECT/vp_info/station_names_IML2018051.csv')
+  #
+  # day_list <- st_dat$day
+  # hour_list <- st_dat$hour
+  #
+
+  #
+  # for(j in 1:length(day_list)){
+  #
+  #   day <- day_list[[j]]
+  #   hour <- hour_list[[j]]
+  #
+  #   day_hour <- paste0('d', day, '.h', hour)
+  #   aid_day_hour <- paste0('aid.', day_hour)
+
+
+  for (i in folder_names) {
+
+    #Get name of folder containing .txt files with roi paths within a category
+
+    dir_roi <- file.path(auto_id_folder, i, "aid", fsep = "\\")
+
+    #Get names of text files
+    txt_roi <- list.files(dir_roi)
+
+    subtxt <- grep(txt_roi, pattern = aid_day_hour, value = TRUE)
+    txt_roi <- subtxt
+
+    #subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
+    #txt_roi <- subtxt2
+
+    for(ii in txt_roi) {
+
+      setwd(dir_roi)
+
+      roi_path_str <- read.table(ii, stringsAsFactors = F)
+
+      path_parts <- stringr::str_split(auto_id_folder, pattern = '/')
+
+
+      auto_ind <- grep(path_parts[[1]], pattern = 'autoid')
+
+      base_path_parts <- path_parts[[1]][-auto_ind]
+
+      basepath <- stringr::str_c(base_path_parts,  collapse = '\\')
+
+      auto_path <- stringr::str_c(path_parts[[1]], collapse = '\\')
+
+      tt<- stringr::str_locate(string = roi_path_str$V1[1], pattern = 'rois')
+      sub_roi_path <- substr(roi_path_str$V1, tt[1], nchar(roi_path_str))
+      new_roi_path <- file.path(basepath, sub_roi_path, fsep = '\\')
+
+      #Create a new folder for autoid rois
+      roi_folder <- file.path(auto_path, i, paste0(ii, "_ROIS"), fsep = "\\")
+      command1 <- paste('mkdir', roi_folder, sep = " ")
+      shell(command1)
+
+      #Copy rois to this directory
+      for (iii in 1:length(new_roi_path)) {
+
+        dir_tmp <- as.character(new_roi_path[iii])
+        command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
+        shell(command2)
+
+        print(paste(iii, '/', length(new_roi_path),' completed!'))
+      }
+
+    }
+
+    print(paste(i, 'completed!'))
+  }
+
+  print(paste('Day ', day, ', Hour ', hour, 'completed!'))
+  # }
+
+}
+
 image_check <- function(folder_dir, basepath){
 
-  #' @param folder_dir directory path to day hour folders containing manually
+  #' Remove ROI strings from aid and aidmeas files based on a manually organized folder of images
+  #'
+  #' Should be used after \code{\link{image_copy}}, and manual image removal from created folders
+  #'
+  #'
+  #'
+  #'     @param folder_dir directory path to day hour folders containing manually
   #'   reorganized images of a specific taxa eg.
   #'   'C:/data/cruise_IML2018051/krill/images/' where that folder contains
   #'   '......d123.h01/' which contains manually sorted images of krill
   #' @param basepath directory path to original Visual Plankton files, specified
   #'   down to the classification group. eg.
   #'   'C:/data/cruise_IML2018051/autoid/krill'
-  #'
+  #'@export
   #'
 # this function can be used to edit aid and aidmeas files based on the images contained in a folder
   #useful if images were reorganized into classifciation groups manually in file explorer and then
@@ -3110,6 +3225,9 @@ image_check <- function(folder_dir, basepath){
 #once this is run, processing and plotting can be done
 
 #E. Chisholm Sept 2019
+
+  #if not supplied, assume folders are the same
+  if(missing(basepath)){basepath <- folder_dir}
 
 stfolders <- list.files(folder_dir, full.names = TRUE)
 

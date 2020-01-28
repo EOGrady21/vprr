@@ -212,8 +212,9 @@ new_aids(reclassify, misclassified, auto_id_folder)
 
 ```
 
-Step C, the last step of reclassifcation includes some manual file organization and final checks. Once all classification (aid & aidmeas) files have been created, they are contained in taxa folders inside your working directory. These files need to be reorganized within your original Visual Plankton directory. You should use the new aid and aidmeas files created to replace the original VP files where you have performed reclassification. Remember this may not be for all classification groups, or all days/hours of data. You may also want to archive a copy of the orginal classification files, in case you need to rerun processing, this will prevent you from having to rerun Visual Plankton in MATLAB which can be time consusming. Once files have been manually organized, there are two checks that can be performed. `vprr::aid_file_check()` is strongly recommended, it removes any empty aid files which can cause errors in processing down the line. It also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. Empty files are created if there are no images of a specific classification group in that hour of data, but should be removed as they do not contain any data. There have been bugs in the past where aid and aidmeas files within an hour were different lengths, because these files represent the same data but the only key between them is line number, it is important that they represent the same number of data points. There was also a bug in the past where some images from different VPR tows were getting pulled together due to a formatting error in raw data on IML2018051. 
+Step C, the last step of reclassifcation includes some manual file organization and final checks. Once all classification (aid & aidmeas) files have been created, they are contained in taxa folders inside your working directory. These files need to be reorganized within your original Visual Plankton directory. You should use the new aid and aidmeas files created to replace the original VP files where you have performed reclassification. Remember this may not be for all classification groups, or all days/hours of data. You may also want to archive a copy of the orginal classification files, in case you need to rerun processing, this will prevent you from having to rerun Visual Plankton in MATLAB which can be time consusming. Once files have been manually organized, there are two checks that can be performed. `vprr::aid_file_check()` is strongly recommended, it removes any empty aid files which can cause errors in processing down the line. It also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. Empty files are created if there are no images of a specific classification group in that hour of data, but should be removed as they do not contain any data. There have been bugs in the past where aid and aidmeas files within an hour were different lengths, because these files represent the same data but the only key between them is line number, it is important that they represent the same number of data points. There was also a bug in the past where some images from different VPR tows were getting pulled together due to a formatting error in raw data on IML2018051. Part two of these manual checks is a 'krill check'. This process was developed when 2018 data was processed at BIO. It was quickly realized that there would be small amounts of human error in the reclassification process, due to the small number of images in the krill category, even one mistaken image was creating a large difference in processed data. A check was developed to pull all krill images and allow for manual reorganization of them within file explorer, to remove any images which were accidentally classified as krill. This chekc could be performed with any classification wherte there are a small number of images and accuracy is of high importance. 
 
+Krill check is a little more involved due to it's manual nature and is described below.
 
 ```
 
@@ -244,5 +245,19 @@ aid_file_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt in
 
 ```
 
+Krill check requires 3 parts. First, images must be pulled from reclassification into new folders which can be visually checked. Second, images hsould be manually sorted in file explorer. This requires deleting any non - krill images from the folders created in the first part of krill check. Thirdly, the manually organized folders must be compared with aid and aidmeas files and any ROI strings which are no longer present in folders should be removed from text files (aid and aidmeas). 
 
+```
+
+image_copy(auto_id_folder, taxas.of.interest, day, hour)
+
+# perform manual removal of images not matching classification group
+
+image_check_folder <- file.path(auto_id_folder, taxas.of.interest, fsep = '\')
+
+image_check(image_check_folder)
+
+```
+
+Note, that in the case where data set is very small or requires few reclassification adjustments, the krill check procedure could be used as the only reclassification process. Cons to using this method include extensive time commitment, potential for manual error, and lack of record keeping. It can quickly become difficult to keep track of aid versions, so ensure you have a consistent and documented directory naming scheme/ archiving system. 
 
