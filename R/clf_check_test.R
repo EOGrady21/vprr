@@ -309,7 +309,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
       stop(
         paste(
           taxa,
-          'is not a valid taxa name. Pleas run add_new_taxa() to create proper file structure within basepath'
+          'is not a valid taxa name. Please run add_new_taxa() to create proper file structure within basepath'
         )
       )
     }
@@ -530,27 +530,67 @@ new_aids <- function(reclassify, misclassified, basepath) {
       # find original taxa data
       # read in all roi folders
       # weird folder character cut off problems
-      bp <- substr(basepath, 1, nchar(basepath) - 1)
-      auto_id_folder <- bp
-      nchar_folder <- nchar(auto_id_folder)
-      taxafolder <- list.files(auto_id_folder, full.names = T)
-      auto_measure_px <-
-        getRoiMeasurements(taxafolder, nchar_folder, unit = 'px')
+
+
+
+#deprecating getRoiMeasurements
+      # bp <- substr(basepath, 1, nchar(basepath) - 1)
+      # auto_id_folder <- bp
+      # nchar_folder <- nchar(auto_id_folder)
+      # taxafolder <- list.files(auto_id_folder, full.names = T)
+      # auto_measure_px <-
+        # getRoiMeasurements(taxafolder, nchar_folder, unit = 'px')
+# TODO : Edit so that only required size data is loaded, without using getRoiMeasurements
+
+      #get all taxa aid and aidmea files for day/hour of interest
+      aid_fn_list <- list()
+    for(l in 1:length(taxaFolders)){
+
+      all_aids <- list.files(file.path(taxaFolders[[l]], 'aid'), full.names = TRUE)
+      aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour, value = TRUE)
+    }
+
+      aidm_fn_list <- list()
+      for(l in 1:length(taxaFolders)){
+
+        all_aidms <- list.files(file.path(taxaFolders[[l]], 'aidmea'), full.names = TRUE)
+        aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour, value = TRUE)
+      }
+
+      # MEASUREMENTS
+# browser()
+
+      roimeas_dat_combine <-
+        read_aid(
+          file_list_aid = unlist(aid_fn_list),
+          file_list_aidmeas = unlist(aidm_fn_list),
+          export = 'aidmeas',
+          station_of_interest = NA,
+          warn = FALSE
+        )
+
+
 
       # find roi ids in meas
 
       recl_roi_num <- recl_roi_df$recl_roi_gen
 
-      day_hour_var <- day_hour
+      # day_hour_var <- day_hour #deprecated with getroiMeas
 
       # subset auto measure to correct day hour
-      auto_measure_px <- auto_measure_px %>%
-        dplyr::filter(., day_hour == day_hour_var)
+      #deprecated with getRoiMeas
+      # auto_measure_px <- auto_measure_px %>%
+       # dplyr::filter(., day_hour == day_hour_var)
 
       # find index of recl rois in auto measure
 
       recl_roi_meas <-
-        auto_measure_px[auto_measure_px$roi_ID %in% recl_roi_num ,]
+        roimeas_dat_combine[roimeas_dat_combine$roi %in% recl_roi_num ,]
+
+
+      # getRoiMeas method
+       # recl_roi_meas <-
+        # auto_measure_px[auto_measure_px$roi_ID %in% recl_roi_num ,]
 
       # check for duplicate ROI IDs
 
@@ -566,6 +606,15 @@ new_aids <- function(reclassify, misclassified, basepath) {
       }
 
       # append old aidmea file with mis rois removed
+
+      #find measurement columns
+
+      col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
+
+      recl_roi_meas <- recl_roi_meas %>%
+        dplyr::select(., col_names)
+
+      #combine new reclassifed meas data with original meas data
       aidMea_list <- list()
       for (iii in 1:7) {
         aidMea_list[[iii]] <-
