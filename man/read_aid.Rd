@@ -4,7 +4,14 @@
 \alias{read_aid}
 \title{Read VPR aid files}
 \usage{
-read_aid(file_list_aid, file_list_aidmeas, export, station_of_interest)
+read_aid(
+  file_list_aid,
+  file_list_aidmeas,
+  export,
+  station_of_interest,
+  opticalSetting,
+  warn = TRUE
+)
 }
 \arguments{
 \item{file_list_aid}{a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.}
@@ -12,6 +19,12 @@ read_aid(file_list_aid, file_list_aidmeas, export, station_of_interest)
 \item{file_list_aidmeas}{a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.}
 
 \item{export}{a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)}
+
+\item{station_of_interest}{Station information to be added to ROI data output, use NA if irrelevant}
+
+\item{opticalSetting}{Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels}
+
+\item{warn}{Logical, FALSE silences size data unit warnings}
 }
 \description{
 Read aid text files containing ROI string information or measurement data and output as a dataframe
