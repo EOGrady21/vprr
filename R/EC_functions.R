@@ -19,7 +19,6 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
-
 #' Load RData files
 #'
 #' Loads VPR processed RData files from station data, accounts for old naming
@@ -525,18 +524,29 @@ merge_ctd_roi <- function(ctd_dat_combine, roi_dat_combine){
 #'@param  file_list_aid a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.
 #'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.
 #'@param export a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)
+#'@param station_of_interest Station information to be added to ROI data output, use NA if irrelevant
+#'@param opticalSetting Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels
+#'@param warn Logical, FALSE silences size data unit warnings
+#'
 #'@note Full paths to each file should be specified
 #'
 #' @export
-read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_interest){
+read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
+
+  if (missing(opticalSetting)){
+    opticalSetting <- NA
+    if(warn != FALSE){
+    warning('No optical setting provided, size data output in pixels!!!')
+    }
+  }
 # aid
 
   col_names <- c("roi")
   dat <- list()
   for(i in 1:length(file_list_aid)) {
 
-    data_tmp <- read.table(file_list_aid[i], stringsAsFactors = F, col.names = col_names)
+    data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = F, col.names = col_names)
 
     data_tmp$roi <- unlist(getroiid(data_tmp$roi))
 
@@ -567,8 +577,9 @@ read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_intere
     data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = F, col.names = col_names)
 
 
-
+if(!is.na(opticalSetting)){
       data_tmp <- px_to_mm(data_tmp, opticalSetting)
+}
 
 
 
@@ -583,7 +594,7 @@ read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_intere
 
   dat_combine_aidmeas <- do.call(rbind, dat)
 
-  remove(dat, data_tmp, day, hour)
+  # remove(dat, data_tmp, day, hour)
 
 
 # format
@@ -607,7 +618,7 @@ read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_intere
 
     # Get roi measurement data frame
     dat_combine_selected <- dat_combine_aidmeas %>%
-      dplyr::select(., taxa, day_hour, id, long_axis_length)
+      dplyr::select(., taxa, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
 
     roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected) %>%
       dplyr::select(., - id) %>%
@@ -615,13 +626,15 @@ read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_intere
       dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
       dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
 
+  #  browser()
 # export
   if (export == 'aid'){
     return(roi_dat)
   }
 
   if (export == 'aidmeas'){
-    return(roimeas_dat_combine)
+     return(roimeas_dat_combine)
+
   }
 
 
