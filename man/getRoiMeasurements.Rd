@@ -2,7 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{getRoiMeasurements}
 \alias{getRoiMeasurements}
-\title{pull roi measurements from all taxa, all files}
+\title{THIS FUNCTION HAS BEEN DEPRECATED}
 \usage{
 getRoiMeasurements(taxafolder, nchar_folder, unit = "mm", opticalSetting)
 }

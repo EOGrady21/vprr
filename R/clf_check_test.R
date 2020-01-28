@@ -540,7 +540,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
       # taxafolder <- list.files(auto_id_folder, full.names = T)
       # auto_measure_px <-
         # getRoiMeasurements(taxafolder, nchar_folder, unit = 'px')
-# TODO : Edit so that only required size data is loaded, without using getRoiMeasurements
+# DONE : Edit so that only required size data is loaded, without using getRoiMeasurements [ EC 28-01-2020 ]
 
       #get all taxa aid and aidmea files for day/hour of interest
       aid_fn_list <- list()

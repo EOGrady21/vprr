@@ -1497,6 +1497,8 @@ aid_file_check <- function(basepath, cruise){
 #deprecated ----------------------------------------------------------------------------------------------------------------------
 getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSetting) {
 
+  #' THIS FUNCTION HAS BEEN DEPRECATED
+  #'
   #' pull roi measurements from all taxa, all files
   #'
   #' @param taxafolder path to taxa folder (base -- autoid folder)
@@ -1510,6 +1512,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
   #' @export
   #browser()
 
+  .Deprecated('read_aid')
 
   auto_measure_mm_alltaxa_ls <- list()
   # browser()
