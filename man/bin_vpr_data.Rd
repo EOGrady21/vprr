@@ -4,7 +4,7 @@
 \alias{bin_vpr_data}
 \title{Bin vpr data}
 \usage{
-bin_vpr_data(ctd_roi_oce, imageVolume, binSize)
+bin_vpr_data(ctd_roi_oce, imageVolume, binSize, rev = FALSE)
 }
 \arguments{
 \item{ctd_roi_oce}{\code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}}
@@ -12,6 +12,12 @@ bin_vpr_data(ctd_roi_oce, imageVolume, binSize)
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 
 \item{binSize}{passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged}
+
+\item{rev}{logical value,passed to \code{\link{bin_average_vpr}} if TRUE, binning will begin at bottom of each cast,
+this controls data loss due to uneven binning over depth. If bins begin at
+bottom, small amounts of data may be lost at the surface of each cast, if
+binning begins at surface (rev = FALSE), small amounts of data may be lost
+at bottom of each cast}
 }
 \value{
 A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values
