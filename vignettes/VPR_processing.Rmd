@@ -386,7 +386,8 @@ for (j in 1:length(all_stations_of_interest)){
       file_list_aid = aid_file_list_all,
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aid',
-      station_of_interest = station_of_interest
+      station_of_interest = station_of_interest,
+      opticalSetting = opticalSetting
     )
   
   # MEASUREMENTS
@@ -395,7 +396,8 @@ for (j in 1:length(all_stations_of_interest)){
       file_list_aid = aid_file_list_all,
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aidmeas',
-      station_of_interest = station_of_interest
+      station_of_interest = station_of_interest,
+      opticalSetting = opticalSetting
     )
   
   cat('ROI and measurement data read in complete! \n')
