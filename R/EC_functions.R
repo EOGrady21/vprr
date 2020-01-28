@@ -362,6 +362,11 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
 #' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}
 #' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev logical value,passed to \code{\link{bin_average_vpr}} if TRUE, binning will begin at bottom of each cast,
+#'   this controls data loss due to uneven binning over depth. If bins begin at
+#'   bottom, small amounts of data may be lost at the surface of each cast, if
+#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+#'   at bottom of each cast
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -372,16 +377,16 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
 #' @export
 #'
 #'
-bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize){
+bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #find upcasts
   upcast <- getCast_EC(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
-  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
   upcast_df <- do.call(rbind, upcast2)
 
   #find downcasts
   downcast <- getCast_EC(ctd_roi_oce, cast_direction = "descending", data_type = "df")
-  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
   downcast_df <- do.call(rbind, downcast2)
 
   #combine_data in bins
@@ -786,6 +791,12 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'   altitude, cast_id, n_roi
 #' @param binSize the height of bins over which to average, default is 1 metre
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev logical value, if TRUE, binning will begin at bottom of each cast,
+#'   this controls data loss due to uneven binning over depth. If bins begin at
+#'   bottom, small amounts of data may be lost at the surface of each cast, if
+#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+#'   at bottom of each cast
+#'
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -798,7 +809,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'   @export
 #'
-bin_average_vpr <- function(data, binSize = 1, imageVolume){
+bin_average_vpr <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
   cast_id <-unique(data$cast_id)
 
@@ -810,6 +821,9 @@ bin_average_vpr <- function(data, binSize = 1, imageVolume){
   max_pressure <- max(p, na.rm = TRUE)
   min_pressure <- min(p, na.rm = TRUE)
   x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = binSize)
+  if (rev == TRUE){
+    x_breaks <- seq(from = floor(max_pressure), to = ceiling(min_pressure), by = - binSize)
+  }
 
   # Get variables of interest using oce bin functions
 
@@ -824,8 +838,11 @@ bin_average_vpr <- function(data, binSize = 1, imageVolume){
   fluorescence <- binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
   turbidity <- binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
   avg_hr <- binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
+if (rev == TRUE){
+  pressure <- rev(binApply1D(p, data$pressure, xbreaks = x_breaks, mean)$xmids)
+}else{
   pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids # Could be any of the variables computed, but I just went with salinity
-
+}
   # calculates number of frames captured per depth bin by counting number of pressure observations per bin
   n_frames <- binApply1D(p, data$pressure, xbreaks = x_breaks, length)$result # KS edit 10/9/19
 
