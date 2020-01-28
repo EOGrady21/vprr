@@ -15,6 +15,9 @@ A string of only the 10 digit roi identifier
 \description{
 Get roi ids from string
 }
+\seealso{
+\code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
+}
 \author{
 K Sorochan
 }

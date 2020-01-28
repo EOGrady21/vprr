@@ -4,7 +4,7 @@
 \alias{bin_average_vpr}
 \title{Get bin averages for VPR and CTD data}
 \usage{
-bin_average_vpr(data, binSize = 1, imageVolume)
+bin_average_vpr(data, binSize = 1, imageVolume, rev = FALSE)
 }
 \arguments{
 \item{data}{ctd data frame object including scan, salinity, temperature,
@@ -14,6 +14,12 @@ altitude, cast_id, n_roi}
 \item{binSize}{the height of bins over which to average, default is 1 metre}
 
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
+
+\item{rev}{logical value, if TRUE, binning will begin at bottom of each cast,
+this controls data loss due to uneven binning over depth. If bins begin at
+bottom, small amounts of data may be lost at the surface of each cast, if
+binning begins at surface (rev = FALSE), small amounts of data may be lost
+at bottom of each cast}
 }
 \description{
 Bins CTD data for an individual cast to avoid depth averaging across tow yos

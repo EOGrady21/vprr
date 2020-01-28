@@ -118,7 +118,7 @@ clf_check <-
           aidFile <-
             list.files(aidFolder, pattern = day_hour, full.names = TRUE)
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
-          aid_dat <- aid_dat$V1
+          aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
 
           # find correct conversion factor based on VPR optical setting
@@ -290,6 +290,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
   #'reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
   #'new_aids(reclassify, misclassified, basepath)
   #'
+  #'@export
 
 
   taxaNames <- list.files(basepath)
@@ -299,15 +300,16 @@ new_aids <- function(reclassify, misclassified, basepath) {
   # remove misclassified ROIS
   for (i in 1:length(misclassified)) {
     # TODO: generalize solution, remove hardcoding
-    taxa <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
+    taxa <- gettaxaid(misclassified[i])
+
+   # if (taxa == 'ctenophores'){ browser()}
+    #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
     taxaFolder <- grep(taxaFolders, pattern = taxa, value = TRUE)
     if (!taxa %in% taxaNames) {
       stop(
         paste(
           taxa,
-          'is not a valid taxa name.
-          Please check internal function where taxa is isolated from file name.
-          If this is a new taxa please add name to "taxaNames" list inside function.'
+          'is not a valid taxa name. Pleas run add_new_taxa() to create proper file structure within basepath'
         )
       )
     }
@@ -342,7 +344,10 @@ new_aids <- function(reclassify, misclassified, basepath) {
       # if there is no misclassified information
 
       print(paste('Blank misclassified file found for', taxa, '!'))
-      day_hour <- unique(substr(misclassified[i], 1, 8))
+      day_n <- getday(misclassified[i])
+      hr_n <- gethour(misclassified[i])
+      day_hour <- paste0('d', day, '.h', hour)
+      # day_hour <- unique(substr(misclassified[i], 1, 8))
       aidFolder <-
         list.files(taxaFolder, pattern = '^aid$', full.names = TRUE)
 
@@ -370,14 +375,19 @@ new_aids <- function(reclassify, misclassified, basepath) {
       aid_new <- NULL
     } else{
       aid_list_old <- readLines(aid_list_old_fn)
+      # BUG FIX 01/16/2020
+      # issue where duplicated ROIs in original aid files were not getting removed with misclassified/ reclassified data
+#browser()
+      aid_list_old <- unique(aid_list_old)
 
       aid_old_gen <- unlist(getroiid(aid_list_old))
 
       sub_mis_roi <- mis_roi_df %>%
-        dplyr::filter(., day_hour == unique(mis_roi_df$day_hour)) %>%
-        dplyr::filter(.,!duplicated(mis_roi_gen)) #remove duplicates
+        dplyr::filter(., day_hour == unique(mis_roi_df$day_hour))
+      #%>%
+        # dplyr::filter(.,!duplicated(mis_roi_gen)) #remove duplicates #BUG FIX 01/16/20
 
-      mm <- aid_old_gen %in% sub_mis_roi$mis_roi_gen
+      mm <-   sub_mis_roi$mis_roi_gen %in% aid_old_gen #switched order to prevent error (EC: 01/16/2020)
 
       ind <- grep(mm , pattern = 'TRUE')
 
@@ -423,6 +433,8 @@ new_aids <- function(reclassify, misclassified, basepath) {
       DUMMY = TRUE
     } else{
       aidMea_old <- read.table(aidMeaFile)
+
+      aidMea_old <- unique(aidMea_old) # KS fix for bug duplicates
 
       aidMea_new <- aidMea_old[-ind,]
 
@@ -579,7 +591,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
     }# end reclassified loop
     # save files
 
-    dir.create(taxa, showWarnings = FALSE)
+    dir.create(taxa[[1]], showWarnings = FALSE)
 
 
 

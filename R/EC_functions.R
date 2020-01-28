@@ -19,11 +19,177 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
+
+#' Load RData files
+#'
+#' Loads VPR processed RData files from station data, accounts for old naming
+#' scheme, will load either 'data' or 'auto_measure_ls' objects into
+#' consistently named list.
+#'
+#' @note \strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_ls'
+#'
+#' @author K Sorochan
+#'
+#' @param x data file names (with full path specified)
+#'
+#'
+#' @return a list of dataframe objects
+#' @export
+#'
+#' @examples
+#'
+#' # Get filenames
+#' path_name <- paste0(cruise, "_data_files")
+#'
+#' names_stationdata <- list.files(path = path_name, pattern = "stationData_W58", full.names = TRUE)
+#' names_measdata <- list.files(path = path_name, pattern = "meas_dat_W58", full.names = TRUE)
+#'
+#' # Read in roi and measdata
+#' stationdata <- loadrdata(names_stationdata)
+#' measdata <- loadrdata(names_measdata)
+
+loadrdata <- function(x) {
+
+  data_ls <- list()
+
+  for(i in x) {
+
+    load(x)
+
+    z <- load(x)
+
+    if(z == "data") {
+
+      data_ls[[which(i == x)]] <- data
+
+    }
+
+    if(z == "auto_measure_mm") {
+
+      data_ls[[which(i == x)]] <- auto_measure_mm
+
+    }
+
+  }
+
+  return(data_ls)
+
+}
+
+#' Bin VPR size data
+#'
+#' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
+#'
+#' @param data_all a VPR CTD and measurement dataframe from \code{\link{format_size_data}}
+#' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
+#'
+#' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
+#'
+#' @export
+#'
+#' @examples
+bin_size_data <- function(data_all, bin_mea){
+
+  #Bin by depth
+  p <- data_all$pressure
+  max_pressure <- max(p, na.rm = TRUE)
+  min_pressure <- min(p, na.rm = TRUE)
+  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = bin_mea)
+
+  #Get variables of interest using oce bin functions
+
+  med <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
+  iqr3 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
+  iqr1 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
+  n_obs <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
+  salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
+
+  if (!(length(pressure) == length(salinity))) {
+
+    salinity_mean <- binMean1D(p, data_all$salinity, xbreaks = x_breaks)$result
+
+    idx_rm <- which(is.na(salinity_mean))
+
+    #informs user where bins were removed due to NAs
+    #note if a bin is 'NA' typically because there is no valid data in that depth range,
+    #if you have a lot of NA bins, think about increasing your binSize
+    print(paste('Removed bins at', pressure[idx_rm]))
+
+    lp <- length(pressure)
+    pressure <- pressure[-idx_rm]
+
+  }
+
+  station_id <- unique(data$station)
+
+  box_p_data <- data.frame(pressure, median = med, iqr1, iqr3, n_obs, station_id)
+
+  return(box_p_data)
+}
+
+#' Format CTD and Size data from VPR
+#'
+#' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
+#'
+#' @param data VPR dataframe from \code{\link{merge_ctd_roi}}, with calculated variable sigmaT
+#' @param measdata VPR size data frame from \code{\link{read_aid}}
+#' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
+#' @param max_pressure maximum pressure cut off on data, allows comparison
+#'   between stations of different depths, should be the maximum depth which all
+#'   stations considered reach
+#'
+#' @return A dataframe containing VPR CTD and size data
+#' @export
+#'
+#' @examples
+#'
+#' stationdata <- loadrdata(names_stationdata, path_name)
+#' measdata <- loadrdata(names_measdata, path_name)
+#'
+#' data <- data.frame(stationdata)
+#'
+#' data_mea <- data.frame(measdata)
+#'
+#' data_all <- format_size_data(data, data_mea, taxa_of_interest = c("Calanus"))
+
+format_size_data <- function(data, data_mea, taxa_of_interest, max_pressure = 100){
+
+
+data <- data[!duplicated(data$time_ms),]
+
+#get CTD data
+data_ctd <- data %>%
+  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+  dplyr::mutate(., day_hour = paste(day, hour, sep = ".")) %>%
+  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+  dplyr::select(., frame_ID, pressure, temperature, salinity, sigmaT, fluorescence_mv, turbidity_mv)
+
+#get measurement data
+data_mea <- data_mea %>%
+  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+  dplyr::select(., -Perimeter, -Area, -width1, -width2, -width3, -short_axis_length)
+
+#combine measurement and ctd data
+data_all <- right_join(data_ctd, data_mea) %>%
+  dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
+  dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+  dplyr::filter(., taxa %in% taxa_of_interest)
+
+#cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
+data_all <- data_all %>%
+  dplyr::filter(., pressure <= max_pressure)
+
+return(data_all)
+
+}
+
 #' Copy VPR images into folders
 #'
 #' Organize VPR images into folders based on classifications provided by visual plankton
 #'
-#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\data\\cruise_XXXXXXXXXXXXXXX\\autoid\\"
+#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"
 #' @param day character string representing numeric day of interest
 #' @param hour character string representing hour of interest
 #' @param classifier_type character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton
@@ -48,7 +214,7 @@ autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, t
   }
 
   day_hour <- paste0('d', day, '.h', hour)
-  type_day_hour <- paste0(type,'aid.', day_hour)
+  type_day_hour <- paste0(classifier_type,'aid.', day_hour)
 
 for (i in folder_names) {
 
@@ -61,7 +227,7 @@ for (i in folder_names) {
   subtxt <- grep(txt_roi, pattern = type_day_hour, value = TRUE)
   txt_roi <- subtxt
 
-  subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
+  subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
   txt_roi <- subtxt2
 
   for(ii in txt_roi) {
@@ -196,6 +362,11 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
 #' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}
 #' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev logical value,passed to \code{\link{bin_average_vpr}} if TRUE, binning will begin at bottom of each cast,
+#'   this controls data loss due to uneven binning over depth. If bins begin at
+#'   bottom, small amounts of data may be lost at the surface of each cast, if
+#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+#'   at bottom of each cast
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -206,16 +377,16 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
 #' @export
 #'
 #'
-bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize){
+bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #find upcasts
   upcast <- getCast_EC(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
-  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
   upcast_df <- do.call(rbind, upcast2)
 
   #find downcasts
   downcast <- getCast_EC(ctd_roi_oce, cast_direction = "descending", data_type = "df")
-  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume)
+  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
   downcast_df <- do.call(rbind, downcast2)
 
   #combine_data in bins
@@ -620,6 +791,12 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'   altitude, cast_id, n_roi
 #' @param binSize the height of bins over which to average, default is 1 metre
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev logical value, if TRUE, binning will begin at bottom of each cast,
+#'   this controls data loss due to uneven binning over depth. If bins begin at
+#'   bottom, small amounts of data may be lost at the surface of each cast, if
+#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+#'   at bottom of each cast
+#'
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -632,7 +809,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'   @export
 #'
-bin_average_vpr <- function(data, binSize = 1, imageVolume){
+bin_average_vpr <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
   cast_id <-unique(data$cast_id)
 
@@ -644,6 +821,9 @@ bin_average_vpr <- function(data, binSize = 1, imageVolume){
   max_pressure <- max(p, na.rm = TRUE)
   min_pressure <- min(p, na.rm = TRUE)
   x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = binSize)
+  if (rev == TRUE){
+    x_breaks <- seq(from = floor(max_pressure), to = ceiling(min_pressure), by = - binSize)
+  }
 
   # Get variables of interest using oce bin functions
 
@@ -658,8 +838,11 @@ bin_average_vpr <- function(data, binSize = 1, imageVolume){
   fluorescence <- binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
   turbidity <- binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
   avg_hr <- binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
+if (rev == TRUE){
+  pressure <- rev(binApply1D(p, data$pressure, xbreaks = x_breaks, mean)$xmids)
+}else{
   pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids # Could be any of the variables computed, but I just went with salinity
-
+}
   # calculates number of frames captured per depth bin by counting number of pressure observations per bin
   n_frames <- binApply1D(p, data$pressure, xbreaks = x_breaks, length)$result # KS edit 10/9/19
 
@@ -882,7 +1065,11 @@ list_ctd_files <- function(castdir, cruise, day_hour) {
 #' @param x A string specifying directory and file name of roi
 #'
 #' @return A string of only the 10 digit roi identifier
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
 #' @export
+#'
+#'
 getroiid <- function(x) {
 
   m <- gregexpr("\\d{10}", x)
@@ -901,7 +1088,11 @@ getroiid <- function(x) {
 #' @param x A string specifying the directory of the "taxafolder", containing the taxa id
 #'
 #' @return A string of only the taxa id
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}
 #' @export
+#'
+#'
 gettaxaid <- function(x) {
 
   taxa_ids <- c(
@@ -956,7 +1147,11 @@ gettaxaid <- function(x) {
 #' @param x A string specifying the directory and file name of the size file
 #'
 #' @return A string of only the day identifier (i.e., "dXXX")
+#'
+#' @seealso \code{\link{gethour}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
 #' @export
+#'
+#'
 getday <- function(x) {
 
   m <- gregexpr("[d]+\\d{3}", x)
@@ -977,7 +1172,10 @@ gethour <- function(x) {
   #' @param x A string specifying the directory and file name of the size file
   #'
   #' @return A string of only the hour identifier (i.e., "hXX")
+  #' @seealso \code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
   #' @export
+  #'
+  #'
 
   m <- gregexpr("[h]+\\d{2}", x)
 
@@ -1283,6 +1481,150 @@ aid_file_check <- function(basepath, cruise){
 
 
 
+#deprecated ----------------------------------------------------------------------------------------------------------------------
+getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSetting) {
+
+  #' pull roi measurements from all taxa, all files
+  #'
+  #' @param taxafolder path to taxa folder (base -- autoid folder)
+  #' @param nchar_folder number of characters in basepath
+  #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
+  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+  #'
+  #' @note This function is very finicky, easily broken because it relies on character string splitting.
+  #' taxaFolder argument should not end in a backslash, please check output carefully to
+  #' ensure taxa names or ROI numbers have been properly sub string'd
+  #' @export
+  #browser()
+
+
+  auto_measure_mm_alltaxa_ls <- list()
+  # browser()
+  for (i in 1:length(taxafolder)) {
+    # print(paste( 'i = ',i))
+    #find files
+    sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+    roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+
+    #remove dummy files for clf_check
+    #check for dummy files
+    sfd <-  grep(sizefiles, pattern = 'dummy')
+    rfd <-  grep(roifiles, pattern = 'dummy')
+
+    if (length(rfd) != 0){
+      # print('dummy files removed')
+      #remove dummy files from meas consideration to avoid error
+      sizefiles <- sizefiles[-sfd]
+      roifiles <- roifiles[-rfd]
+
+    }
+    #skip for blank taxa
+    #browser()
+    if(length(roifiles) == 0){
+      SKIP = TRUE
+      # print(paste(i , ': SKIP == TRUE'))
+      #browser()
+      #i = i+1
+      #find files
+      # sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
+      # roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+
+    } else{
+      SKIP = FALSE
+      # print(paste(i, 'SKIP == FALSE'))
+
+      #prevent mixing of taxa in same list where some hours were not properly being overwirtten
+      auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
+
+
+      for(j in 1:length(sizefiles)) {
+        #print(paste('j = ', j))
+        sizefile <- sizefiles[j]
+        roifile <- roifiles[j]
+
+        ##make sure file will not produce error
+        mtry <- try(read.table(sizefile, sep = ",", header = TRUE),
+                    silent = TRUE)
+
+        if (class(mtry) != "try-error") {
+          # print('try error == FALSE')
+          #Get info
+          roi_ID <- read.table(roifile, stringsAsFactors = F)
+          auto_measure_px <- read.table(sizefile, stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+
+        } else {
+          # print(paste('cannot open roi file from ', taxafolder[i]))
+          #      print(roifiles)
+          stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
+        }
+
+        #convert to mm
+        if (unit == 'mm'){
+          auto_measure_mm_tmp <- px_to_mm(auto_measure_px, opticalSetting) #Convert to mm
+        }else{
+          #or leave in pixels
+          auto_measure_mm_tmp <- auto_measure_px
+        }
+
+        #auto_measure_mm$roi_ID <- (roi_ID$V1) #Get roi ids
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!#
+        #!! WARNING HARD CODING !!#
+        #!!!!!!!!!!!!!!!!!!!!!!!!!#
+
+        #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
+        #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, getroiid)
+
+        #taxa <- substr(taxafolder[i], nchar_folder + 2, nchar(taxafolder[i])) #Get taxa label
+        #taxa <- substr(taxafolder[i], nchar_folder + 1, nchar(taxafolder[i])) #Get taxa label
+
+        #auto_measure_mm$taxa <- rep(taxa, nrow(auto_measure_mm)) #add taxa to dataset
+
+
+        #day_hour <- substr(sizefile, nchar(sizefile) - 7, nchar(sizefile))
+        #auto_measure_mm$day_hour <- rep(day_hour, nrow(auto_measure_mm))
+        #saveRDS(auto_measure_mm, paste(taxafolder, "/", "measurements_mm_", taxa[i], ".RDS", sep=""))
+
+        taxafolder_tmp <- taxafolder[i]
+        # browser()
+        auto_measure_mm <- auto_measure_mm_tmp %>%
+          dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, getroiid))) %>%
+          dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, gettaxaid))) %>%
+          dplyr::mutate(., day = unlist(lapply(sizefile, getday))) %>%
+          dplyr::mutate(., hour = unlist(lapply(sizefile, gethour))) %>%
+          dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
+          dplyr::select(., -day, -hour)
+
+        auto_measure_mm_ls[[j]] <- auto_measure_mm
+
+        if(auto_measure_mm$day[1] == 'd240.h09' ){
+          # browser()
+          #cat('d240.h09')
+          # cat(taxafolder[i], '\n')
+          #cat('number of ROIs: ', length(auto_measure_mm$roi_ID), '\n')
+          #cat('number of unique ROIs: ', length(unique(auto_measure_mm$roi_ID)), '\n')
+
+        }
+        #print(paste('completed', roifiles))
+
+      }
+
+      auto_measure_mm_alltaxa_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
+      #browser()
+
+      # print(paste('completed', taxafolder[i]))
+    }
+  }
+
+
+
+  auto_measure_mm_alltaxa_df <- do.call(rbind, auto_measure_mm_alltaxa_ls)
+  #browser()
+  return(auto_measure_mm_alltaxa_df)
+
+
+
+}
 
 # deprecated ? ----------------------------------------------------------------------------------------------------------
 bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
@@ -2466,3 +2808,497 @@ trim_ctd_plot <- function(ctd){
   #   }
   # }
 }
+
+
+#### IMAGE ANALYSIS FUNCTIONS ####
+
+#' Explore reclassified images
+#'
+#' Pull image from reclassified or misclassified files produced during \code{\link{clf_check}}
+#'
+#' @param day Character string, 3 digit day of interest of VPR data
+#' @param hour Character string, 2 digit hour of interest of VPR data
+#' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
+#' @param taxa_of_interest Classification group from which to pull images
+#' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file seperator MUST BE "\\\\" in order to be recognized
+#'
+#' @return folders of misclassified or reclassified images inside image_dir
+#' @export
+#'
+#'
+exploreImages_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_dir){
+
+  ####directory where misclassified/reclassified files
+  ####base_dir <- 'C:/VPR_PROJECT/r_project_data_vis/classification files/'
+
+
+  #basepath where ROI images are
+  ##image_dir <- 'E:\\data\\cruise_IML2018051\\'
+  ##setwd(image_dir)
+
+  #get misclassified/ reclassified images
+
+  day_hour <- paste0('d', day, '.h', hour)
+
+
+  folder <- list.files(base_dir, pattern = day_hour, full.names = TRUE)
+
+  files <- list.files(folder, pattern = taxa_of_interest)
+
+  #pulls out missclassified files
+  #(you only want to look at images
+  #you have reclassified as specific taxa - select "n" if pop up appears)
+
+  #only exception (reason to select "y",
+  #would be to look specifically at images that you pulled out of a taxa,
+  #for example to check the accuracy of an automatic ID scheme)
+  tt <- grep(files, pattern = 'misclassified')
+  if (length(tt) > 0 ){
+    print(paste('Warning, misclassified files found for ', taxa_of_interest))
+    ans <- readline('Would you like to include these files? (y/n)
+                    *NOTE, looking at misclassified images will show you images that were removed from you taxa of interest
+                    during reclassification, this may be useful to get an idea of the accuracy of your automatic
+                    classification or which images are confusing your automatic classification.')
+    if(ans == 'n'){
+      files <- files[-tt]
+      folder_name <- "reclassified_ROIS"
+    }else{
+      files <- files[tt]
+      folder_name <- "misclassified_ROIS"
+    }
+  }
+
+  print(paste('>>>>>', files, 'found for', taxa_of_interest, ' in ', day_hour, '!'))
+  print('>>>>> Copying images now!')
+
+
+
+  #runs through reclassified files (should only be one)
+  for(ii in files) {
+
+
+    #reads in roi strings
+    roi_path_str <- read.table(paste0(base_dir, '/', day_hour, '/', ii), stringsAsFactors = F)
+
+    #sub out for new basepath where rois are located
+    #note this is an extra step because I moved the "data" folder from my C drive
+    tt<- stringr::str_locate(string = roi_path_str$V1[1], pattern = 'rois')
+    sub_roi_path <- substr(roi_path_str$V1, tt[1], nchar(roi_path_str))
+    new_roi_path <- file.path(image_dir, sub_roi_path, fsep = "\\")
+
+    #Create a new folder for autoid rois (where images will be stored)
+    roi_folder <- file.path(image_dir, taxa_of_interest, folder_name, fsep = "\\")
+    command1 <- paste('mkdir', roi_folder, sep = " ")
+    shell(command1)
+
+    #Copy rois to this directory
+    for (iii in 1:length(new_roi_path)) {
+
+      dir_tmp <- as.character(new_roi_path[iii])
+      command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
+      shell(command2)
+
+      print(paste(iii, '/', length(new_roi_path),' completed!'))
+    }
+print(paste('Images saved to ', roi_folder))
+  }
+
+
+
+
+
+
+}
+
+
+exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format = 'list'){
+
+  #' Explore VPR images by depth bin
+  #'
+  #' Allows user to pull VPR images from specific depth ranges, to investigate trends before classification of images into taxa groups
+  #'
+  #'
+  #'
+  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param min.depth minimum depth of ROIs you are interested in looking at
+  #' @param max.depth maximum depth of ROIs you are interested in exploring
+  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list'
+  #'     a list of file names or 'image' where images will be displayed
+  #'
+  #' @export
+  #'
+  #' @examples
+  #' #determine range of interest
+  #' mid <- as.numeric(readline('Minimum depth of interest? '))
+  #' mad <- as.numeric(readline('Maximum depth of interest? '))
+  #' #run image exploration
+  #' roi_files <- exploreImages_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
+  #'
+  #' #copy image files into new directory to be browsed
+  #' roi_file_unlist <- unlist(roi_files)
+  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, ''))
+  #' dir.create(newdir)
+  #' file.copy(roi_file_unlist, newdir)
+  #'
+  #'
+  data_filtered <- data %>%
+    dplyr::filter(., pressure >= min.depth) %>%
+    dplyr::filter(., pressure <= max.depth)
+
+  if(length(data_filtered$roi) < 1){
+    stop('No data exists within this depth range!')
+  }
+
+
+  #search for ROI files based on data
+  roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
+  roi_file_list <- list()
+  options(warn = 1)
+  for (i in 1:length(roi_files)){
+    roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
+    if (length(roi_file_list[[i]]) >= 1){
+      print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
+    }else{
+      warning('No file found in directory (', roiFolder, ')  matching ', roi_files[i])
+    }
+  }
+
+  if( format == 'list'){
+    return(roi_file_list)
+  }
+  if (format == 'image'){
+    for(i in 1:length(roi_file_list)){
+      for(ii in 1:length(roi_file_list[[i]])){
+        data_roi <- data_filtered %>%
+          dplyr::filter(., roi == roi[i])
+        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
+          #print metadata on image
+          #image_annotate(text = roi_files[i], color = 'white', size = 10) %>%
+          #image_annotate(text = meta_str, color = 'white', location = '-100') %>%
+          magick::image_scale(geometry = 'x300')
+
+        print(pp)
+        #print metadata
+        #cat(paste0(roi_files[i], '\n'))
+        #cat( paste0('time (hr): ', data_roi$avg_hr, '\n temperature: ', data_roi$temperature, '\n pressure: ', data_roi$pressure, '\n salinity: ', data_roi$salinity, '\n'))
+
+      }
+    }
+  }
+
+
+
+
+  #
+}
+
+
+exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format = 'list', taxa_of_interest){
+
+  #' Explore images by depth and classification
+  #'
+  #' Pulls images from specific depth ranges in specific classification group
+  #'
+  #'
+  #'
+  #'
+  #'
+  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param min.depth minimum depth of ROIs you are interested in looking at
+  #' @param max.depth maximum depth of ROIs you are interested in exploring
+  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list'
+  #'     a list of file names or 'image' where images will be displayed
+  #' @param taxa_of_interest character string of classification group from which to pull images
+  #'
+  #' @export
+  #'
+  #' @examples
+  #' #determine range of interest
+  #' mid <- as.numeric(readline('Minimum depth of interest? '))
+  #' mad <- as.numeric(readline('Maximum depth of interest? '))
+  #' #run image exploration
+  #' roi_files <- exploreImages_taxa(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list', taxa = 'Calanus')
+  #'
+  #' #copy image files into new directory to be browsed
+  #' roi_file_unlist <- unlist(roi_files)
+  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', taxa))
+  #' dir.create(newdir)
+  #' file.copy(roi_file_unlist, newdir)
+  #'
+  #'
+
+  if(length(taxa_of_interest) > 1){
+    stop("Only explore one taxa at a time!")
+  }
+
+  data_filtered <- data %>%
+    dplyr::filter(., pressure >= min.depth) %>%
+    dplyr::filter(., pressure <= max.depth) %>%
+    dplyr::filter(., taxa %in% taxa_of_interest)
+
+  if(length(data_filtered$roi) < 1){
+    stop('No data exists within this depth and taxa range!')
+  }
+
+
+  #search for ROI files based on data
+  roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
+  roi_file_list <- list()
+  options(warn = 1)
+  for (i in 1:length(roi_files)){
+    roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
+    if (length(roi_file_list[[i]]) >= 1){
+      print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
+    }else{
+      warning('No file found in directory (', roiFolder, ')  matching ', roi_files[i])
+    }
+  }
+
+  if( format == 'list'){
+    return(roi_file_list)
+  }
+  if (format == 'image'){
+    for(i in 1:length(roi_file_list)){
+      for(ii in 1:length(roi_file_list[[i]])){
+        data_roi <- data_filtered %>%
+          dplyr::filter(., roi == roi[i])
+        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
+          magick::image_scale(geometry = 'x300')
+
+        print(pp)
+        #print metadata
+        cat(paste0(roi_files[i], '\n'))
+        cat( paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n'))
+
+      }
+    }
+  }
+
+
+
+
+  #
+}
+
+
+image_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
+  #' Image copying function for specific taxa of interest
+  #'
+  #' This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
+  #' This is useful for visualizing the ROIs of a particular classification group or for perfomring manual tertiary checks to remove
+  #' images not matching classification group descriptions.
+  #'
+  #'
+  #'
+  #' @param auto_id_folder eg "D:/VP_data/IML2018051/autoid"
+  #' @param taxas.of.interest eg. taxas.of.interest <- c('Calanus')
+  #' @param day character, day of interest
+  #' @param hour character, hour of interest
+  #'
+  #' @export
+
+  #This code extracts ROIs from the VPR cast folder into folders corresponding to their autoID (from Visual Plankton)
+
+
+  #modified for pulling reclassigfied images
+  folder_names <- list.files(auto_id_folder)
+
+
+  folder_names <- folder_names[folder_names %in% taxas.of.interest]
+
+
+
+  day_hour <- paste0('d', day, '.h', hour)
+  aid_day_hour <- paste0('aid.', day_hour)
+
+  #read all days and hours
+
+  # st_dat <- read.csv('C:/VPR_PROJECT/vp_info/station_names_IML2018051.csv')
+  #
+  # day_list <- st_dat$day
+  # hour_list <- st_dat$hour
+  #
+
+  #
+  # for(j in 1:length(day_list)){
+  #
+  #   day <- day_list[[j]]
+  #   hour <- hour_list[[j]]
+  #
+  #   day_hour <- paste0('d', day, '.h', hour)
+  #   aid_day_hour <- paste0('aid.', day_hour)
+
+
+  for (i in folder_names) {
+
+    #Get name of folder containing .txt files with roi paths within a category
+
+    dir_roi <- file.path(auto_id_folder, i, "aid", fsep = "\\")
+
+    #Get names of text files
+    txt_roi <- list.files(dir_roi)
+
+    subtxt <- grep(txt_roi, pattern = aid_day_hour, value = TRUE)
+    txt_roi <- subtxt
+
+    #subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
+    #txt_roi <- subtxt2
+
+    for(ii in txt_roi) {
+
+      setwd(dir_roi)
+
+      roi_path_str <- read.table(ii, stringsAsFactors = F)
+
+      path_parts <- stringr::str_split(auto_id_folder, pattern = '/')
+
+
+      auto_ind <- grep(path_parts[[1]], pattern = 'autoid')
+
+      base_path_parts <- path_parts[[1]][-auto_ind]
+
+      basepath <- stringr::str_c(base_path_parts,  collapse = '\\')
+
+      auto_path <- stringr::str_c(path_parts[[1]], collapse = '\\')
+
+      tt<- stringr::str_locate(string = roi_path_str$V1[1], pattern = 'rois')
+      sub_roi_path <- substr(roi_path_str$V1, tt[1], nchar(roi_path_str))
+      new_roi_path <- file.path(basepath, sub_roi_path, fsep = '\\')
+
+      #Create a new folder for autoid rois
+      roi_folder <- file.path(auto_path, i, paste0(ii, "_ROIS"), fsep = "\\")
+      command1 <- paste('mkdir', roi_folder, sep = " ")
+      shell(command1)
+
+      #Copy rois to this directory
+      for (iii in 1:length(new_roi_path)) {
+
+        dir_tmp <- as.character(new_roi_path[iii])
+        command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
+        shell(command2)
+
+        print(paste(iii, '/', length(new_roi_path),' completed!'))
+      }
+
+    }
+
+    print(paste(i, 'completed!'))
+  }
+
+  print(paste('Day ', day, ', Hour ', hour, 'completed!'))
+  # }
+
+}
+
+image_check <- function(folder_dir, basepath){
+
+  #' Remove ROI strings from aid and aidmeas files based on a manually organized folder of images
+  #'
+  #' Should be used after \code{\link{image_copy}}, and manual image removal from created folders
+  #'
+  #'
+  #'
+  #'     @param folder_dir directory path to day hour folders containing manually
+  #'   reorganized images of a specific taxa eg.
+  #'   'C:/data/cruise_IML2018051/krill/images/' where that folder contains
+  #'   '......d123.h01/' which contains manually sorted images of krill
+  #' @param basepath directory path to original Visual Plankton files, specified
+  #'   down to the classification group. eg.
+  #'   'C:/data/cruise_IML2018051/autoid/krill'
+  #'@export
+  #'
+# this function can be used to edit aid and aidmeas files based on the images contained in a folder
+  #useful if images were reorganized into classifciation groups manually in file explorer and then
+  #user wants to translate this reorganization into data files
+
+
+##part two of krill check to remove erroneus images
+
+#after having copied krill images into folder using get_autoid_mod.R
+
+#then manually removing any images which were not Krill
+
+#once this is run, processing and plotting can be done
+
+#E. Chisholm Sept 2019
+
+  #if not supplied, assume folders are the same
+  if(missing(basepath)){basepath <- folder_dir}
+
+stfolders <- list.files(folder_dir, full.names = TRUE)
+
+for (i in 1:length(stfolders)){ #for each day/hour loop
+
+  krill_ver <- list.files(stfolders[i])
+
+
+  #find matching original files
+  #dh_ind <- stringr::str_locate(stfolders[i], pattern = 'aid.d')
+
+  #dayhr <- substr(stfolders[i], dh_ind[2], nchar(stfolders[i])-5 )
+
+  day <- getday(stfolders[i])
+  hour <- gethour(stfolders[i])
+
+  dayhr <- paste0('d', day, '.h', hour)
+
+  #aid and aidmea
+  aid_fns <- list.files(paste0(basepath, '/aid'), pattern = dayhr, full.names = TRUE)
+
+  aidmeas_fns <- list.files(paste0(basepath, '/aidmea'), pattern =  dayhr, full.names = TRUE)
+
+  #get indexes of aids which are not matched in krill_check and remove
+
+  #read in aid file
+
+  aid <- read.table(aid_fns ,stringsAsFactors = FALSE)
+
+  #get roi substring
+  #aid_old_gen <- substr(aid$V1, nchar(aid$V1) - 17, nchar(aid$V1))
+  #aid_old_gen <- trimws(aid_old_gen, which = 'both')
+
+  aid_old_gen <- getroiid(aid$V1)
+
+  #find index of images which are in maually verified folder
+
+  ver_ind <- aid_old_gen %in% krill_ver
+
+
+  ver_ind_unl <- grep(ver_ind, pattern = 'FALSE')
+
+  #remove any ROI number which do not match verified index
+  aid_new <- aid$V1[ -ver_ind_unl]
+
+
+
+  #read in aidmea file
+  aidMea_old <- read.table(aidmeas_fns)
+
+  #use same verified index to subset aidmea file
+  aidMea_new <- aidMea_old[-ver_ind_unl, ]
+
+
+  #check that files match
+
+  if( length(aidMea_new$V1) != length(aid_new)){
+    stop('roi and size files do not match!')
+  }
+
+  #print new aid and aidmea files
+
+  write.table(file = aidmeas_fns, aidMea_new, sep = "    ", quote = FALSE, col.names = FALSE, row.names = FALSE)
+
+  write.table(file = aid_fns, aid_new, quote = FALSE, col.names = FALSE, row.names = FALSE)
+
+  cat(' \n')
+  cat(aidmeas_fns, 'updated! \n')
+  cat(aid_fns, 'updated! \n')
+  cat('\n')
+
+}
+}
+

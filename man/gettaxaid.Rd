@@ -15,6 +15,9 @@ A string of only the taxa id
 \description{
 Get traxa ids from string
 }
+\seealso{
+\code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}
+}
 \author{
 K Sorochan
 }
