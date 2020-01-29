@@ -100,7 +100,7 @@ load('COR2019002_env.RData')
 ```
 These variable names will be kept consistent throughout this document for simplicity.
 
-These variables could also be set at the start of each processing script, or manually as you run through processing but containing them all within an environnment allows for neater code. It also means file paths and specifics are easier to change if needed, for example if processing a new cruise. If sharing your processing code with colleagues on version control, keeping your environment variables seperate (outside of your git project) will allow you to collaborate without breaking each other's code due to difference in file paths or folder names. 
+These variables could also be set at the start of each processing script, or manually as you run through processing but containing them all within an environnment allows for neater code. It also means file paths and specifics are easier to change if needed, for example if processing a new cruise. If sharing your processing code with colleagues on version control, keeping your environment variables separate (outside of your git project) will allow you to collaborate without breaking each other's code due to difference in file paths or folder names. 
 
 
 # 1. AutoID Copying
@@ -113,8 +113,8 @@ To properly organize the images for a given cruise, use the function `vprr::auto
 # create variables
 # ---------------------
 basepath <- "C:\\data\\cruise_COR2019002\\autoid\\" 
-# note this is the same as your auto_id_folder environment variable excpet the file seperator is different, 
-# because this script will run source code in command line which does not recognize '/' as a file seperator
+# note this is the same as your auto_id_folder environment variable excpet the file separator is different, 
+# because this script will run source code in command line which does not recognize '/' as a file separator
 day <- "123"
 hour <- "01" # note leading zero is kept
 classifier_type <- "svm"
@@ -662,3 +662,45 @@ TS plots can also be helpful to visualize concentration data in comparison with 
   
 These plotting examples show plots being saved as png files, this was the method used for 2018 and 2019 data at BIO but it is worth exploring other possible options as well. Using RMarkdown to create plots can be great for producing reports and keeping track of plot versions. Using RMarkdown documents means that the code and plot are always directly associated and there is no concern of mismatch between plot version and code version. Markdown can be a little slow when creating many large VPR plots, but might be best for smaller projects.
   
+
+
+# Conclusion
+
+In closing, it is important to note that these functions were created for a specific project here at BIO and have not been tested on varied data structures. If using VPR data collected from profile or moored deployments, or using different image processing and classification software, there may be major differences throughout processing. Hopefully this can give a template of the required processing and an idea of how to initially explore data. 
+
+# Directory Structure
+
+Visual Plankton (MatLab image classification software) requires a very specific directory structure in order to function. Since this processing is meant to directly follow this image classification, it relies on the same directory structure. This allows a smooth transition between the MatLab classifications and the completion of processing in R. The directory structure required is described below
+
+
+- C:/
+  - data
+  
+    - cruise_name
+    
+      - autoid
+        - taxaname
+          - aid
+          - aidmea
+          
+      - clpar
+      
+      - feature
+        - vprtow#
+        
+      - idsize
+      
+      - rois
+        - vprtow#
+          - day
+            - hour
+        
+      - tefeature
+        - vprtow#
+          - day
+            - hour
+        
+      - trrois
+        - vprtow#
+          - day
+            - hour
