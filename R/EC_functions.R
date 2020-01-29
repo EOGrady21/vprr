@@ -25,7 +25,7 @@ NULL
 #' scheme, will load either 'data' or 'auto_measure_ls' objects into
 #' consistently named list.
 #'
-#' @note \strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_ls'
+#' @note \strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_mm'
 #'
 #' @author K Sorochan
 #'
@@ -2750,6 +2750,82 @@ bindat <- data[is.finite(data$conc_m3),]
 
 }
 
+
+
+
+# profile plotting
+
+#' Plots VPR profiles of temperature, salinity, density, fluorescence and concentration (by classification group)
+#'
+#'
+#' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
+#' Facet wrap is used to create distinct panels for each taxa provided
+#'
+#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data seperated by taxa (from \code{\link{calculate_vpr_concentrations}})
+#' @param taxa_to_plot The specific classification groups which will be plotted
+#'
+#'
+#' @return A gridded object of at least 3 ggplot objects
+#' @export
+
+profile_plot <- function(taxa_conc_n, taxa_to_plot){
+# plot temp
+p <- ggplot(taxa_conc_n) +
+  geom_point(aes(x = temperature, y = pressure), col = 'red') +
+  scale_y_reverse(name = 'Pressure [db]')
+# plot salinity
+p_TS <- p + geom_point(aes(x = (salinity -25), y = pressure), col = 'blue') +
+  scale_x_continuous(name = expression(paste("Temperature [",degree,"C]")),sec.axis = sec_axis(~ . +25, name = 'Salinity [PSU]')) +
+  theme(axis.line.x.bottom = element_line(colour = 'red'),
+        axis.ticks.x.bottom = element_line(colour = 'red'),
+        panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x.top = element_line(colour = 'blue'),
+        axis.ticks.x.top = element_line(colour = 'blue'),
+        axis.title = element_text(size = 20)
+  )
+# have to force rescale for multi axes ggplot
+
+# plot fluorescence
+p <- ggplot(taxa_conc_n) +
+  geom_point(aes(x = fluorescence, y = pressure), col = 'green') +
+  scale_y_reverse(name = 'Pressure [db]')
+
+# plot density
+p_FD <- p + geom_point(aes(x = (density  -20) *20, y = pressure)) +
+  scale_x_continuous(name = 'Fluorescence [mv]',sec.axis = sec_axis(~. /20  +20, name = 'Density')) +
+  theme(axis.line.x.bottom = element_line(colour = 'green'),
+        axis.ticks.x.bottom = element_line(colour = 'green'),
+        panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x.top = element_line(colour = 'black'),
+        axis.title = element_text(size = 20)
+  )
+# manual rescale
+
+
+# facet wrap plot all taxa, if only one taxa, comment out facet wrap
+pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
+  geom_point(aes(x = pressure, y = conc_m3/1024)) + #conversion of m3 to L using default density
+  stat_summary_bin(aes(x = pressure, y = conc_m3/1024), fun.y = 'mean', col = 'red', geom = 'line', size = 3)  +
+  scale_x_reverse(name = 'Pressure [db]') +
+  scale_y_continuous(name = expression('ROI L'^'-1')) +
+  # ggtitle('Concentrations') +
+  facet_wrap(~taxa, nrow = 1, ncol = length(unique(taxa_conc_n$taxa)), scales = 'free_x')+
+  theme_classic() +
+  theme(strip.text = element_text(size = 18),
+        plot.title = element_text(size = 25),
+        axis.title = element_text(size = 20))+
+  coord_flip()
+
+p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = c(2), nrow = 1, ncol = 3)
+# for 4.85
+# grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 1), heights = c(2), nrow = 1, ncol = 3)
+
+return(p)
+}
 
 
 # deprecated --------------------------------------------------------------------------
