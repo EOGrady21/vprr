@@ -298,7 +298,7 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest){
 
 #' Binned concentrations
 #'
-#' This function produces depth binned concentrations for a specifiedtaxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
+#' This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
 #' Used inside \code{\link{calculate_vpr_concentrations}}
 #'
 #'
@@ -2761,7 +2761,7 @@ bindat <- data[is.finite(data$conc_m3),]
 #' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
 #' Facet wrap is used to create distinct panels for each taxa provided
 #'
-#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data seperated by taxa (from \code{\link{calculate_vpr_concentrations}})
+#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{calculate_vpr_concentrations}})
 #' @param taxa_to_plot The specific classification groups which will be plotted
 #'
 #'
