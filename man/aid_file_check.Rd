@@ -16,7 +16,7 @@ text file (saved in working directory) named CRUISENAME_aid_file_check.txt
 }
 \description{
 Removes any empty aid files after manual reclassification, checks for tow
-numbers and other metadata to match. PErforms check to ensure measurement and
+numbers and other metadata to match. Performs check to ensure measurement and
 ROI files are the same length
 }
 \author{

@@ -9,7 +9,7 @@ plotTS_balloon_EC(x, reference.p = 0)
 \arguments{
 \item{x}{dataframe with temperature, salinity, number of rois named by taxa}
 
-\item{reference.p}{reference pressure (default at 0 for surface)- used to calculate ispycnals}
+\item{reference.p}{reference pressure (default at 0 for surface)- used to calculate isopycnals}
 }
 \description{
 Balloon plot against a TS plot with ROI concentration and sorted by taxa

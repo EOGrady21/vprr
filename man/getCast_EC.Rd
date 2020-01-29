@@ -15,7 +15,7 @@ getCast_EC(
 \arguments{
 \item{data}{an \code{oce} ctd object}
 
-\item{cast_direction}{'ascendcing' or 'descending' depending on desired section}
+\item{cast_direction}{'ascending' or 'descending' depending on desired section}
 
 \item{data_type}{specify 'oce' or 'df' depending on class of desired output}
 }

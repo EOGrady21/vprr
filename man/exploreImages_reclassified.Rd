@@ -15,7 +15,7 @@ exploreImages_reclassified(day, hour, base_dir, taxa_of_interest, image_dir)
 
 \item{taxa_of_interest}{Classification group from which to pull images}
 
-\item{image_dir}{directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file seperator MUST BE "\\\\" in order to be recognized}
+\item{image_dir}{directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized}
 }
 \value{
 folders of misclassified or reclassified images inside image_dir

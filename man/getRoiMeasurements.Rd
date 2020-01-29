@@ -13,7 +13,7 @@ getRoiMeasurements(taxafolder, nchar_folder, unit = "mm", opticalSetting)
 
 \item{unit}{unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)}
 
-\item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')}
+\item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')}
 }
 \description{
 pull roi measurements from all taxa, all files

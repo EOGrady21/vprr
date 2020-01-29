@@ -15,12 +15,12 @@ choice (var)}
 \item{dup}{if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')}
 
 \item{method}{Specifies interpolation method, options are 'akima', 'interp'
-or 'oce', akima and interp produce indentical interpolations, oce uses
+or 'oce', akima and interp produce identical interpolations, oce uses
 slightly different method (oce is least error prone)}
 
 \item{labels}{logical value indicating whether or not to plot contour labels}
 
-\item{bw}{bin width defining interval at which contours are labeled}
+\item{bw}{bin width defining interval at which contours are labelled}
 }
 \description{
 Creates interpolated contour plot, can be used as a background for ROI or tow yo information

@@ -14,7 +14,7 @@ contour_plots(contour_data, ctd_cont_tmp, roi_cont_tmp)
 \item{roi_cont_tmp}{ROI data from VPR, data frame containing columns time_h, pressure and n_roi}
 }
 \value{
-fille dcontour VPR plot
+filled contour VPR plot
 }
 \description{
 This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption

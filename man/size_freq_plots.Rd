@@ -2,12 +2,12 @@
 % Please edit documentation in R/EC_functions.R
 \name{size_freq_plots}
 \alias{size_freq_plots}
-\title{Size Frequency plots for vPR data}
+\title{Size Frequency plots for VPR data}
 \usage{
 size_freq_plots(x, number_of_classes, colour_of_bar)
 }
 \arguments{
-\item{x}{a dtaa frame with columns 'taxa', 'long_axis_length'}
+\item{x}{a data frame with columns 'taxa', 'long_axis_length'}
 
 \item{number_of_classes}{numeric value passed to nclass argument in hist()}
 

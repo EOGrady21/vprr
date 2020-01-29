@@ -18,7 +18,7 @@ scheme, will load either 'data' or 'auto_measure_ls' objects into
 consistently named list.
 }
 \note{
-\strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_ls'
+\strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_mm'
 }
 \examples{
 

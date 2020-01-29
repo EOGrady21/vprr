@@ -15,11 +15,11 @@ vis_cm(cm, classes, type, addLabels = T, threshold = NULL)
 \item{type}{character value 'NN', 'SVM' or 'Dual', appended to 'Confusion
 Matrix' to create title}
 
-\item{addLabels}{logical value whetehr to add percentage accuracy labels to
+\item{addLabels}{logical value whether to add percentage accuracy labels to
 plot (defaults to TRUE)}
 
 \item{threshold}{numeric value which determines the minimum value of
-frequency labelled on the plot on a normalized scale of 0-1 (useful for highliighting significant
+frequency labelled on the plot on a normalized scale of 0-1 (useful for highlighting significant
 disagreement)}
 }
 \value{

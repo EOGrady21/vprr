@@ -11,7 +11,7 @@ get_trrois_size(directory, taxa, opticalSetting)
 
 \item{taxa}{list of character elements containing taxa of interest}
 
-\item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')}
+\item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')}
 }
 \description{
 useful for getting size distribution of known rois from each taxa. gathers

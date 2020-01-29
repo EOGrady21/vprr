@@ -7,7 +7,7 @@
 conPlot_conc(data, dup = "mean", bw = 1)
 }
 \arguments{
-\item{data}{vpr depth binned data, with parmaeters avg_hr , pressure, and conc_m3}
+\item{data}{vpr depth binned data, with parameters avg_hr , pressure, and conc_m3}
 
 \item{dup}{string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')}
 

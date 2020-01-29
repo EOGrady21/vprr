@@ -17,7 +17,7 @@ data to fill the contours of the plot}
 \item{binned_cont_tmp}{data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
 PLOTTED AS VPR PATH}
 
-\item{binned_cont_tmp_subset}{data frame containing vPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
+\item{binned_cont_tmp_subset}{data frame containing VPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
 PLOTTED AS BUBBLES}
 }
 \value{

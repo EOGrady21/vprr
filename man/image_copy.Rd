@@ -17,6 +17,6 @@ image_copy(auto_id_folder, taxas.of.interest, day, hour)
 }
 \description{
 This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
-This is useful for visualizing the ROIs of a particular classification group or for perfomring manual tertiary checks to remove
+This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
 images not matching classification group descriptions.
 }

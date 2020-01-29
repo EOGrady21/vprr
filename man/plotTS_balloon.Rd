@@ -9,7 +9,7 @@ plotTS_balloon(x, reference.p = 0, var)
 \arguments{
 \item{x}{dataframe with temperature, salinity, number of rois (n_roi_bin)}
 
-\item{reference.p}{reference pressure (default at 0 for surface)- used to calculate ispycnals}
+\item{reference.p}{reference pressure (default at 0 for surface)- used to calculate isopycnals}
 
 \item{var}{variable on which size of points will be based, eg conc_m3 or n_roi_bin}
 }

@@ -298,7 +298,7 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest){
 
 #' Binned concentrations
 #'
-#' This function produces depth binned concentrations for a specificied taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
+#' This function produces depth binned concentrations for a specifiedtaxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
 #' Used inside \code{\link{calculate_vpr_concentrations}}
 #'
 #'
@@ -469,7 +469,7 @@ read_ctd_vpr <- function(ctd_files, station_of_interest){
 #'Merge CTD and ROI data from VPR
 #'
 #'Combines CTD data (time, hydrographic parameters), with ROI information
-#'(identification number) into single dataframe, aligning ROI identifcation
+#'(identification number) into single dataframe, aligning ROI identification
 #'numbers and taxa classifications with time and hydrographic parameters
 #'
 #'@author E. Chisholm & K. Sorochan
@@ -761,7 +761,7 @@ normalize <- function(mat){
 #'
 #'@param directory cruise directory eg. 'C:/data/IML2018051/'
 #'@param taxa list of character elements containing taxa of interest
-#'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+#'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
 #'
 #' @export
 get_trrois_size <- function(directory, taxa, opticalSetting){
@@ -793,7 +793,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 
 #' Get bin averages for VPR and CTD data
 #'
-#' Bins CTD data for an individual cast to avoid depth averaging across tow yos
+#' Bins CTD data for an individual cast to avoid depth averaging across tow-yo's
 #'
 #' @author E. Chisholm, K. Sorochan
 #'
@@ -929,7 +929,7 @@ if (rev == TRUE){
 #' @author  K Sorochan, E Chisholm, R Klaver
 #'
 #' @param data an \code{oce} ctd object
-#' @param cast_direction 'ascendcing' or 'descending' depending on desired section
+#' @param cast_direction 'ascending' or 'descending' depending on desired section
 #' @param data_type specify 'oce' or 'df' depending on class of desired output
 #'
 #' @return Outputs either data frame or oce ctd object
@@ -1094,7 +1094,7 @@ getroiid <- function(x) {
 }
 
 
-#' Get traxa ids from string
+#' Get taxa ids from string
 #'
 #' @author K Sorochan
 #'
@@ -1303,7 +1303,7 @@ insertRow <- function(existingDF, newrow, r) {
 #' Checks manually created aid files for errors
 #'
 #' Removes any empty aid files after manual reclassification, checks for tow
-#' numbers and other metadata to match. PErforms check to ensure measurement and
+#' numbers and other metadata to match. Performs check to ensure measurement and
 #' ROI files are the same length
 #'
 #' @author E Chisholm
@@ -1504,7 +1504,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
   #' @param taxafolder path to taxa folder (base -- autoid folder)
   #' @param nchar_folder number of characters in basepath
   #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
-  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are'S0', 'S1', 'S2', or 'S3')
+  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
   #'
   #' @note This function is very finicky, easily broken because it relies on character string splitting.
   #' taxaFolder argument should not end in a backslash, please check output carefully to
@@ -1830,14 +1830,14 @@ bubble_plotTSnroi <- function(x, r) {
 
 
 
-#' Size Frequency plots for vPR data
+#' Size Frequency plots for VPR data
 #'
 #' This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
 #' \strong{!!WARNING:} this function uses hard coded plot attributes
 #'
 #' @author R. Klaver & K. Sorochan
 #'
-#' @param x a dtaa frame with columns 'taxa', 'long_axis_length'
+#' @param x a data frame with columns 'taxa', 'long_axis_length'
 #' @param number_of_classes numeric value passed to nclass argument in hist()
 #' @param colour_of_bar character value defining colour of plotted bars
 #'
@@ -1892,7 +1892,7 @@ contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_co
   #' data to fill the contours of the plot
   #' @param binned_cont_tmp data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
   #' PLOTTED AS VPR PATH
-  #' @param binned_cont_tmp_subset data frame containing vPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
+  #' @param binned_cont_tmp_subset data frame containing VPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
   #' PLOTTED AS BUBBLES
   #' @return filled contour VPR plot
   #'
@@ -1975,7 +1975,7 @@ contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_co
 #' @param ctd_cont_tmp CTD data frame containing columns time_h and pressure
 #' @param roi_cont_tmp ROI data from VPR, data frame containing columns time_h, pressure and n_roi
 #'
-#' @return fille dcontour VPR plot
+#' @return filled contour VPR plot
 #' @export
 #'
 #'
@@ -2167,7 +2167,7 @@ plotTS_balloon <- function(x, reference.p = 0, var){
   #' @author E. Chisholm
   #'
   #' @param x dataframe with temperature, salinity, number of rois (n_roi_bin)
-  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate ispycnals
+  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate isopycnals
   #' @param var variable on which size of points will be based, eg conc_m3 or n_roi_bin
   #'
   #'
@@ -2273,7 +2273,7 @@ plotTS_balloon_EC <- function(x, reference.p = 0){
   #' !! Uses isopycnal labelling method which does not label every contour
   #'
   #' @param x dataframe with temperature, salinity, number of rois named by taxa
-  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate ispycnals
+  #' @param reference.p reference pressure (default at 0 for surface)- used to calculate isopycnals
   #'
   #'
   #'
@@ -2381,10 +2381,10 @@ vis_cm <- function(cm, classes, type, addLabels = T, threshold = NULL){
   #'   (ordered)
   #' @param type character value 'NN', 'SVM' or 'Dual', appended to 'Confusion
   #'   Matrix' to create title
-  #' @param addLabels logical value whetehr to add percentage accuracy labels to
+  #' @param addLabels logical value whether to add percentage accuracy labels to
   #'   plot (defaults to TRUE)
   #' @param threshold numeric value which determines the minimum value of
-  #'   frequency labelled on the plot on a normalized scale of 0-1 (useful for highliighting significant
+  #'   frequency labelled on the plot on a normalized scale of 0-1 (useful for highlighting significant
   #'   disagreement)
   #'
   #' @return  a visualization of the confusion matrix, normalized
@@ -2617,10 +2617,10 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
   #' @param var variable in dataframe which will be interpolated and plotted
   #' @param dup if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')
   #' @param method Specifies interpolation method, options are 'akima', 'interp'
-  #'   or 'oce', akima and interp produce indentical interpolations, oce uses
+  #'   or 'oce', akima and interp produce identical interpolations, oce uses
   #'   slightly different method (oce is least error prone)
   #' @param labels logical value indicating whether or not to plot contour labels
-  #' @param bw bin width defining interval at which contours are labeled
+  #' @param bw bin width defining interval at which contours are labelled
   #'
   #' @export
 
@@ -2718,7 +2718,7 @@ conPlot_conc <- function(data, dup = 'mean', bw = 1){
   #'
   #' Makes a contour plot of ROI concentration, interpolated over time and depth
   #'
-  #' @param data vpr depth binned data, with parmaeters avg_hr , pressure, and conc_m3
+  #' @param data vpr depth binned data, with parameters avg_hr , pressure, and conc_m3
   #' @param dup string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')
   #' @param bw bin width defining contour label intervals
   #'
@@ -2912,7 +2912,7 @@ trim_ctd_plot <- function(ctd){
 #' @param hour Character string, 2 digit hour of interest of VPR data
 #' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
 #' @param taxa_of_interest Classification group from which to pull images
-#' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file seperator MUST BE "\\\\" in order to be recognized
+#' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized
 #'
 #' @return folders of misclassified or reclassified images inside image_dir
 #' @export
@@ -3181,7 +3181,7 @@ image_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
   #' Image copying function for specific taxa of interest
   #'
   #' This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
-  #' This is useful for visualizing the ROIs of a particular classification group or for perfomring manual tertiary checks to remove
+  #' This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
   #' images not matching classification group descriptions.
   #'
   #'

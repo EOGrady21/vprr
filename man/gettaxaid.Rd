@@ -2,7 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{gettaxaid}
 \alias{gettaxaid}
-\title{Get traxa ids from string}
+\title{Get taxa ids from string}
 \usage{
 gettaxaid(x)
 }
@@ -13,7 +13,7 @@ gettaxaid(x)
 A string of only the taxa id
 }
 \description{
-Get traxa ids from string
+Get taxa ids from string
 }
 \seealso{
 \code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}

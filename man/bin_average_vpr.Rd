@@ -22,7 +22,7 @@ binning begins at surface (rev = FALSE), small amounts of data may be lost
 at bottom of each cast}
 }
 \description{
-Bins CTD data for an individual cast to avoid depth averaging across tow yos
+Bins CTD data for an individual cast to avoid depth averaging across tow-yo's
 }
 \details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
