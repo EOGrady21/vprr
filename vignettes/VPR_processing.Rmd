@@ -518,4 +518,147 @@ for (j in 1:length(all_stations_of_interest)){
 
 How you decide to plot VPR data will depend a lot on your research goals and areas of interest. The following are a few example plots which may help you navigate and explore the data after finishing processing. 
 
+The first step to plotting is properly loading in the processed VPR data objects developed in processing. The environment, described in the Summary of Processing Steps section should also be loaded. The individual data files are found by distinct names eg "stationData", note that your directory structure may be different depending on your `savedir` where data files were saved during processing. 
 
+Note that the following plotting examples are best used for tow-yo pattern VPR deployments. 
+
+
+```
+
+##### FILE PATH & SETTINGS -----------------------------------------------------------------------------------------------------------------------
+
+library(vprr)
+
+# loads all file paths and environment vars specific to User
+load('COR2019002_env.RData')
+
+#find all data files
+fn_all_st <- list.files(paste0(cruise, "_data_files/"), pattern = "stationData", full.names = T)
+fn_all_meas <- list.files(paste0(cruise, "_data_files/"), pattern = "meas", full.names = T)
+fn_all_conc <- list.files(paste0("data_product/", cruise, "/"), pattern = "data_binned", full.names = T)
+fn_all_bin <- list.files(paste0(cruise,"_data_files/"), pattern = 'bin_dat', full.names = T)
+```
+
+
+Once files are loaded it is often easiest to run a loop of plots for all stations in a cruise, in order to get comparable plots for analysis. The example below shows a loop being initiated which runs through a list of stations described by a csv file. This loop also isolates two specific classification groups to plot (Calanus and krill), which allows a better focus in plotting. 
+
+```
+
+####START STATION LOOP ---------------------------------------------------------------------------------------------------------------------------
+
+setwd(wd)
+
+all_stations <- read.csv(station_names_file, stringsAsFactors = FALSE)
+all_stations_of_interest <- unique(all_stations$station)
+
+taxa_to_plot <- c("Calanus", "krill")
+
+
+for (j in 1:length(all_stations_of_interest)){
+  
+  setwd(wd)
+  station <- all_stations_of_interest[j]
+  
+  cat('station', station ,'starting to plot.... \n')
+  cat('\n')
+  ```
+  
+Next, data files are loaded for the specific station being looped. This loads in all relevant RData files as well as the concentration data saved as a csv file
+  
+  ```
+  #load station roi and ctd data
+  fn_st <- grep(fn_all_st, pattern = station, value = TRUE, ignore.case = TRUE)
+  fn_meas <- grep(fn_all_meas, pattern = station, value = TRUE, ignore.case = TRUE)
+  fn_conc <- grep(fn_all_conc, pattern = station, value = TRUE, ignore.case = TRUE)
+  fn_bin <- grep(fn_all_bin, pattern = station, value = TRUE, ignore.case = TRUE)
+  
+  load(fn_st)
+  load(fn_meas)
+  load(fn_conc)
+  load(fn_bin)
+  
+  
+ # load concentration data
+  taxa_conc_n <- read.csv(fn_conc, stringsAsFactors = F)
+  
+  station_name <- paste('Station ', station)
+  ```
+  
+The last bit of set up required, sets the directory in which plots will be saved and some generic plot size arguments which will control how large the saved .png files are. 
+  
+  ```
+  # directory for plots
+  stdir <- paste0('figures/', cruise, '/station', station)
+  dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
+  setwd(stdir)
+  
+  width = 1200
+  height = 1000
+  ```
+  
+  This first plot follows a consistent format for creating VPR contour plots with hydrographic contours behind VPR concentration data over the tow path. The main function used in `conPlot_EC` which uses a standard VPR data frame (produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. Then the VPR tow path can be added on top of contours, this displays the concentration data as bubbles. This method can be repeated with various hydrographic parameters used to calculate the contours, by changing the `var` argument in `conPlot_EC`.  
+  
+  
+  ```
+  # Density (sigmaT)
+  png('conPlot_taxa_dens.png', width = width, height = height)
+  p <- conPlot_EC(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
+  p <- p + geom_line(data = data, aes(x = avg_hr - min(avg_hr), y = pressure), col = 'snow4', inherit.aes = FALSE) +
+    geom_point(data = taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], aes(x = avg_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
+    ggtitle(station_name ) +
+    labs(size = expression("Concentration /m" ^3), fill = 'Density')+
+    scale_size_continuous(range = c(0, 10)) +
+    facet_wrap(~taxa, ncol = 1, scales = 'free') +
+    theme(legend.key.size = unit(0.8, 'cm'),
+          axis.title = element_text(size = 20),
+          strip.text = element_text(size = 20),
+          plot.title = element_text(size = 32), 
+          axis.ticks = element_line(size = 1, lineend = 'square'),
+          axis.text = element_text(size = 30),
+          legend.text = element_text(size = 20),
+          legend.title = element_text(size = 25)
+    )
+  
+  print(p)
+  dev.off()
+  ```
+  Another common plot which allows great data exploration of vertical distributions is the profile plot created by `profile_plot`, which will shows both hydrographic parameters and the concentrations of specific classification groups. Temperature, salinity, fluorescence and density plots are created with cutom axes. Concentration plots show all binned data compressed into a profile format (without the time axis), as well as an average line which calculates the mean concentration of all bins at a particular depth. The average line can be great to identify vertical trends in data as well as compare to a depth integrated method such as a vertical net tow. 
+  
+  
+  ```
+  
+    png('profilePlots_RK.png', width = 1000, height = 500)
+    p <- profile_plot(taxa_conc_n, taxa_to_plot)
+    print(p)
+    dev.off()
+    ```
+    
+TS plots can also be helpful to visualize concentration data in comparison with water masses. Below, we create a TS plot in ggplot (with labeled isopycnals), and overlay concentration bubbles for each selected classification group. Using `plotTS_balloon` streamlines isopycnal creation and labelling, other variables can also be selected for controlling the size of bubbles in TS space. Ggplot2 grammar makes it easy to add to the basic TS balloon plot, for example to facet by classification group or adjust axis labels and sizing. 
+
+
+```
+
+####TS BALLOON PLOT ----------------------------------------------------------------------------------------------------------------------------
+  
+  # plot by taxa
+  taxa_conc <- taxa_conc_n[taxa_conc_n$conc_m3 > 0,]
+  png('TS_conc_taxa.png', width = 1000, height = 500)
+  p <- plotTS_balloon(taxa_conc[taxa_conc$taxa %in% c(taxa_to_plot),], var = 'conc_m3') +
+    facet_wrap(~taxa, nrow = 1) +
+    theme(strip.text = element_text(size = 18),
+          axis.title = element_text(size = 20),
+          panel.spacing = unit(2, 'lines'))
+  print(p)
+  dev.off()
+  
+  
+  cat('station', station, 'complete! \n')
+  cat('\n')
+  
+} # end station loop
+  ```
+  
+
+  
+These plotting examples show plots being saved as png files, this was the method used for 2018 and 2019 data at BIO but it is worth exploring other possible options as well. Using RMarkdown to create plots can be great for producing reports and keeping track of plot versions. Using RMarkdown documents means that the code and plot are always directly associated and there is no concern of mismatch between plot version and code version. Markdown can be a little slow when creating many large VPR plots, but might be best for smaller projects.
+  
