@@ -7,7 +7,7 @@
 profile_plot(taxa_conc_n, taxa_to_plot)
 }
 \arguments{
-\item{taxa_conc_n}{A VPR data frame with hydrographic and concentration data seperated by taxa (from \code{\link{calculate_vpr_concentrations}})}
+\item{taxa_conc_n}{A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{calculate_vpr_concentrations}})}
 
 \item{taxa_to_plot}{The specific classification groups which will be plotted}
 }

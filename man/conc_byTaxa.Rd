@@ -16,7 +16,7 @@ conc_byTaxa(data, taxa, binSize, imageVolume)
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
-This function produces depth binned concentrations for a specifiedtaxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
+This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
 Used inside \code{\link{calculate_vpr_concentrations}}
 }
 \details{
