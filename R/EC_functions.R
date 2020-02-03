@@ -865,7 +865,7 @@ if (rev == TRUE){
   # placeholder bin in that case the result length will be different than the
   # length of midpoints since the variable "pressure" is a mid point calculation it is used to
   # test for non existent empty bins. If there are non existant empty bins,
-  # binMean1D will calculate them as NA, this loop finds where the bins would
+  # binMean1D will calculate them as NA, this loop fin where the bins would
   # have been located and removes those indexes from the pressure vector so the
   # length of variables is all identical
 
