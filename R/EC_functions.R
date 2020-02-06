@@ -27,7 +27,7 @@ NULL
 #' @param data VPR data frame from \code{\link{ctd_roi_merge}}
 #' @param year Year of data collection
 #'
-#' @return a VPR data frame with complete date/time information in a new row named 'ymd'
+#' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
 #' @export
 
 add_ymd <- function(data, year){
@@ -48,10 +48,10 @@ add_ymd <- function(data, year){
   l_per <- round(lubridate::seconds_to_period(data$time_ms/1000),0)
 
 
-  ymdhms <- as.POSIXct(l_per, origin = ymd, tz = 'UTC')
+  ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
 
   data <- data %>%
-    dplyr::mutate(., ymdd = ymdhms)
+    dplyr::mutate(., ymdhms = ymdhms_obj)
 
   return(data)
 
