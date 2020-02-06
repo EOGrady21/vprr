@@ -19,6 +19,44 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
+#' Add Year/ month/ day hour:minute:second information
+#'
+#' Calculate and record calendar dates for vpr data from day-of-year, hour, amd time (in milliseconds) info.
+#' Will also add 'avg_hr' parameter if not already present.
+#'
+#' @param data VPR data frame from \code{\link{ctd_roi_merge}}
+#' @param year Year of data collection
+#'
+#' @return a VPR data frame with complete date/time information in a new row named 'ymd'
+#' @export
+
+add_ymd <- function(data, year){
+
+  d <- grep(names(data), pattern = 'avg_hr')
+  if(length(d) == 0){
+    data <- data %>%
+      dplyr::mutate(., avg_hr = time_ms / 3.6e+06)
+  }
+
+  day_num <- substr(data$day, 2, 4)
+
+  hour_num <- substr(data$hour, 2, 3)
+
+  ymd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
+
+
+  l_per <- round(seconds_to_period(data$time_ms/1000),0)
+
+
+  ymdhms <- as.POSIXct(l_per, origin = ymd, tz = 'UTC')
+
+  data <- data %>%
+    dplyr::mutate(., ymd = ymdhms)
+
+  return(data)
+
+}
+
 #' Load RData files
 #'
 #' Loads VPR processed RData files from station data, accounts for old naming
