@@ -45,7 +45,7 @@ add_ymd <- function(data, year){
   ymd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
 
 
-  l_per <- round(seconds_to_period(data$time_ms/1000),0)
+  l_per <- round(lubridate::seconds_to_period(data$time_ms/1000),0)
 
 
   ymdhms <- as.POSIXct(l_per, origin = ymd, tz = 'UTC')

@@ -23,7 +23,8 @@ Imports: ggplot2,
     tidyr,
     stringr,
     metR,
-    gridExtra
+    gridExtra,
+    lubridate
 Suggests: 
     knitr,
     rmarkdown
