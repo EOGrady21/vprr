@@ -42,7 +42,7 @@ add_ymd <- function(data, year){
 
   hour_num <- substr(data$hour, 2, 3)
 
-  ymd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
+  ymdd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
 
 
   l_per <- round(lubridate::seconds_to_period(data$time_ms/1000),0)
@@ -51,7 +51,7 @@ add_ymd <- function(data, year){
   ymdhms <- as.POSIXct(l_per, origin = ymd, tz = 'UTC')
 
   data <- data %>%
-    dplyr::mutate(., ymd = ymdhms)
+    dplyr::mutate(., ymdd = ymdhms)
 
   return(data)
 
