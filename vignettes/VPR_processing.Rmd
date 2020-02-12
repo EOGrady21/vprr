@@ -61,6 +61,8 @@ setwd(wd)
 #CRUISE
 cruise <- 'COR2019002'
 
+year <- 2019
+
 #CSV FILE WITH STATION NAMES AND CORRESPONDING DAY/HOUR INFO
 station_names_file <- paste0("station_names_", cruise, ".csv")
 #example: 'C:/VPR_PROJECT/vp_info/station_names_COR2019002.csv'
@@ -460,7 +462,9 @@ for (j in 1:length(all_stations_of_interest)){
   cat('\n')
   
   ```
-  Before final export of data products, a few calculated variables are added, `avg_hr` is a variable representing time in hours rather than milliseconds, which simplifies plotting and is more easily understood. `sigmaT` is also calculated using`oce::swSigmaT` to give a more complete picture of hydrographic properties. 
+  Before final export of data products, a few calculated variables are added, `avg_hr` is a variable representing time in hours rather than milliseconds, which simplifies plotting and is more easily understood. `sigmaT` is also calculated using`oce::swSigmaT` to give a more complete picture of water properties. `add_ymd` is used to add a time stamp with POSIXct signature to the data frame in Y-M-D h:m:s format, this is good for completeing metadata as well as referencing VPR data to oher sampling methods. 
+  
+  A note on time stamps: There are often issues with time offsets in VPR data. The day/hour information used throughout this processing will be in the timezone of the computer used to process images in autoDeck. It is ideal to set this computer's time to UTC to avoid any confusion. 
   
   ```
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
@@ -476,6 +480,8 @@ for (j in 1:length(all_stations_of_interest)){
         ctd_roi_merge$pressure
       )
     )
+    
+    data <- add_ymd(data, year)
   
   cat('Initial processing complete! \n')
   cat('\n')
@@ -609,7 +615,7 @@ The last bit of set up required, sets the directory in which plots will be saved
   height = 1000
   ```
   
-  This first plot follows a consistent format for creating VPR contour plots with hydrographic contours behind VPR concentration data over the tow path. The main function used is `vprr::conPlot_EC` which uses a standard VPR data frame (produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. Then the VPR tow path can be added on top of contours, this displays the concentration data as bubbles. This method can be repeated with various hydrographic parameters used to calculate the contours, by changing the `var` argument in `vprr::conPlot_EC`.  
+  This first plot follows a consistent format for creating VPR contour plots with variable contours behind VPR concentration data over the tow path. The main function used is `vprr::conPlot_EC` which uses a standard VPR data frame (produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. Then the VPR tow path can be added on top of contours, this displays the concentration data as bubbles. This method can be repeated with various water parameters used to calculate the contours, by changing the `var` argument in `vprr::conPlot_EC`.  
   
   
   ```
@@ -635,7 +641,7 @@ The last bit of set up required, sets the directory in which plots will be saved
   print(p)
   dev.off()
   ```
-  Another common plot which allows great data exploration of vertical distributions is the profile plot created by `vprr::profile_plot`, which will shows both hydrographic parameters and the concentrations of specific classification groups. Temperature, salinity, fluorescence and density plots are created with custom axes. Concentration plots show all binned data compressed into a profile format (without the time axis), as well as an average line which calculates the mean concentration of all bins at a particular depth. The average line can be great to identify vertical trends in data as well as compare to a depth integrated method such as a vertical net tow. 
+  Another common plot which allows great data exploration of vertical distributions is the profile plot created by `vprr::profile_plot`, which will shows both water properties and the concentrations of specific classification groups. Temperature, salinity, fluorescence and density plots are created with custom axes. Concentration plots show all binned data compressed into a profile format (without the time axis), as well as an average line which calculates the mean concentration of all bins at a particular depth. The average line can be great to identify vertical trends in data as well as compare to a depth integrated method such as a vertical net tow. 
   
   
   ```
