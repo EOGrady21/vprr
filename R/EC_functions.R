@@ -19,6 +19,49 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
+save_vpr_oce <- function(data){
+
+  #####IN PROGRESS###
+
+  # TODO add roxygen doc
+
+
+  # create oce objects
+
+  oce_data <- as.oce(data)
+
+  # check for metadata in dataframe
+  rem_list <- list()
+  for(i in 1:length(oce_data@data)){
+    if(length(unique(oce_data@data[[i]])) == 1){
+      print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of' , unique(oce_data@data[[i]]), 'moved to metadata slot. '))
+      # add as metadtaa parameter
+      oce_data <- oceSetMetadata(oce_data, name = names(oce_data@data)[[i]], value = unique(oce_data@data[[i]]))
+      rem_list[[i]] <- i
+    }
+
+  }
+  # remove data lines
+  oce_data@data <- oce_data@data[-unlist(rem_list)]
+
+  # check for other metadata and ask user to supply
+
+  req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
+
+
+  for(rm in req_meta){
+    if(is.null(oce_data@metadata[[rm]])){
+      print(paste('Please provide value for Metadata parameter', rm))
+      rm_val <- readline(paste('Metadata slot, ', rm, ': '))
+      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val)
+    }
+    # TODO : add possibility of value existing as 'unknown or some other placeholder which should be overwritten
+
+  }
+
+  # TODO : output oce object
+}
+
 #' Add Year/ month/ day hour:minute:second information
 #'
 #' Calculate and record calendar dates for vpr data from day-of-year, hour, amd time (in milliseconds) info.
