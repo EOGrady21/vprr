@@ -26,17 +26,19 @@ NULL
 #'
 #' @param data VPR data frame from \code{\link{ctd_roi_merge}}
 #' @param year Year of data collection
+#' @param offset time offset in hours between VPR CPU and processed data times (optional)
 #'
 #' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
 #' @export
 
-add_ymd <- function(data, year){
+add_ymd <- function(data, year, offset){
 
   d <- grep(names(data), pattern = 'avg_hr')
   if(length(d) == 0){
     data <- data %>%
       dplyr::mutate(., avg_hr = time_ms / 3.6e+06)
   }
+
 
   day_num <- substr(data$day, 2, 4)
 
@@ -49,6 +51,12 @@ add_ymd <- function(data, year){
 
 
   ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
+
+  if(!missing(offset)){
+
+    ymdhms_obj <- ymdhms_obj + offset*3600 # convert hour offset to seconds and adjust times
+
+  }
 
   data <- data %>%
     dplyr::mutate(., ymdhms = ymdhms_obj)
