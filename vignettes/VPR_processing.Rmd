@@ -508,7 +508,7 @@ for (j in 1:length(all_stations_of_interest)){
   taxas_list <- unique(roimeas_dat_combine$taxa)
   
   # calculate concentrations for each taxa
-  taxa_conc_n <- calculate_vpr_concentrations(data, taxas_list, station_of_interest )
+  taxa_conc_n <- calculate_vpr_concentrations(data, taxas_list, station_of_interest, binSize, imageVolume)
   
   cat('Station', station_of_interest, 'processing complete! \n')
   cat('\n')
