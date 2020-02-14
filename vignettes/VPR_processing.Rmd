@@ -512,6 +512,11 @@ for (j in 1:length(all_stations_of_interest)){
   
   cat('Station', station_of_interest, 'processing complete! \n')
   cat('\n')
+  
+  # bin size data
+  
+  size_df_f <- format_size_data(data, measdata = roimeas_dat_combine, taxa_of_interest)
+  size_df_b <- bin_size_data(size_df_f, bin_mea = 3)
   ```
   Finally, data is saved as RData and csv files for export and plotting. Data is also save as an `oce` object in order to preserve both data and metadata in a efficient format.
   
@@ -519,22 +524,23 @@ for (j in 1:length(all_stations_of_interest)){
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
   # Save oce object
   oce_dat <- save_vpr_oce(taxa_conc_n)
-  save(file = paste0(savedir, '/oceData_', station_of_interest,'.RData'), oce_dat)
+  save(file = paste0(savedir, '/oceData_', station_of_interest,'.RData'), oce_dat) # oce data and metadata object
   
   
   # Save RData files
-  save(file = paste0(savedir, '/ctdData_', station_of_interest,'.RData'), ctd_dat_combine)
-  save(file = paste0(savedir, '/stationData_', station_of_interest,'.RData'), data)
-  save(file = paste0(savedir, '/meas_dat_', station_of_interest,'.RData'), roimeas_dat_combine)
-  save(file = paste0(savedir, '/bin_dat_', station_of_interest,'.RData'), vpr_depth_bin)
+  save(file = paste0(savedir, '/ctdData_', station_of_interest,'.RData'), ctd_dat_combine) #CTD data
+  save(file = paste0(savedir, '/stationData_', station_of_interest,'.RData'), data) # VPR and CTD data
+  save(file = paste0(savedir, '/meas_dat_', station_of_interest,'.RData'), roimeas_dat_combine) #measurement data
+  save(file = paste0(savedir, '/bin_dat_', station_of_interest,'.RData'), vpr_depth_bin) # binned data with cumulative concentrations
+  save(file = paste0(savedir, '/bin_size_dat_', station_of_interest,'.RData'), size_df_b) # binned data inclouded measurements
   
   cat('CTD, ROI-VPR merge, ROI measurement saved as RData! \n')
   cat('\n')
   
   # Write csv files
-  # write.csv(file = paste0(stdir, '/vpr_data_unbinned', station_of_interest, '.csv'), data, row.names = F)
-  # write.csv(file = paste0(stdir, '/vpr_meas', station_of_interest, '.csv'), roimeas_dat_combine)
-  write.csv(file = paste0(stdir, '/vpr_data_binned', station_of_interest, '.csv'), taxa_conc_n)
+  # write.csv(file = paste0(stdir, '/vpr_data_unbinned', station_of_interest, '.csv'), data, row.names = F) # VPR and CTD data
+  # write.csv(file = paste0(stdir, '/vpr_meas', station_of_interest, '.csv'), roimeas_dat_combine) # measurement data
+  write.csv(file = paste0(stdir, '/vpr_data_binned', station_of_interest, '.csv'), taxa_conc_n) # VPR and CTD data with concentrations by taxa
   
   cat('ROI measurments, ROI-CTD merge-unbinned, and ROI-CTD merge-binned written to csv! \n')
   cat('\n')
