@@ -29,29 +29,32 @@ This document was produced at Bedford Institute of Oceanography (BIO) to accompa
 The Video Plankton Recorder (VPR) was initially designed at Woods Hole Oceanographic Institute (WHOI), it is a SeaScan product. There are many versions of the VPR, this document refers to the DAVPR model simply as VPR. It is an oceanographic instrument which combines a CPU, camera and CTD (SBE49). The CPU and camera work together to capture microscopic images of the plankton community. The output of the instrument is a series of image files as well as CTD data files. The instrument can be deployed in either a tow yo or profile pattern, this document focuses on tow-yo deployments. Further details on the instrument can be found (***SEASCAN MANUAL LINK***). 
 
 
-The VPR outputs two data types, images as well as CTD text files. These two file types are linked by time. Raw VPR data goes through three processing steps, first it is run through a SeaScan software (Autodeck) which is supplied with the instrument. Next, the processed images are classified using Visual Plankton. The original Visual Plankton can be obtained here (***WHOI LINK***), and a modified version can be found here (***VP GITHUB LINK***). The modified version has been updated by researchers at BIO, most notably it uses an updated machine learning algorithm. VP outputs specific text files which describe the classification and size of individual regions of interest (ROIs). The files from VP which are used to complete processing in R include the autoid files, organized by taxa into aid and aidmeas files. Aid files represent file paths to individual ROI images and can be used to organize classifed groups, aidmeas files contain size data for each ROI within a group. 
+The VPR outputs two data types, images as well as CTD text files. These two file types are linked by time. Raw VPR data goes through three processing steps, first it is run through a SeaScan software (Autodeck) which is supplied with the instrument. Next, the processed images are classified using Visual Plankton. The original Visual Plankton can be obtained here (***WHOI LINK***), and a modified version can be found here (***VP GITHUB LINK***). The modified version has been updated by researchers at BIO, most notably it uses an updated machine learning algorithm. VP outputs text files which describe the classification and size of individual regions of interest (ROIs). The files from VP which are used to complete processing in R are the autoid files, organized by taxa into 'aid' and 'aidmeas' files. Aid files represent file paths to individual ROI images and can be used to organize classifed groups, aidmeas files contain size data for each ROI within a group. 
 
 **flowchart?**
 
-Before data is cleaned and visualized in R it goes through initial image processing software (autoDeck) and machine learning classification software in MATLAB (Visual Plankton). The goal of this section of VPR processing is to combine the VPR CTD output with the classified ROI data from VP to produce an estimate of concentrations of classified groups, associated with CTD data, in vertical bins along the VPR tow-yo path.
+The goal of this section of VPR analysis is to combine the VPR CTD output with the classified ROI data from VP to produce an estimate of concentrations of classified groups, associated with CTD data, in vertical bins along the VPR tow-yo path.
 
 
-# Summary of Processing Steps
+# Summary of vprr data analysis Steps
 
-The processing of VPR data in R can be broken down into 4 steps. 
+The analysis of VPR data in R can be broken down into 4 steps. 
 
 1. Image Copying - Organizing VPR images into appropriate folders
 2. Manual Classification - A manual check of Visual Plankton's classifications which allows expert corrections
 3. Processing - Joining and organization of data outputs from the VPR (ctd .dat files) and VP (roi id and roi measurement text files), computation of average abundance and CTD metrics in vertical bins along the VPR path, and export of data frames which are quality controlled and can then be analyzed and visualized.
 4. Plotting - Visualization of processed data frames using ggplot2
 
-Image copying brings in text files from VP describing ROI images file paths (aid files) and uses them to create organized folders of the images contained within each classification group.  
+Image copying brings in text files from VP describing ROI images file paths (aid files) and uses them to create organized folders of the images contained within each classification group.
+
 Manual Classification allows a user to sort through the organized image folders and output updated text files describing ROI image file paths (aid files) and sizes (aidmeas files), based on expert classification. 
+
 Processing takes (updated) VP text files describing ROI image file path (aid) and size (aidmeas), and combines this data with VPR CTD text files based on time. It then outputs data in export friendly formats (csv, RData).
+
 Plotting uses the processed data formats exported by Processing and produces visualizations.
 
 
-Before beginning processing, it is recommended to create a VPR processing environment which will contain commonly used variables and file paths. The simplest and most reproducible way to achieve this is to write an R script where all your cruise and system specific variables are contained, then save the environment as an RData file to be loaded in at the start of any processing scripts. 
+Before beginning processing, it is recommended to create a VPR processing environment which will contain commonly used variables and file paths. The simplest and most reproducible way to achieve this is to write an R script where all the cruise and system specific variables are contained, then save the environment as an RData file to be loaded in at the start of any processing scripts. 
 
 ```
 #set VPR processing environment
@@ -101,19 +104,21 @@ save.image(file = paste0(cruise,'_env.RData'))
 ```
 
 Once this environment is set, it can be loaded into any processing session by using
+
 ```
 load('COR2019002_env.RData') # where COR2019002 is cruise name
 ```
+
 These variable names will be kept consistent throughout this document for simplicity.
 
-If sharing your processing code with colleagues on version control, keeping your environment variables separate (outside of your git project) will allow you to collaborate while avoiding inconsistencies in file paths or folder names. 
+If sharing processing code with colleagues on version control, keeping the environment variables separate (outside of the git project) will allow collaboration while avoiding inconsistencies in file paths or folder names. 
 
 
 # 1. Image Copying
 
-The first step in processing VPR data is to create a new directory of images organized in folders based on the day and hour of data collection as well as ROI classification, as decided by VP. 
+The first step in VPR data analysis is to generate folders of images organized based on the day and hour of data collection as well as ROI classification, as decided by VP. 
 
-The images are organized by Autodeck by day and hour, but reorganizing them based on classification allows easier human interaction with the data, allowing visual inspection of classifications by VP. Moreover, this directory structure is used by the next step of processing in order to confirm Visual Plankton's classifications. Details regarding directory structure is described in detail in a later section.
+The images are organized by Autodeck into day and hour, but reorganizing them based on classification allows easier human interaction with the data, allowing visual inspection of classifications by VP. Moreover, this directory structure is used by the next step of processing in order to confirm Visual Plankton's classifications. Details regarding directory structure is described in detail in a later section.
 
 
 To properly organize the images for a given cruise, use the function `vprr::autoid_copy()`. 
@@ -122,7 +127,7 @@ To properly organize the images for a given cruise, use the function `vprr::auto
 # create variables
 # ---------------------
 basepath <- "C:\\data\\cruise_COR2019002\\autoid\\" 
-# note this is the same as your auto_id_folder environment variable excpet the file separator is different, 
+# note this is the same as the auto_id_folder environment variable excpet the file separator is different, 
 # because this script will run source code in command line which does not recognize '/' as a file separator
 
 day <- "123"
@@ -135,30 +140,27 @@ classifier_name <- "myclassifier"
 autoid_copy(basepath, day, hour, classifer_type, classifier_name)
 ```
 
-Once image files are organized you can easily look through classification groups manually (in file explorer) to get a sense of which groups are well classified by Visual Plankton and which could benefit from some additional sorting - Step 2.
 
 # 2. Manual Classification
 
 This step is optional although it is recommended by folks at BIO have processed this data. 
 
-The goal of this step is to improve upon the automatic classifications produced by Visual Plankton (VP). The supervised machine learning in VP is a great tool for sorting VPR images but cannot capture some of the finer resolution taxa information desired by oceanographers concerned with plankton community dynamics. For example, the VP software is great at distinguishing marine snow from copepods but not good at distinguishing between species of copepods. The level of detail desired for most projects is in line with an expert taxonomic analysis, so further sorting is required after VP. 
+The goal of this step is to improve upon the automatic classifications produced by Visual Plankton (VP). The supervised machine learning in VP is a great tool for sorting VPR images but cannot capture some of the finer resolution taxa information desired by oceanographers concerned with plankton community dynamics.
 
-There are a series of functions written to help achieve this goal. VPR images are displayed on the screen one at a time for manual classification, if VP has misclassified an image or if it can be recognized as falling into a finer resolution category the image can be reclassified. At the end of this process, text files, which match the formats produced by VP are reproduced with new classifications. 
+VPR images are displayed on the screen one at a time for manual classification, if VP has misclassified an image or if it can be recognized as falling into a finer resolution category, the image can be reclassified. At the end of this process, text files, which match the formats produced by VP are reproduced with new classifications. The Manual Classification process is recommended to be run for only specific taxa which VP has clearly struggled to classify based on manual inspection of image folders. The groups chosen will also depend on the groups of interest to researchers. 
 
-The reclassification process is recommended to be run for only specific taxa which VP has clearly struggled to classify based on manual inspection of image folders. The groups chosen will also depend on the groups of interest to researchers. In analysis performed by BIO, Calanus and krill were the main species of interest. VP frequently misclassified krill images in the chaetognath and ctenophore categories, so reclassification experts went through the calanus, krill, chaetognath and ctenophore image folders. It is ideal to not have to reclassify all image folders to improve efficiency, at the very least, we would recommend not sorting through marine snow or blurry image folders, as VP does a good job of classifying these images and the folders can be extremely large and time consuming to sort through. 
-
-Reclassification can also be an opportunity to create new, fine resolution classification groups which could not previously be identified by Visual Plankton. For example, if Visual Plankton identifies a classification group 'copepods' but it would be helpful to split this group into small and large copepods for analysis, small and large copepod classification groups can be added during reclassification. By adding new classification groups to your 'taxa of interest' (`taxa_of_interest` variable in example below) and using the function `vprr::add_new_taxa` *** not a compltete sentence. This allows the expert performing reclassification to label images with these new classification groups. In the example below, Metridia and Paraeuchaeta were added as new classification groups that allowed finer resolution zooplankton community data. After reclassification is run, new files are created for new taxa which are identical in format to original files produced by VP. This feature has become very useful for getting finer scale taxa data. It can also be useful if, during expert reclassification, a certain classification group which was not included in VP classifications, is noticed.
+Manual Classification can also be an opportunity to create new, fine resolution classification groups which could not previously be identified by Visual Plankton. For example, if Visual Plankton identifies a classification group 'copepods' but this group contains paraeuchaeta and metridia, by adding new classification groups to the 'taxa of interest' (`taxa_of_interest` variable in example below) and using the function `vprr::add_new_taxa`, an expert could distinguish images into these finer categories. After Manual Classification is run, new files are created for new taxa which are identical in format to original files produced by VP. This feature has become very useful for getting finer scale taxa data. It can also be useful if, during expert Manual Classification, a certain classification group which was not included in VP classifications, is noticed.
 
 
-There are three steps of reclassification. 
+There are three steps of Manual Classification 
 
 ## Manual Classification: Step A 
 This includes prepping the environment by setting some variables:
 
 - Load the processing environment, which includes the `auto_id_folder` variable.
 - Set day and hour of interest. 
-- Set taxa of interest. These taxa are the existing VP classification groups which require manual classification, as well as any new categories. The `vprr::add_new_taxa()` function sets up the folder structure for any new taxa which have been added to your list of interest. 
-- Run manual classification with `vprr::clf_check()`. It has a few optional arguments to customize the reclassification experience, notably `gr` which is a logical value determining whether or not reclassification options appear as pop ups or in the command line, as well as `img_bright`, a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows experts to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish.  
+- Set taxa of interest. These taxa are the existing VP classification groups which require manual classification, as well as any new categories. The `vprr::add_new_taxa()` function sets up the folder structure for any new taxa which have been added to the list of interest. 
+- Run manual classification with `vprr::clf_check()`. It has a few optional arguments to customize the Manual Classification experience, notably `gr` which is a logical value determining whether or not Manual Classification options appear as pop ups or in the command line, as well as `img_bright`, a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows experts to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish.  
 
 
 ```
@@ -208,13 +210,12 @@ clf_check(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE,
           opticalSetting = 'S3')
 ```
 
-## Step B 
-`vprr::clf_check()` produces two file types as a record of reclassification, this step takes those output files and uses them to appropriately modify the original VP files. These output files are found in your working directory, organized inside folders named by the day and hour that the data was collected. The function `vprr::new_aids()` takes these reclassification files and outputs VP format classification files, into your working directory, inside folders named by classification group or taxa.
+## Manual Classification: Step B 
+`vprr::clf_check()` produces two file types as a record of Manual Classification, this step takes those output files and uses them to appropriately modify the original VP files. These output files are found in the working directory, organized inside folders named by the day and hour that the data was collected. The function `vprr::new_aids()` takes these Manual Classification files and outputs VP format classification files, into the working directory, inside folders named by classification group or taxa.
 
-This step should be run after each hour of data is completed although it can be run at any point following the reclassification of an hour of data.
+This step should be run after each hour of data is manually classified.
 
 ```
-
 #### STEP 2 - B: REORGANIZE ROIS 
 # -----------------------------------------
 
@@ -227,25 +228,16 @@ reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = T
 
 # MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES
 new_aids(reclassify, misclassified, auto_id_folder)
-
-
 ```
 
-## Step C
+## Manual Classification: Step C
 
-The last step of reclassification includes some manual file organization and final checks. Once all classification (aid & aidmeas) files have been created (with `vprr::new_aids`), they are contained in taxa folders inside your working directory. These files should be reorganized in a new directory which will become the new auto_id_folder. Remember that auto id files from taxa which were not reclassified should be added to the new auto_id_folder. 
+The last step of Manual Classification includes some manual file organization and final checks. Once all classification (aid & aidmeas) files have been created (with `vprr::new_aids`), they are contained in taxa folders inside the working directory. These files should be reorganized in a new directory which will become the new auto_id_folder. Remember, that auto id files from taxa which were not reclassified should be added to the new auto_id_folder. 
 
 
-Once files have been manually organized, there are two checks that can be performed. `vprr::aid_file_check()` is strongly recommended, it removes any empty aid files, created if there are no images of a specific classification group in that hour of data, which can cause errors in processing down the line. It also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. 
-
-There have been bugs in the past where aid and aidmeas files within an hour were different lengths, because these files represent the same data but the only key between them is line number, it is important that they contain the exact same number of data points. There was also a bug in the past where some images from different VPR tows were getting pulled together due to a formatting error in raw data on IML2018051. 
-
-Part two of these manual checks is a 'krill check'. This process was developed when 2018 data was processed at BIO. It was quickly realized that there would be small amounts of human error in the reclassification process, due to the small number of images in the krill category, even one mistaken image was creating a large difference in processed data. A check was developed to pull all krill images and allow for manual reorganization of them within file explorer, to remove any images which were accidentally classified as krill. This check could be performed with any classification group where there are a small number of images and accuracy is of high importance. 
-
-Krill check is a little more involved due to it's manual nature and is described below.
+Once files have been manually organized, `vprr::aid_file_check()` is strongly recommended, it removes any empty aid files created, if there are no images of a specific classification group in that hour of data, which can cause errors in processing down the line. It also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. 
 
 ```
-
 #ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT #
 #==========================================================================================#
 #                            ONCE ALL AID FILES ARE COMPLETE                               #
@@ -263,42 +255,18 @@ Krill check is a little more involved due to it's manual nature and is described
 # removes empty aid files, and checks for errors in writing
 
 aid_file_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt in working directory
-
-
-# optional -----------------------------------------------------------------------------------------------------------------------------------
-# manual krill check can be done to verfiy krill images. 
-# Sometimes this is required because of the low volume of krill, means high sensitivity to error.
-
-
 ```
-
-### Krill Check
-
-Krill check requires 3 parts. First, images must be pulled from reclassification into new folders which can be visually checked. Second, images should be manually sorted in file explorer. This requires deleting any non - krill images from the folders created in the first part of krill check. Thirdly, the manually organized folders must be compared with aid and aidmeas files (`image_check`) and any ROI strings which are no longer present in folders should be removed from text files (aid and aidmeas). 
-
-```
-
-image_copy(auto_id_folder, taxas.of.interest, day, hour)
-
-# perform manual removal of images not matching classification group
-
-image_check_folder <- file.path(auto_id_folder, taxas.of.interest, fsep = '\')
-
-image_check(image_check_folder)
-
-```
-
-Note, that in the case where data set is very small or requires few reclassification adjustments, the krill check procedure could be used as the only reclassification process. Cons to using this method include extensive time commitment, potential for manual error, and lack of record keeping. It can quickly become difficult to keep track of aid versions, so ensure you have a consistent and documented directory naming scheme/ archiving system. 
 
 
 
 # 3. Processing
 
-This is the main chunk of coding required to produce useable data products from the VPR. This step can be done before reclassification to get an initial idea of the data and see if reclassification is required. It should be done after reclassification to produce data products which can be plotted, analyzed, and shared. 
+This is the main chunk of coding required to produce useable data products from the VPR. This step can be done before Manual Classification to get an initial idea of the data and see if Manual Classification is required. It should be done after Manual Classification to produce data products which can be plotted, analyzed, and shared. 
 
 The following is a walk through of processing data from 2018
 
-First, all libraries should be loaded and the processing environment, described in Summary of Processing Steps should be loaded. 
+First, all libraries should be loaded and the processing environment, described in 'Summary of vprr data analysis steps' should be loaded. 
+
 ```
 ##### STEP 3: PROCESSING 
 # ==================================================================================================================================================
@@ -310,7 +278,6 @@ library(vprr)
 # loads processing environment specific to user
 
 load('IML2018051_env.RData')
-
 ```
 
 
@@ -329,13 +296,13 @@ for (j in 1:length(all_stations_of_interest)){
   
   cat('Station', station_of_interest, 'processing... \n')
   cat('\n')
-  ```
+```
  
  Optical settings and image volume variables should be set, if they are consistent throughout the cruise, they could also be added to the processing environment.
  
  
   
-  ```
+```
   #==========================================#
   #   Set optical settings  & Image Volume   #
   #   !Should be updated with each cruise!   #
@@ -347,7 +314,10 @@ for (j in 1:length(all_stations_of_interest)){
     imageVolume <- 108155 #mm^3
   }
   ```
+  
+  
   CTD casts are loaded in using `vprr::list_ctd_files` to find files and `vprr::read_ctd_vpr` to read in files.
+  
   
   ```
   #get day and hour info from station names list
@@ -368,7 +338,11 @@ for (j in 1:length(all_stations_of_interest)){
   cat('\n')
   
   ```
-  VPR data files are then found, this coding is tailored to the Visual Plankton directory structure and could be modified if another directory structure was preferred. However, if a new directory structure is used please proceed with extreme caution as function internals may also rely on VP structure and be difficult to update.
+  
+  
+  VPR data files are then found, within the VP directory structure.
+  
+  
   
   ```
   ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
@@ -395,6 +369,7 @@ for (j in 1:length(all_stations_of_interest)){
   remove(aid_file_list, aidmea_file_list, aid_path, aidmea_path)
   
   ```
+  
   
   ROI and measurement data files are then read using `vprr::read_aid`.
   
@@ -427,32 +402,6 @@ for (j in 1:length(all_stations_of_interest)){
   cat('\n')
   ```
   
-  This section should be tailored to individual processing needs, it is common that specific stations will have unique data issues that need small, manual corrections. This example shows an issue in the 2018 data where time stamps jumped in the raw data causing a gap between casts.
-  
-  
-  ```
-  ##### FIX UNIQUE STATION ISSUES -----------------------------------------------------------------------------------------------------------------
-  
-    
-    ##Correct time stamps from CAP 3.1 station, if used <- needs re-evaluation
-    
-    if("CAP 3.1" %in% station_of_interest) {
-      
-      ctd_dat_combine <- ctd_dat_combine %>%
-        dplyr::mutate(., time_ms = ifelse(time_ms < 25000000, time_ms + 86400000, time_ms))
-      
-      roi_dat <- roi_dat %>%
-        dplyr::mutate(., time_ms = ifelse(time_ms < 25000000, time_ms + 86400000, time_ms))
-      
-      roimeas_dat_combine <- roimeas_dat_combine %>%
-        dplyr::mutate(., time_ms = ifelse(time_ms < 25000000, time_ms + 86400000, time_ms))
-      
-      cat('CAP 3.1 data corrected! \n')
-      cat('\n')
-    }
-    
-  
-  ```
   
   Next, CTD and ROI data is merged to create a data frame describing both water properties and classified images. The function used is `vprr::merge_ctd_roi`.
   
@@ -463,11 +412,11 @@ for (j in 1:length(all_stations_of_interest)){
   
   cat('CTD and ROI data combined! \n')
   cat('\n')
-  
   ```
+  
+  
   Before final export of data products, a few calculated variables are added, `avg_hr` is a variable representing time in hours rather than milliseconds, which simplifies plotting and is more easily understood. `sigmaT` is also calculated using`oce::swSigmaT` to give a standardized density variable. `add_ymd` is used to add a time stamp with POSIXct signature to the data frame in Y-M-D h:m:s format, this is good for completeing metadata as well as referencing VPR data to oher sampling methods. This step also caluclates depth from pressure using `oce::swDepth`. 
   
-  A note on time stamps: There are often issues with time offsets in VPR data. The day/hour information used throughout this processing will be in the timezone of the computer used to process images in autoDeck. It is ideal to set this computer's time to UTC to avoid any confusion. 
   
   ```
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
@@ -493,10 +442,12 @@ for (j in 1:length(all_stations_of_interest)){
   # clean environment
   remove(ctd_roi_merge)
   ```
+  
+  
   VPR and CTD data is then binned by depth which allows for better interpretation and plotting. This is done by creating an `oce` CTD object using `vprr::create_oce_vpr`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each classification group. 
   
-  ```
   
+  ```
   ##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------
   
   ctd_roi_oce <- create_oce_vpr(data)
@@ -518,7 +469,10 @@ for (j in 1:length(all_stations_of_interest)){
   size_df_f <- format_size_data(data, measdata = roimeas_dat_combine, taxa_of_interest)
   size_df_b <- bin_size_data(size_df_f, bin_mea = 3)
   ```
+  
+  
   Finally, data is saved as RData and csv files for export and plotting. Data is also save as an `oce` object in order to preserve both data and metadata in a efficient format.
+  
   
   ```
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
@@ -548,17 +502,17 @@ for (j in 1:length(all_stations_of_interest)){
 } #end of station loop
 ```
 
+
 # 4. Plotting
 
 
-The following are a few example plots. The first step to plotting is properly loading in the processed VPR data objects developed in processing. The environment, described in the Summary of Processing Steps section should also be loaded. The individual data files are found by distinct names eg "stationData", note that your directory structure may be different depending on your `savedir` where data files were saved during processing. 
+The following are a few example plots. The first step to plotting is properly loading in the processed VPR data objects developed in processing. The environment, described in the Summary of vprr data analysis steps section should also be loaded. The individual data files are found by distinct names eg "stationData", note that the directory structure may be different depending on the `savedir` where data files were saved during processing. 
 
 Note that the following plotting examples are best used for tow-yo pattern VPR deployments. 
 
 
 
 ```
-
 ##### FILE PATH & SETTINGS -----------------------------------------------------------------------------------------------------------------------
 
 library(vprr)
@@ -576,8 +530,8 @@ fn_all_bin <- list.files(paste0(cruise,"_data_files/"), pattern = 'bin_dat', ful
 
 Once files are loaded it is often easiest to run a loop of plots for all stations in a cruise, in order to get comparable plots for analysis. The example below shows a loop being initiated which runs through a list of stations described by a csv file. This loop also isolates two specific classification groups to plot (Calanus and krill), which allows a better focus in plotting. 
 
-```
 
+```
 ####START STATION LOOP ---------------------------------------------------------------------------------------------------------------------------
 
 setwd(wd)
@@ -595,9 +549,11 @@ for (j in 1:length(all_stations_of_interest)){
   
   cat('station', station ,'starting to plot.... \n')
   cat('\n')
-  ```
+```
+ 
   
 Next, data files are loaded for the specific station being looped. This loads in all relevant RData files as well as the concentration data saved as a csv file
+  
   
   ```
   #load station roi and ctd data
@@ -630,7 +586,7 @@ The last bit of set up required, sets the directory in which plots will be saved
   height = 1000
   ```
   
-  This first plot follows a consistent format for creating VPR contour plots with variable contours behind VPR concentration data over the tow path. The main function used is `vprr::conPlot_EC` which uses a standard VPR data frame (produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. Then the VPR tow path can be added on top of contours, this displays the concentration data as bubbles. This method can be repeated with various water parameters used to calculate the contours, by changing the `var` argument in `vprr::conPlot_EC`.  
+  This first plot follows a consistent format for creating VPR contour plots with variable contours behind VPR concentration data over the tow path. The main function used is `vprr::conPlot_EC` which uses a standard VPR data frame (`taxa_conc_n` - produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. Then the VPR tow path can be added on top of contours, this displays the concentration data as bubbles. This method can be repeated with various water parameters used to calculate the contours, by changing the `var` argument in `vprr::conPlot_EC`.  
   
   
   ```
@@ -656,22 +612,23 @@ The last bit of set up required, sets the directory in which plots will be saved
   print(p)
   dev.off()
   ```
-  Another common plot which allows great data exploration of vertical distributions is the profile plot created by `vprr::profile_plot`, which will shows both water properties and the concentrations of specific classification groups. Temperature, salinity, fluorescence and density plots are created with custom axes. Concentration plots show all binned data compressed into a profile format (without the time axis), as well as an average line which calculates the mean concentration of all bins at a particular depth. The average line can be great to identify vertical trends in data as well as compare to a depth integrated method such as a vertical net tow. 
+  
+  
+  Another common plot which allows great data exploration of vertical distributions is the profile plot created by `vprr::profile_plot`, which shows both water properties and the concentrations of specific classification groups. Temperature, salinity, fluorescence and density plots are created with custom axes. Concentration plots show all binned data compressed into a profile format (without the time axis), as well as an average line which calculates the mean concentration of all bins at a particular depth.  
   
   
   ```
-  
     png('profilePlots_RK.png', width = 1000, height = 500)
     p <- profile_plot(taxa_conc_n, taxa_to_plot)
     print(p)
     dev.off()
-    ```
+  ```
+    
     
 TS plots can also be helpful to visualize concentration data in comparison with water masses. Below, we create a TS plot in ggplot (with labeled isopycnals), and overlay concentration bubbles for each selected classification group. Using `vprr::plotTS_balloon` streamlines isopycnal creation and labelling, other variables can also be selected for controlling the size of bubbles in TS space. Ggplot2 grammar makes it easy to add to the basic TS balloon plot, for example to facet by classification group or adjust axis labels and sizing. 
 
 
 ```
-
 ####TS BALLOON PLOT ----------------------------------------------------------------------------------------------------------------------------
   
   # plot by taxa
@@ -692,15 +649,46 @@ TS plots can also be helpful to visualize concentration data in comparison with 
 } # end station loop
   ```
   
-
-  
-These plotting examples show plots being saved as .png files, this was the method used for 2018 and 2019 data at BIO but it is worth exploring other possible options as well. Using RMarkdown to create plots can be great for producing reports and keeping track of plot versions. Using RMarkdown documents means that the code and plot are always directly associated and there is no concern of mismatch between plot version and code version. Markdown can be a little slow when creating many large VPR plots, but might be best for smaller projects.
-  
+ 
 
 
 # Warnings and debugging information
 
-In closing, it is important to note that these functions were created for a specific project here at BIO and have not been tested on varied data structures. If using VPR data collected from profile or moored deployments, or using different image processing and classification software, there may be major differences throughout processing. Hopefully this can give a template of the required processing and an idea of how to initially explore data. 
+It is important to note that these functions were created for a specific project here at BIO and have not been tested on varied data structures. If using VPR data collected from profile or moored deployments, or using different image processing and classification software, there may be major differences throughout processing. Hopefully this can give a template of the required processing and an idea of how to initially explore data. 
+
+
+## Detailed debugging
+
+
+There have been bugs in the past where aid and aidmeas files within an hour were different lengths, because these files represent the same data but the only key between them is line number, it is important that they contain the exact same number of data points. There was also a bug in the past where some images from different VPR tows were getting pulled together due to a formatting error in raw data on IML2018051. 
+
+This process was developed when 2018 data was processed at BIO. It was quickly realized that there would be small amounts of human error in the Manual Classification process, due to the small number of images in the krill category, even one mistaken image was creating a large difference in processed data. A check was developed to pull all krill images and allow for manual reorganization of them within file explorer, to remove any images which were accidentally classified as krill. This check could be performed with any classification group where there are a small number of images and accuracy is of high importance. 
+
+Krill check requires 3 parts. First, images must be pulled from Manual Classification into new folders which can be visually checked. Second, images should be manually sorted in file explorer. This requires deleting any non - krill images from the folders created in the first part of krill check. Thirdly, the manually organized folders must be compared with aid and aidmeas files (`image_check`) and any ROI strings which are no longer present in folders should be removed from text files (aid and aidmeas). 
+
+
+```
+image_copy(auto_id_folder, taxas.of.interest, day, hour)
+
+# perform manual removal of images not matching classification group
+
+image_check_folder <- file.path(auto_id_folder, taxas.of.interest, fsep = '\')
+
+image_check(image_check_folder)
+```
+
+
+In the case where the data set is very small or requires few Manual Classification adjustments, the krill check procedure could be used as the only Manual Classification process. Cons to using this method include extensive time commitment, potential for manual error, and lack of record keeping. It can quickly become difficult to keep track of aid versions, so ensure there is a consistent and documented directory naming scheme/ archiving system. 
+
+
+
+A note on time stamps: There are often issues with time offsets in VPR data. The day/hour information used throughout this processing will be in the timezone of the computer used to process images in autoDeck. It is ideal to set this computer's time to UTC to avoid any confusion. 
+
+
+
+  
+The plotting examples show plots being saved as .png files, this was the method used for 2018 and 2019 data at BIO but it is worth exploring other possible options as well. Using RMarkdown to create plots can be great for producing reports and keeping track of plot versions. Using RMarkdown documents means that the code and plot are always directly associated and there is no concern of mismatch between plot version and code version. Markdown can be a little slow when creating many large VPR plots, but might be best for smaller projects.
+ 
 
 # Directory Structure
 
@@ -743,9 +731,6 @@ Visual Plankton (MatLab image classification software) requires a very specific 
             
 # Glossary
 
-**Image Processing Toolbox**
--	A MatLab library toolbox required to run VP, if running program at BIO, there is only one license for this toolbox.
-
 **ROI**
 -	Region of interest, images identified by autodeck within VPR frames based on settings defined in autoDeck program
 
@@ -755,12 +740,6 @@ Visual Plankton (MatLab image classification software) requires a very specific 
 **VP**
 -	Visual Plankton program run in MatLab
 
-**Confusion Matrix**
--	A matrix of actual versus predicted values used to determine accuracy of model results
-
-**Hid, hidmea files**
--	files produced by visual plankton program defining features used to classify taxa. Hid files contain general features, hidmeas files contain size based features
-
 **SVM**
 -	Support vector machine, type of machine learning algorithm
 
@@ -768,16 +747,13 @@ Visual Plankton (MatLab image classification software) requires a very specific 
 -	A type of machine learning algorithm 
 
 **CTD**
--	Conductivity, Temperature and depth sensor instrument used in oceanogrpahy
+-	Conductivity, Temperature and depth sensor instrument used in oceanography
 
 **VPR**
--	Visual Plankton Recorder, oceanographic instrument used to image small volumes of water for the purpose of capturing images of plankton
+-	Video Plankton Recorder, oceanographic instrument used to image small volumes of water for the purpose of capturing images of plankton
 
 **Auto Deck**
--	software which pulls plankton images from Visual Plankton Recorder frames based on specific settings
-
-**GUI**
--	An interactive interface used in computer programming
+-	software which pulls plankton images from Video Plankton Recorder frames based on specific settings
 
 **Aid files**
 - Visual Plankton file output text file, listing file path information for ROI's of a spedific classification group
