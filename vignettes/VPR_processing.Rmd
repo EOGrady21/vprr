@@ -513,13 +513,18 @@ for (j in 1:length(all_stations_of_interest)){
   cat('Station', station_of_interest, 'processing complete! \n')
   cat('\n')
   ```
-  Finally, data is saved as RData and csv files for export and plotting. 
+  Finally, data is saved as RData and csv files for export and plotting. Data is also save as an `oce` object in order to preserve both data and metadata in a efficient format.
   
   ```
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
+  # Save oce object
+  oce_dat <- save_vpr_oce(taxa_conc_n)
+  save(file = paste0(savedir, '/oceData_', station_of_interest,'.RData'), oce_dat)
+  
+  
   # Save RData files
   save(file = paste0(savedir, '/ctdData_', station_of_interest,'.RData'), ctd_dat_combine)
-  save(file =paste0(savedir, '/stationData_', station_of_interest,'.RData'), data)
+  save(file = paste0(savedir, '/stationData_', station_of_interest,'.RData'), data)
   save(file = paste0(savedir, '/meas_dat_', station_of_interest,'.RData'), roimeas_dat_combine)
   save(file = paste0(savedir, '/bin_dat_', station_of_interest,'.RData'), vpr_depth_bin)
   
