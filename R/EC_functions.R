@@ -555,6 +555,10 @@ create_oce_vpr <- function(data){
 #' Reads CTD data and adds day, hour, and station information.
 #' If there are multiple hours of CTD data, combines them into single dataframe.
 #'
+#' **WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+#' order of CTD data columns. The names and values in these columns can change
+#' based on the specific insturment and should be updated before processing data
+#' from a new VPR.
 #'
 #' @author E. Chisholm & K. Sorochan
 #'
@@ -822,6 +826,11 @@ px_to_mm <- function(x, opticalSetting) {
 #'Read CTD data (SBE49) and Fluorometer data from CTD- VPR package
 #'
 #'Internal use \code{\link{read_ctd_vpr}}
+#'
+#'**WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+#' order of CTD data columns. The names and values in these columns can change
+#' based on the specific insturment and should be updated before processing data
+#' from a new VPR.
 #'
 #'Text file format .dat file
 #'Outputs ctd dataframe with variables time_ms, conductivity, temperature,
