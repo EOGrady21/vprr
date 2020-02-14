@@ -19,12 +19,35 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
-save_vpr_oce <- function(data){
-
-  #####IN PROGRESS###
-
-  # TODO add roxygen doc
-
+#' Save VPR data as an \code{\link{oce::as.oce}} object
+#'
+#' @details This function will pass a VPR data frame obect to an `oce` object.
+#'   Using an `oce` object as the default export format for VPR data allows for
+#'   metadata and data to be kept in the same, space efficient file, and avoid
+#'   redundancy in the data frame. The function check for data parameters that
+#'   may actually be metadata parameters (rows which have the same value
+#'   repeated for every observation). These parameters will automatically be
+#'   copied into the metadata slot of the `oce` object. The function will also
+#'   prompt for a variety of required metadata fields. Depending on specific
+#'   research / archiving requirements, these metadtaa parameters could be
+#'   updated by providing the argument `metadata`.
+#'
+#'   Default metadata parameters include 'deploymentType', 'waterDepth',
+#'   'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
+#'   'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
+#'
+#'
+#' @param data a VPR data frame
+#' @param metadata (optional) a named list of character values giving metadata
+#'   values. If this argument is not provided user will be prompted for a few
+#'   generic metdata requirements.
+#'
+#'
+#' @return an oce CTD object with all VPR data as well as metadata
+#' @export
+#'
+#'
+save_vpr_oce <- function(data, metadata){
 
   # create oce objects
 
@@ -45,7 +68,7 @@ save_vpr_oce <- function(data){
   oce_data@data <- oce_data@data[-unlist(rem_list)]
 
   # check for other metadata and ask user to supply
-
+if(missing(metadata)){
   req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
 
 
@@ -53,13 +76,23 @@ save_vpr_oce <- function(data){
     if(is.null(oce_data@metadata[[rm]])){
       print(paste('Please provide value for Metadata parameter', rm))
       rm_val <- readline(paste('Metadata slot, ', rm, ': '))
-      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val)
+      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
     }
     # TODO : add possibility of value existing as 'unknown or some other placeholder which should be overwritten
 
   }
+}else{
+# if metadata names and values are provided as list
+  for(rm in names(metadata)){
 
-  # TODO : output oce object
+      rm_val <- metadata[[rm]]
+      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
+
+
+  }
+}
+
+  return(oce_data)
 }
 
 #' Add Year/ month/ day hour:minute:second information
