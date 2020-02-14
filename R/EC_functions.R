@@ -658,13 +658,14 @@ merge_ctd_roi <- function(ctd_dat_combine, roi_dat_combine){
 #' @export
 read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
-
+if( export == 'aidmeas'){
   if (missing(opticalSetting)){
     opticalSetting <- NA
     if(warn != FALSE){
     warning('No optical setting provided, size data output in pixels!!!')
     }
   }
+}
 # aid
 
   col_names <- c("roi")
