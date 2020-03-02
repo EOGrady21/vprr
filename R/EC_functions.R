@@ -70,7 +70,8 @@ save_vpr_oce <- function(data, metadata){
   # check for other metadata and ask user to supply
 if(missing(metadata)){
   req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
-
+# TODO include metadata examples or skip
+  # clarify serial number, water depth?
 
   for(rm in req_meta){
     if(is.null(oce_data@metadata[[rm]])){
@@ -541,7 +542,7 @@ create_oce_vpr <- function(data){
 
   # create oce objects
   ctd_roi_oce <- as.ctd(data)
-  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth')
+  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth') # TODO edit to avoid hard coding variable names
   for ( o in otherVars){
     eval(parse(text = paste0("ctd_roi_oce <- oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
   }
@@ -993,7 +994,7 @@ if (rev == TRUE){
 
   depth <- rev(binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
 
-}else{
+}else{ # simplify?
 
     depth <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
 
