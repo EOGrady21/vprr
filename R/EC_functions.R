@@ -440,7 +440,7 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest, 
 #' @author E. Chisholm
 #'
 #' @export
-conc_byTaxa <- function(data, taxa, binSize, imageVolume){
+conc_byTaxa <- function(data, taxa, binSize, imageVolume, rev = FALSE){
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   nontaxa <-
@@ -460,7 +460,8 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
       'hour',
       'station',
       'avg_hr',
-      'roi'
+      'roi',
+      'depth'
     )
   dt <- data %>%
     dplyr::select(., nontaxa, taxa)
@@ -473,7 +474,7 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume){
   ctd_roi_oce <- create_oce_vpr(dt)
 
   # bin data
-  final <- bin_vpr_data(ctd_roi_oce, imageVolume, binSize)
+  final <- bin_vpr_data(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev)
 
   return(final)
 }
@@ -540,7 +541,7 @@ create_oce_vpr <- function(data){
 
   # create oce objects
   ctd_roi_oce <- as.ctd(data)
-  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT')
+  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth')
   for ( o in otherVars){
     eval(parse(text = paste0("ctd_roi_oce <- oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
   }
@@ -935,7 +936,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 
 #' @param data ctd data frame object including scan, salinity, temperature,
-#'   pressure, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
+#'   depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
 #'   altitude, cast_id, n_roi
 #' @param binSize the height of bins over which to average, default is 1 metre
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
@@ -954,31 +955,33 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'
 #'   @note binSize should be carefully considered for best results
+#'   @note Depth is used for calculations! Please ensure depth is included in dateframe using \code{\link{oce::swDepth}}
 #'
 #'   @export
 #'
 bin_average_vpr <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
-  cast_id <-unique(data$cast_id)
-
 
   cast_id <-unique(data$cast_id)
-  max_cast_pressure <- max(data$pressure) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
-  p <- data$pressure
-  max_pressure <- max(p, na.rm = TRUE)
-  min_pressure <- min(p, na.rm = TRUE)
-  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = binSize)
+
+  cast_id <-unique(data$cast_id)
+  max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
+
+  p <- data$depth
+  max_depth <- max(p, na.rm = TRUE)
+  min_depth <- min(p, na.rm = TRUE)
+  x_breaks <- seq(from = floor(min_depth), to = ceiling(max_depth), by = binSize)
   if (rev == TRUE){
-    x_breaks <- seq(from = floor(max_pressure), to = ceiling(min_pressure), by = - binSize)
+    x_breaks <- seq(from = ceiling(max_depth), to = floor(min_depth), by = - binSize) #reversed by KS
   }
 
   # Get variables of interest using oce bin functions
 
   min_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, min)$result
   max_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, max)$result
-  min_pressure <- binApply1D(p, data$pressure, xbreaks = x_breaks, min)$result
-  max_pressure <- binApply1D(p, data$pressure, xbreaks = x_breaks, max)$result
+  min_depth <- binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
+  max_depth <- binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
   n_roi_bin <- binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
   temperature <- binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
   salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
@@ -987,12 +990,16 @@ bin_average_vpr <- function(data, binSize = 1, imageVolume, rev = FALSE){
   turbidity <- binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
   avg_hr <- binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
 if (rev == TRUE){
-  pressure <- rev(binApply1D(p, data$pressure, xbreaks = x_breaks, mean)$xmids)
+
+  depth <- rev(binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
+
 }else{
-  pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids # Could be any of the variables computed, but I just went with salinity
-}
+
+    depth <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
+
+  }
   # calculates number of frames captured per depth bin by counting number of pressure observations per bin
-  n_frames <- binApply1D(p, data$pressure, xbreaks = x_breaks, length)$result # KS edit 10/9/19
+  n_frames <- binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
 
   # WARNING
   # binApply1D does not calculate NAs, if there is binned depth range that does
@@ -1004,7 +1011,7 @@ if (rev == TRUE){
   # have been located and removes those indexes from the pressure vector so the
   # length of variables is all identical
 
-  if (!(length(pressure) == length(salinity))) {
+  if (!(length(depth) == length(salinity))) {
 
     salinity_mean <- binMean1D(p, data$salinity, xbreaks = x_breaks)$result
 
@@ -1013,24 +1020,24 @@ if (rev == TRUE){
     # informs user where bins were removed due to NAs
     # note if a bin is 'NA' typically because there is no valid data in that depth range,
     # if you have a lot of NA bins, think about increasing your binSize
-    print(paste('Removed bins at', pressure[idx_rm]))
+    print(paste('Removed bins at', depth[idx_rm]))
 
-    lp <- length(pressure)
-    pressure <- pressure[-idx_rm]
+    lp <- length(depth)
+    depth <- depth[-idx_rm]
     if (length(n_frames) == lp){
       n_frames <- n_frames[-idx_rm]
     }
 
   }
   # make sure n_frames matches the length of other data frame rows
-  if (length(n_frames) > length(pressure)){
+  if (length(n_frames) > length(depth)){
     n_frames <- n_frames[-length(n_frames)]
   }
-  if( length(n_frames) < length(pressure)){
+  if( length(n_frames) < length(depth)){
     n_frames <- c(n_frames, 0)
   }
-  if (length(n_frames) != length(pressure)){
-    length(n_frames) <- length(pressure)
+  if (length(n_frames) != length(depth)){
+    length(n_frames) <- length(depth)
   }
   # Get derived variables
 
@@ -1045,13 +1052,13 @@ if (rev == TRUE){
   vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
   conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) # KS edit 10/9/19
 
-  pressure_diff <- max_pressure - min_pressure
+  depth_diff <- max_depth - min_depth
 
   # Output
-  data.frame(pressure, min_pressure, max_pressure, pressure_diff, min_time_s, max_time_s, time_diff_s,
+  data.frame(depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s,
              n_roi_bin, conc_m3,
              temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3,
-             towyo = cast_id, max_cast_pressure) # MAX CAST PRESSURE ADDED BY KS
+             towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
 
 }
 
@@ -2747,7 +2754,7 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
   #'
   #' @author E. Chisholm
   #'
-  #' @param data data frame needs to include avg_hr, pressure, and variable of
+  #' @param data data frame needs to include avg_hr, depth, and variable of
   #'   choice (var)
   #' @param var variable in dataframe which will be interpolated and plotted
   #' @param dup if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')
@@ -2765,13 +2772,13 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
   #use interp package rather than akima to avoid breaking R
   #ref: https://www.user2017.brussels/uploads/bivand_gebhardt_user17_a0.pdf
   if(method == 'akima'){
-    interpdf <- akima::interp(x = data$avg_hr, y = data$pressure, z = data[[var]], duplicate = dup ,linear = TRUE  )
+    interpdf <- akima::interp(x = data$avg_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
   if(method == 'interp'){
-    interpdf <- interp::interp(x = data$avg_hr, y = data$pressure, z = data[[var]], duplicate = dup ,linear = TRUE  )
+    interpdf <- interp::interp(x = data$avg_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
   if(method == 'oce'){
-    interpdf_oce <- oce::interpBarnes(x = data$avg_hr, y = data$pressure, z = data[[var]] )
+    interpdf_oce <- oce::interpBarnes(x = data$avg_hr, y = data$depth, z = data[[var]] )
     interpdf <- NULL
     interpdf$x <- interpdf_oce$xg
     interpdf$y <- interpdf_oce$yg
@@ -2787,8 +2794,8 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
     p <- ggplot(df) +
       geom_tile(aes(x = x, y = y, fill = z)) +
       labs(fill = var) +
-      scale_y_reverse(name = 'Pressure [db]') +
-      scale_x_continuous(name = 'Time [hr]') +
+      scale_y_reverse(name = 'Depth [m]') +
+      scale_x_continuous(name = 'Time [h]') +
       theme_classic() +
       geom_contour(aes(x = x, y = y, z= z), col = 'black') +
       geom_text_contour(aes(x = x, y = y, z= z),binwidth = bw, col = 'white', check_overlap = TRUE, size = 8)+ #CONTOUR LABELS
@@ -2797,8 +2804,8 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
     p <- ggplot(df) +
       geom_tile(aes(x = x, y = y, fill = z)) +
       labs(fill = var) +
-      scale_y_reverse(name = 'Pressure (db)') +
-      scale_x_continuous(name = 'Time (hr)') +
+      scale_y_reverse(name = 'Depth [m]') +
+      scale_x_continuous(name = 'Time [h]') +
       theme_classic() +
       geom_contour(aes(x = x, y = y, z= z), col = 'black') +
       scale_fill_continuous(na.value = 'white')
