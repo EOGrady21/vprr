@@ -39,14 +39,14 @@ VP outputs two text files for each category of classification (“aid” and “
 
 The data processing procedure using vprr can be broken down into 3 steps. 
 
-## Section 2.1
-** Image Copying (optional): Organization of ROIs into folders corresponding to classification categories used in VP.** The information in each aid file produced by VP  is used to create a folder for each classification category containing ROIs that have been classified to that category. This step is only required if Manual Classification (see step 2) is intended.
+## Section 2.1: Image Copying (optional): 
+Organization of ROIs into folders corresponding to classification categories used in VP. The information in each aid file produced by VP  is used to create a folder for each classification category containing ROIs that have been classified to that category. This step is only required if Manual Classification (see step 2) is intended.
 
-## Section 2.2
-** Manual Classification (optional): A check of classifications from VP, which allows for manual correction and addition of categories not previously used in VP. ** A user-defined subset of the ROIs that have been copied in step 1 is manually sorted to correct for mistakes made by VP. Updated aid and aidmeas files are produced.   
+## Section 2.2: Manual Classification (optional):
+A check of classifications from VP, which allows for manual correction and addition of categories not previously used in VP. A user-defined subset of the ROIs that have been copied in step 1 is manually sorted to correct for mistakes made by VP. Updated aid and aidmeas files are produced.   
 
-## Section 2.3
-** Processing: Joining data outputs from Autodeck (ctd .dat files) and VP (aid and aidmeas files). ** The aid and aidmeas files, which may have been updated in step 2, are joined with CTD text files by the 8 digit time stamp. The data are then averaged in user-defined vertical bins to produce a time series of plankton concentrations and water properties (e.g., Fig. XX). Quality controlled data products (before and after binning) are then exported in simple formats (csv, RData, oce) for plotting and analysis.
+## Section 2.3: Processing:
+Joining data outputs from Autodeck (ctd .dat files) and VP (aid and aidmeas files). The aid and aidmeas files, which may have been updated in step 2, are joined with CTD text files by the 8 digit time stamp. The data are then averaged in user-defined vertical bins to produce a time series of plankton concentrations and water properties (e.g., Fig. XX). Quality controlled data products (before and after binning) are then exported in simple formats (csv, RData, oce) for plotting and analysis.
 
 
 ## Section 2.4: Processing Environment
@@ -280,7 +280,7 @@ for (j in 1:length(all_stations_of_interest)){
   ```
   
   
-  CTD casts are loaded in using `vprr::list_ctd_files` to find files and `vprr::read_ctd_vpr` to read in files.
+  CTD casts are loaded in using `vprr::list_ctd_files` to find files and `vprr::read_ctd_vpr` to read in files. During CTD data read in, a standardized seawater density variable `sigmaT` is derived using the function `oce::swSigmaT`, and `depth` (in meters) is derived  using the function `oce::swDepth`.
   
   
   ```
@@ -373,24 +373,15 @@ Next, CTD and aid data is merged to create a data frame describing both water pr
   cat('CTD and ROI data combined! \n')
   cat('\n')
   ```
-Before final export of data products, the following variables are added to the data frame: A standardized seawater density variable `sigmaT` is derived using the function `oce::swSigmaT`, `depth` (in meters) is derived using the function `oce::swDepth`, time in hours `avg_hr` is calculated, and a time stamp (`ymdhms`) with POSIXct signature in Y-M-D h:m:s format is added using the function `add_ymd`. 
+Before final export of data products, the following variables are added to the data frame: time in hours `avg_hr` is calculated, and a time stamp (`ymdhms`) with POSIXct signature in Y-M-D h:m:s format is added using the function `add_ymd`. 
 
   ```
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
   
   # add avg hr and sigma T data and depth
  data <- ctd_roi_merge %>%
-    dplyr::mutate(., avg_hr = time_ms / 3.6e+06) %>%
-    dplyr::mutate(
-      .,
-      sigmaT = swSigmaT(
-        ctd_roi_merge$salinity,
-        ctd_roi_merge$temperature,
-        ctd_roi_merge$pressure
-      )) %>%
-    dplyr::mutate(., depth = oce::swDepth(ctd_roi_merge$pressure)) # note that default latitude is used (45)
-    
-    
+    dplyr::mutate(., avg_hr = time_ms / 3.6e+06) 
+ 
     data <- add_ymd(data, year)
   
   cat('Initial processing complete! \n')
