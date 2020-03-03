@@ -109,7 +109,7 @@ If sharing processing code with colleagues on version control, keeping the envir
 
 # Section 3: Image Copying
 
-In this step, ROIs are copied to folders that are organized based on the day and hour of data collection and classification category assigned from VP. The images are organized by Autodeck into day and hour, but reorganizing them based on classification allows easier human interaction with the data, allowing visual inspection of classifications by VP. Moreover, this directory structure is used by the next step of processing (i.e., Manual Classification). To implement this step use the function `vprr::autoid_copy()`. For more information on input variables, please see documentation for autoid_copy (?autoid_copy).
+In this step, ROIs are copied to folders that are organized based on the day and hour of data collection and classification category assigned from VP. The images are organized by Autodeck into day and hour, but reorganizing them based on classification allows easier human interaction with the data, allowing visual inspection of classifications by VP. Moreover, this directory structure is used by the next step of processing (i.e., Manual Classification). To implement this step use the function `vprr::vpr_autoid_copy()`. For more information on input variables, please see documentation for vpr_autoid_copy (?vpr_autoid_copy).
 
 ```
 # create variables
@@ -124,20 +124,20 @@ classifier_name <- "myclassifier"
 
 # run file organizer
 # ---------------------
-autoid_copy(basepath, day, hour, classifer_type, classifier_name)
+vpr_autoid_copy(basepath, day, hour, classifer_type, classifier_name)
 ```
 
 
 # Section 4:  Manual Classification
 Manual Classification of some categories after classification by VP may be required to achieve identification accuracy standards. In this step, ROIs are displayed on the screen one at a time for manual classification, if VP has misclassified an image or if it falls into a new user defined category (described below), the image can be reclassified. At the end of this process, text files, which match the formats produced by VP for aid and aidmeas files are generated with the new classifications. 
 
-The Manual Classification process also allows for creation of new categories. This is especially useful for classification of rare categories that were not defined prior to classification in VP. For example, if VP produces a classification group “copepods” containing Paraeuchaeta spp. and Metridia spp, the user can add “Paraeuchaeta” and “Metridia” categories in the Manual Classification step using the function `vprr::add_new_taxa` (see example below). After completing manual classification for a day-hour set, new files are created for new categories which are identical in format to original aid and aidmeas files produced by VP.
+The Manual Classification process also allows for creation of new categories. This is especially useful for classification of rare categories that were not defined prior to classification in VP. For example, if VP produces a classification group “copepods” containing Paraeuchaeta spp. and Metridia spp, the user can add “Paraeuchaeta” and “Metridia” categories in the Manual Classification step using the function `vprr::vpr_category_create` (see example below). After completing manual classification for a day-hour set, new files are created for new categories which are identical in format to original aid and aidmeas files produced by VP.
 
 ## Section 4.1: Prepping the environment by setting some variables
 - Load the processing environment, which includes the `auto_id_folder` variable.
 - Set day and hour of interest. 
-- Set category of interest. These categories are the existing VP classification categories which require manual classification, as well as any new categories. The `vprr::add_new_taxa()` function sets up the folder structure for any new categories which have been added to the list of interest. 
-- Run manual classification with `vprr::clf_check()`. This function has a few optional arguments to customize the Manual Classification experience, notably `gr` which is a logical value determining whether or not Manual Classification options appear as pop ups or in the command line, as well as `img_bright`, a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows the user to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish.  
+- Set category of interest. These categories are the existing VP classification categories which require manual classification, as well as any new categories. The `vprr::vpr_category_create()` function sets up the folder structure for any new categories which have been added to the list of interest. 
+- Run manual classification with `vprr::vpr_manual_classification()`. This function has a few optional arguments to customize the Manual Classification experience, notably `gr` which is a logical value determining whether or not Manual Classification options appear as pop ups or in the command line, as well as `img_bright`, a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows the user to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish.  
 
 ```
 #### CLASSIFICATION CHECK
@@ -177,16 +177,16 @@ category_of_interest <-
 
 # add new category (optional)
 
-add_new_taxa(taxa = taxa_of_interest, auto_id_folder)
+vpr_category_create(taxa = taxa_of_interest, auto_id_folder)
 # ensures there is proper folder structure for all categories of interest
 
 # reclassify images
-clf_check(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
+vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
           taxa_of_interest = category_of_interest, scale = 'x300',
           opticalSetting = 'S3')
 ```
 ## Section 4.2: Generate new aid and aidmeas files 
-The function `vprr::clf_check()` produces two files (misclassified and reclassified text files) as a record of Manual Classification, which are found in the R project working directory in folders named by the day and hour that the data was collected.  The function `vprr::new_aids()` takes these files and outputs new aid and aidmeas files in the R working directory in folders named by classification category. This step should be run after each hour of data is manually classified.
+The function `vprr::vpr_manual_classification()` produces two files (misclassified and reclassified text files) as a record of Manual Classification, which are found in the R project working directory in folders named by the day and hour that the data was collected.  The function `vprr::vpr_autoid_create()` takes these files and outputs new aid and aidmeas files in the R working directory in folders named by classification category. This step should be run after each hour of data is manually classified.
 ```
 #### REORGANIZE ROI AND ROIMEAS DATA
 # -----------------------------------------
@@ -198,12 +198,12 @@ misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.nam
 reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
 
 # MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES
-new_aids(reclassify, misclassified, auto_id_folder)
+vpr_autoid_create(reclassify, misclassified, auto_id_folder)
 ```
 
 ## Section 4.3: File check
 The last step of Manual Classification includes some manual file organization and final checks. These files should be reorganized in a new directory which will become the new auto_id_folder (see Appendix: Directory Structure). Remember, that aid and aidmeas files from any categories which were not manually checked and reclassified should also be added to this new auto_id_folder. 
-After the updated aid and aidmeas files have been manually organized they should be quality controlled using `vprr::aid_file_check()`. This function removes any empty aid files created, if there are no images of a specific classification group in a particular hour of VPR deployment, which can cause errors in processing down the line. This function also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. 
+After the updated aid and aidmeas files have been manually organized they should be quality controlled using `vprr::vpr_autoid_check()`. This function removes any empty aid files created, if there are no images of a specific classification group in a particular hour of VPR deployment, which can cause errors in processing down the line. This function also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. 
 
 ```
 #ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT ALERT #
@@ -222,7 +222,7 @@ After the updated aid and aidmeas files have been manually organized they should
 # aid check step
 # removes empty aid files, and checks for errors in writing
 
-aid_file_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt’ in working directory
+vpr_autoid_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt’ in working directory
 ```
 
 
@@ -280,23 +280,23 @@ for (j in 1:length(all_stations_of_interest)){
   ```
   
   
-  CTD casts are loaded in using `vprr::list_ctd_files` to find files and `vprr::read_ctd_vpr` to read in files. During CTD data read in, a standardized seawater density variable `sigmaT` is derived using the function `oce::swSigmaT`, and `depth` (in meters) is derived  using the function `oce::swDepth`.
+  CTD casts are loaded in using `vprr::vpr_ctd_files` to find files and `vprr::vpr_ctd_read` to read in files. During CTD data read in, a standardized seawater density variable `sigmaT` is derived using the function `oce::swSigmaT`, and `depth` (in meters) is derived  using the function `oce::swDepth`.
   
   
   ```
   #get day and hour info from station names list
-  dayhour <- get_dayhour(station_of_interest, file = station_names_file)
+  dayhour <- vpr_dayhour(station_of_interest, file = station_names_file)
   
   
   ##### PULL CTD CASTS ----------------------------------------------------------------------------------------------------------------------------
   # get file path for ctd data
   
   # list ctd files for desired day.hours
-  ctd_files <- list_ctd_files(castdir, cruise, dayhour) 
+  ctd_files <- vpr_ctd_files(castdir, cruise, dayhour) 
   
   ##### READ CTD DATA ----------------------------------------------------------------------------------------------------------------------------
   
-  ctd_dat_combine <- read_ctd_vpr(ctd_files, station_of_interest)
+  ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
   
   cat('CTD data read complete! \n')
   cat('\n')
@@ -333,7 +333,7 @@ for (j in 1:length(all_stations_of_interest)){
   ```
   
   
-  ROI and measurement data files are then read using `vprr::read_aid`.
+  ROI and measurement data files are then read using `vprr::vpr_autoid_read`.
   
   
   ```
@@ -342,7 +342,7 @@ for (j in 1:length(all_stations_of_interest)){
   
   # ROIs
   roi_dat_combine <-
-    read_aid(
+    vpr_autoid_read(
       file_list_aid = aid_file_list_all,
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aid',
@@ -352,7 +352,7 @@ for (j in 1:length(all_stations_of_interest)){
   
   # MEASUREMENTS
   roimeas_dat_combine <-
-    read_aid(
+    vpr_autoid_read(
       file_list_aid = aid_file_list_all,
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aidmeas',
@@ -364,16 +364,16 @@ for (j in 1:length(all_stations_of_interest)){
   cat('\n')
   ```
   
-Next, CTD and aid data is merged to create a data frame describing both water properties and classified images. The function used is `vprr::merge_ctd_roi`.
+Next, CTD and aid data is merged to create a data frame describing both water properties and classified images. The function used is `vprr::vpr_ctdroi_merge`.
    
  ```
   ##### MERGE CTD AND ROI DATA ---------------------------------------------------------------------------------------------------------------------
-  ctd_roi_merge <- merge_ctd_roi(ctd_dat_combine, roi_dat_combine)
+  ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
   
   cat('CTD and ROI data combined! \n')
   cat('\n')
   ```
-Before final export of data products, the following variables are added to the data frame: time in hours `avg_hr` is calculated, and a time stamp (`ymdhms`) with POSIXct signature in Y-M-D h:m:s format is added using the function `add_ymd`. 
+Before final export of data products, the following variables are added to the data frame: time in hours `avg_hr` is calculated, and a time stamp (`ymdhms`) with POSIXct signature in Y-M-D h:m:s format is added using the function `vpr_ctd_ymd`. 
 
   ```
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ Before final export of data products, the following variables are added to the d
  data <- ctd_roi_merge %>%
     dplyr::mutate(., avg_hr = time_ms / 3.6e+06) 
  
-    data <- add_ymd(data, year)
+    data <- vpr_ctd_ymd(data, year)
   
   cat('Initial processing complete! \n')
   cat('\n')
@@ -391,12 +391,12 @@ Before final export of data products, the following variables are added to the d
   remove(ctd_roi_merge)
   ```
    
-Average plankton concentration and water properties (e.g., temperature, salinity, density etc) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (the sampling rate is not constant in older versions) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::create_oce_vpr`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each classification group. 
+Average plankton concentration and water properties (e.g., temperature, salinity, density etc) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (the sampling rate is not constant in older versions) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::vpr_oce_create`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each classification group. 
    
   ```
   ##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------
   
-  ctd_roi_oce <- create_oce_vpr(data)
+  ctd_roi_oce <- vpr_oce_create(data)
   
 # bin and calculate concentration for all taxa (combined)
   vpr_depth_bin <- bin_vpr_data(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
@@ -405,7 +405,7 @@ Average plankton concentration and water properties (e.g., temperature, salinity
   taxas_list <- unique(roimeas_dat_combine$taxa)
   
   # bin and calculate concentrations for each category
-  taxa_conc_n <- calculate_vpr_concentrations(data, taxas_list, station_of_interest, binSize, imageVolume)  
+  taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)  
 
   cat('Station', station_of_interest, 'processing complete! \n')
   cat('\n')
@@ -423,7 +423,7 @@ Average plankton concentration and water properties (e.g., temperature, salinity
   ```
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
   # Save oce object
-  oce_dat <- save_vpr_oce(taxa_conc_n)
+  oce_dat <- vpr_save(taxa_conc_n)
   save(file = paste0(savedir, '/oceData_', station_of_interest,'.RData'), oce_dat) # oce data and metadata object
   
   
@@ -532,13 +532,13 @@ The last bit of set up required, sets the directory in which plots will be saved
   height = 1000
   ```
   
-  This first plot follows a consistent format for creating VPR contour plots with variable contours behind VPR concentration data over the tow path. The main function used is `vprr::conPlot_EC` which uses a standard VPR data frame (`taxa_conc_n` - produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. The  VPR tow path can be added on top of contours, with concentration data displayed as bubbles. This method can be repeated with various water parameters (e.g., temperature, salinity etc.) used to calculate the contours, by changing the `var` argument in `vprr::conPlot_EC`.  
+  This first plot follows a consistent format for creating VPR contour plots with variable contours behind VPR concentration data over the tow path. The main function used is `vprr::vpr_plot_contour` which uses a standard VPR data frame (`taxa_conc_n` - produced from Processing) and plots the background contours. Interpolation methods can be adjusted based on data or preference. The  VPR tow path can be added on top of contours, with concentration data displayed as bubbles. This method can be repeated with various water parameters (e.g., temperature, salinity etc.) used to calculate the contours, by changing the `var` argument in `vprr::vpr_plot_contour`.  
   
   
   ```
   # Density (sigmaT)
   png('conPlot_taxa_dens.png', width = width, height = height)
-  p <- conPlot_EC(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
+  p <- vpr_plot_contour(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
   p <- p + geom_line(data = data, aes(x = avg_hr - min(avg_hr), y = pressure), col = 'snow4', inherit.aes = FALSE) +
     geom_point(data = taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], aes(x = avg_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
     ggtitle(station_name ) +
@@ -560,11 +560,11 @@ The last bit of set up required, sets the directory in which plots will be saved
   ```
   
   
-A vertical profile of plankton concentration and water properties compressed over the sampling duration can be generated using `vprr::profile_plot`. This plot indicates the overall pattern in vertical distribution over the VPR deployment.  
+A vertical profile of plankton concentration and water properties compressed over the sampling duration can be generated using `vprr::vpr_plot_profile`. This plot indicates the overall pattern in vertical distribution over the VPR deployment.  
     
   ```
     png('profilePlots_RK.png', width = 1000, height = 500)
-    p <- profile_plot(taxa_conc_n, taxa_to_plot)
+    p <- vpr_plot_profile(taxa_conc_n, taxa_to_plot)
     print(p)
     dev.off()
   ```

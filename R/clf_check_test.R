@@ -7,7 +7,7 @@
 ## version 3
 
 
-clf_check <-
+vpr_manual_classification <-
   function(day,
            hour,
            basepath,
@@ -272,12 +272,12 @@ clf_check <-
   }
 
 
-new_aids <- function(reclassify, misclassified, basepath) {
+vpr_autoid_create <- function(reclassify, misclassified, basepath) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
   #'
-  #'@param reclassify list of reclassify files (output from clf_check())
-  #'@param misclassified list misclassify files (output from clf_check())
+  #'@param reclassify list of reclassify files (output from vpr_manual_classification())
+  #'@param misclassified list misclassify files (output from vpr_manual_classification())
   #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
   #'
   #'
@@ -288,7 +288,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
   #'day_hour_files <-  paste0('d', day, '.h', hr)
   #'misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
   #'reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-  #'new_aids(reclassify, misclassified, basepath)
+  #'vpr_autoid_create(reclassify, misclassified, basepath)
   #'
   #'@export
 
@@ -300,7 +300,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
   # remove misclassified ROIS
   for (i in 1:length(misclassified)) {
     # TODO: generalize solution, remove hardcoding
-    taxa <- gettaxaid(misclassified[i])
+    taxa <- vpr_category(misclassified[i])
 
    # if (taxa == 'ctenophores'){ browser()}
     #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
@@ -309,7 +309,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
       stop(
         paste(
           taxa,
-          'is not a valid taxa name. Please run add_new_taxa() to create proper file structure within basepath'
+          'is not a valid taxa name. Please run vpr_category_create() to create proper file structure within basepath'
         )
       )
     }
@@ -326,7 +326,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
              x = day_hour)
 
       # mis_roi_gen <- substr(mis_roi, nchar(mis_roi) - 18, nchar(mis_roi))
-      mis_roi_gen <- unlist(getroiid(mis_roi))
+      mis_roi_gen <- unlist(vpr_roi(mis_roi))
 
       mis_roi_df <-
         data.frame(mis_roi_gen, day_hour, taxa, stringsAsFactors = FALSE)
@@ -344,8 +344,8 @@ new_aids <- function(reclassify, misclassified, basepath) {
       # if there is no misclassified information
 
       print(paste('Blank misclassified file found for', taxa, '!'))
-      day_n <- getday(misclassified[i])
-      hr_n <- gethour(misclassified[i])
+      day_n <- vpr_day(misclassified[i])
+      hr_n <- vpr_hour(misclassified[i])
       day_hour <- paste0('d', day, '.h', hour)
       # day_hour <- unique(substr(misclassified[i], 1, 8))
       aidFolder <-
@@ -380,7 +380,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
 #browser()
       aid_list_old <- unique(aid_list_old)
 
-      aid_old_gen <- unlist(getroiid(aid_list_old))
+      aid_old_gen <- unlist(vpr_roi(aid_list_old))
 
       sub_mis_roi <- mis_roi_df %>%
         dplyr::filter(., day_hour == unique(mis_roi_df$day_hour))
@@ -484,7 +484,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
              x = day_hour_re)
 
       # get generic roi string
-      recl_roi_gen <- unlist(getroiid(recl_roi))
+      recl_roi_gen <- unlist(vpr_roi(recl_roi))
 
       # which taxa to add recl rois to
 
@@ -561,7 +561,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
 # browser()
 
       roimeas_dat_combine <-
-        read_aid(
+        vpr_autoid_read(
           file_list_aid = unlist(aid_fn_list),
           file_list_aidmeas = unlist(aidm_fn_list),
           export = 'aidmeas',
@@ -708,10 +708,10 @@ new_aids <- function(reclassify, misclassified, basepath) {
 
 #' Create a new taxa to be considered for classification after processing with VP
 #'
-#' creates empty directory structure to allow consideration of new taxa during clf_check()
+#' creates empty directory structure to allow consideration of new taxa during vpr_manual_classification()
 #'
 #' @param taxa new taxa name to be added (can be a list of multiple taxa names)
-#' @param basepath basepath used for clf_check
+#' @param basepath basepath used for vpr_manual_classification
 #'
 #' @return empty directory structure using new taxa name inside basepath
 #' @export
@@ -719,7 +719,7 @@ new_aids <- function(reclassify, misclassified, basepath) {
 #'
 #'
 #'
-add_new_taxa <- function(taxa, basepath) {
+vpr_category_create <- function(taxa, basepath) {
   for (i in 1:length(taxa)) {
     # create new taxa folder
     newtaxapath <- file.path(basepath, taxa[[i]])

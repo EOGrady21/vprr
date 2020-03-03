@@ -47,7 +47,7 @@ NULL
 #' @export
 #'
 #'
-save_vpr_oce <- function(data, metadata){
+vpr_save <- function(data, metadata){
 
   # create oce objects
 
@@ -108,7 +108,7 @@ if(missing(metadata)){
 #' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
 #' @export
 
-add_ymd <- function(data, year, offset){
+vpr_ctd_ymd <- function(data, year, offset){
 
   d <- grep(names(data), pattern = 'avg_hr')
   if(length(d) == 0){
@@ -142,61 +142,6 @@ add_ymd <- function(data, year, offset){
 
 }
 
-#' Load RData files
-#'
-#' Loads VPR processed RData files from station data, accounts for old naming
-#' scheme, will load either 'data' or 'auto_measure_ls' objects into
-#' consistently named list.
-#'
-#' @note \strong{WARNING:} Hard coded to accept only objects named 'data' or 'auto_measure_mm'
-#'
-#' @author K Sorochan
-#'
-#' @param x data file names (with full path specified)
-#'
-#'
-#' @return a list of dataframe objects
-#' @export
-#'
-#' @examples
-#'
-#' # Get filenames
-#' path_name <- paste0(cruise, "_data_files")
-#'
-#' names_stationdata <- list.files(path = path_name, pattern = "stationData_W58", full.names = TRUE)
-#' names_measdata <- list.files(path = path_name, pattern = "meas_dat_W58", full.names = TRUE)
-#'
-#' # Read in roi and measdata
-#' stationdata <- loadrdata(names_stationdata)
-#' measdata <- loadrdata(names_measdata)
-
-loadrdata <- function(x) {
-
-  data_ls <- list()
-
-  for(i in x) {
-
-    load(x)
-
-    z <- load(x)
-
-    if(z == "data") {
-
-      data_ls[[which(i == x)]] <- data
-
-    }
-
-    if(z == "auto_measure_mm") {
-
-      data_ls[[which(i == x)]] <- auto_measure_mm
-
-    }
-
-  }
-
-  return(data_ls)
-
-}
 
 #' Bin VPR size data
 #'
@@ -254,8 +199,8 @@ bin_size_data <- function(data_all, bin_mea){
 #'
 #' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
 #'
-#' @param data VPR dataframe from \code{\link{merge_ctd_roi}}, with calculated variable sigmaT
-#' @param measdata VPR size data frame from \code{\link{read_aid}}
+#' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
+#' @param measdata VPR size data frame from \code{\link{vpr_autoid_read}}
 #' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
 #' @param max_pressure maximum pressure cut off on data, allows comparison
 #'   between stations of different depths, should be the maximum depth which all
@@ -322,7 +267,7 @@ return(data_all)
 #' inside your basepath/autoid folder
 #'
 #' @export
-autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, taxa){
+vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, taxa){
 
   folder_names <- list.files(basepath)
 
@@ -386,10 +331,10 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 #' Calculates concentrations for each named taxa in dataframe
 #'
-#' @param data a VPR dataframe as produced by \code{\link{merge_ctd_roi}}
+#' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
 #' @param taxas_list a list of character strings representing taxa present in the station being processed
 #' @param station_of_interest The station being processed
-#' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
+#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #'
 #'
@@ -397,7 +342,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'@export
 #'
 #'
-calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest, binSize, imageVolume){
+vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize, imageVolume){
 
   # check that taxa exist for this station
 
@@ -408,7 +353,7 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest, 
   # calculate concentrations
   conc_dat <- list()
   for ( ii in 1:length(valid_taxa)){
-    conc_dat[[ii]] <- conc_byTaxa(data, valid_taxa[ii], binSize, imageVolume) %>%
+    conc_dat[[ii]] <- concentration_category(data, valid_taxa[ii], binSize, imageVolume) %>%
       dplyr::mutate(., taxa = valid_taxa[ii])
   }
 
@@ -424,13 +369,13 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest, 
 
 #' Binned concentrations
 #'
-#' This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_vpr_data}} but calculates concentrations for only one taxa.
-#' Used inside \code{\link{calculate_vpr_concentrations}}
+#' This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_cast}} but calculates concentrations for only one taxa.
+#' Used inside \code{\link{vpr_roi_concentration}}
 #'
 #'
 #' @param data dataframe produced by processing
 #' @param taxa name of taxa isolated
-#' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
+#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
@@ -441,7 +386,7 @@ calculate_vpr_concentrations <- function(data, taxas_list, station_of_interest, 
 #' @author E. Chisholm
 #'
 #' @export
-conc_byTaxa <- function(data, taxa, binSize, imageVolume, rev = FALSE){
+concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE){
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   nontaxa <-
@@ -472,10 +417,10 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume, rev = FALSE){
     gsub(names(dt), pattern = taxa, replacement = 'n_roi')
 
   # format into oce ctd
-  ctd_roi_oce <- create_oce_vpr(dt)
+  ctd_roi_oce <- vpr_oce_create(dt)
 
   # bin data
-  final <- bin_vpr_data(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev)
+  final <- bin_cast(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev)
 
   return(final)
 }
@@ -483,12 +428,12 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume, rev = FALSE){
 
 #' Bin vpr data
 #'
-#' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{getCast_EC}} and \code{\link{bin_average_vpr}}
+#' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
 #'
 #' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}
-#' @param binSize passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged
+#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-#' @param rev logical value,passed to \code{\link{bin_average_vpr}} if TRUE, binning will begin at bottom of each cast,
+#' @param rev logical value,passed to \code{\link{bin_calculate}} if TRUE, binning will begin at bottom of each cast,
 #'   this controls data loss due to uneven binning over depth. If bins begin at
 #'   bottom, small amounts of data may be lost at the surface of each cast, if
 #'   binning begins at surface (rev = FALSE), small amounts of data may be lost
@@ -503,16 +448,16 @@ conc_byTaxa <- function(data, taxa, binSize, imageVolume, rev = FALSE){
 #' @export
 #'
 #'
-bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
+bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #find upcasts
-  upcast <- getCast_EC(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
-  upcast2 <- lapply(X = upcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
+  upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
+  upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   upcast_df <- do.call(rbind, upcast2)
 
   #find downcasts
-  downcast <- getCast_EC(ctd_roi_oce, cast_direction = "descending", data_type = "df")
-  downcast2 <- lapply(X = downcast, FUN = bin_average_vpr, binSize = binSize, imageVolume = imageVolume, rev = rev)
+  downcast <- ctd_cast(ctd_roi_oce, cast_direction = "descending", data_type = "df")
+  downcast2 <- lapply(X = downcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   downcast_df <- do.call(rbind, downcast2)
 
   #combine_data in bins
@@ -538,7 +483,7 @@ bin_vpr_data <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 #' @param data data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}
 #'
 #' @export
-create_oce_vpr <- function(data){
+vpr_oce_create <- function(data){
 
   # create oce objects
   ctd_roi_oce <- as.ctd(data)
@@ -552,13 +497,13 @@ create_oce_vpr <- function(data){
 
 #' Read and format CTD VPR data
 #'
-#' Acts as a wrapper for \code{\link{read.ctdvpr.data}}
+#' Acts as a wrapper for \code{\link{ctd_df_cols}}
 #'
 #' Reads CTD data and adds day, hour, and station information.
 #' Calculates sigma T and depth variables from existing CTD data to supplement raw data.
 #' If there are multiple hours of CTD data, combines them into single dataframe.
 #'
-#' **WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+#' **WARNING** \code{\link{ctd_df_cols}} is hard coded to accept a specific
 #' order of CTD data columns. The names and values in these columns can change
 #' based on the specific insturment and should be updated/confirmed before processing data
 #' from a new VPR.
@@ -571,17 +516,17 @@ create_oce_vpr <- function(data){
 #'
 #' @export
 
-read_ctd_vpr <- function(ctd_files, station_of_interest){
+vpr_ctd_read <- function(ctd_files, station_of_interest){
 
 
   ctd_dat <- list()
   for (i in 1:length(ctd_files)){
 
-    day_id <- unlist(getday(ctd_files[i]))
-    hour_id <- unlist(gethour(ctd_files[i]))
+    day_id <- unlist(vpr_day(ctd_files[i]))
+    hour_id <- unlist(vpr_hour(ctd_files[i]))
     station_id <- station_of_interest
 
-    ctd_dat_tmp <- read.ctdvpr.data(ctd_files[i])
+    ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
     ctd_dat[[i]] <- data.frame(ctd_dat_tmp,
                                day = day_id,
                                hour = hour_id,
@@ -618,12 +563,12 @@ read_ctd_vpr <- function(ctd_files, station_of_interest){
 #'
 #'@author E. Chisholm & K. Sorochan
 #'
-#'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{read_ctd_vpr}}
-#'@param roi_dat_combine a data frame of roi aid data from \code{\link{read_aid}}
+#'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{vpr_ctd_read}}
+#'@param roi_dat_combine a data frame of roi aid data from \code{\link{vpr_autoid_read}}
 #'
 #'@export
 #'
-merge_ctd_roi <- function(ctd_dat_combine, roi_dat_combine){
+vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 
   # First subset ctd data by roi id
   ctd_time <- ctd_dat_combine$time_ms
@@ -675,7 +620,7 @@ merge_ctd_roi <- function(ctd_dat_combine, roi_dat_combine){
 #'@note Full paths to each file should be specified
 #'
 #' @export
-read_aid <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
+vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
 if( export == 'aidmeas'){
   if (missing(opticalSetting)){
@@ -693,14 +638,14 @@ if( export == 'aidmeas'){
 
     data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = F, col.names = col_names)
 
-    data_tmp$roi <- unlist(getroiid(data_tmp$roi))
+    data_tmp$roi <- unlist(vpr_roi(data_tmp$roi))
 
 
 
 
-    data_tmp$taxa <- unlist(gettaxaid(file_list_aid[i]))
-    day <- unlist(getday(file_list_aid[i]))
-    hour <- unlist(gethour(file_list_aid[i]))
+    data_tmp$taxa <- unlist(vpr_category(file_list_aid[i]))
+    day <- unlist(vpr_day(file_list_aid[i]))
+    hour <- unlist(vpr_hour(file_list_aid[i]))
     data_tmp$day_hour <- paste(day, hour, sep = ".")
     dat[[i]]<- data_tmp
 
@@ -729,9 +674,9 @@ if(!is.na(opticalSetting)){
 
 
 
-  data_tmp$taxa <- unlist(gettaxaid(file_list_aidmeas[i]))
-  day <- unlist(getday(file_list_aidmeas[i]))
-  hour <- unlist(gethour(file_list_aidmeas[i]))
+  data_tmp$taxa <- unlist(vpr_category(file_list_aidmeas[i]))
+  day <- unlist(vpr_day(file_list_aidmeas[i]))
+  hour <- unlist(vpr_hour(file_list_aidmeas[i]))
   data_tmp$day_hour <- paste(day, hour, sep = ".")
   dat[[i]]<- data_tmp
 
@@ -840,9 +785,9 @@ px_to_mm <- function(x, opticalSetting) {
 
 #'Read CTD data (SBE49) and Fluorometer data from CTD- VPR package
 #'
-#'Internal use \code{\link{read_ctd_vpr}}
+#'Internal use \code{\link{vpr_ctd_read}}
 #'
-#'**WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+#'**WARNING** This is hard coded to accept a specific
 #' order of CTD data columns. The names and values in these columns can change
 #' based on the specific insturment and should be updated before processing data
 #' from a new VPR.
@@ -859,7 +804,7 @@ px_to_mm <- function(x, opticalSetting) {
 #'
 #'
 #'@export
-read.ctdvpr.data <- function(x) {
+ctd_df_cols <- function(x) {
 
 
 
@@ -888,7 +833,7 @@ read.ctdvpr.data <- function(x) {
 #' @param mat a matrix to normalize
 #'
 #'
-normalize <- function(mat){
+normalize_matrix <- function(mat){
 
 
   nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
@@ -914,7 +859,7 @@ normalize <- function(mat){
 #'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
 #'
 #' @export
-get_trrois_size <- function(directory, taxa, opticalSetting){
+vpr_trrois_size <- function(directory, taxa, opticalSetting){
 
   #loop for each taxa of interest
   for (t in taxa){
@@ -964,7 +909,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
 #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
-#' Used internally ( \code{\link{bin_vpr_data}} ) after \code{\link{getCast_EC}} on a single ascending or descending section of VPR cast
+#' Used internally ( \code{\link{bin_cast}} ) after \code{\link{ctd_cast}} on a single ascending or descending section of VPR cast
 #'
 #'
 #'
@@ -973,7 +918,7 @@ get_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'   @export
 #'
-bin_average_vpr <- function(data, binSize = 1, imageVolume, rev = FALSE){
+bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
 
   cast_id <-unique(data$cast_id)
@@ -1098,7 +1043,7 @@ if (rev == TRUE){
 #'
 #' @export
 #'
-getCast_EC <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1, breaks = NULL) {
+ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1, breaks = NULL) {
 
   cast_updated <- list()
 
@@ -1159,7 +1104,7 @@ getCast_EC <- function(data, cast_direction = 'ascending', data_type, cutoff = 0
 #' @return Vector of day-hour combinations corresponding to stations of interest
 #'
 #' @export
-get_dayhour <- function(stations, file) {
+vpr_dayhour <- function(stations, file) {
 
   #####DEFINE FOR MULTIPLE STATIONS
   stations_of_interest <- stations
@@ -1194,7 +1139,7 @@ get_dayhour <- function(stations, file) {
 #' @return vector of ctd file paths matching days-hour combinations provided
 #'
 #' @export
-list_ctd_files <- function(castdir, cruise, day_hour) {
+vpr_ctd_files <- function(castdir, cruise, day_hour) {
 
 
   # ADDED BY KS
@@ -1215,8 +1160,8 @@ list_ctd_files <- function(castdir, cruise, day_hour) {
   # extract for only specific days
   ctd_files_all <- list.files(full_path, pattern = '*ctd*', full.names = TRUE)
 
-  day_id <- getday(ctd_files_all)
-  hour_id <- gethour(ctd_files_all)
+  day_id <- vpr_day(ctd_files_all)
+  hour_id <- vpr_hour(ctd_files_all)
   day_hour_id <- paste(day_id, hour_id, sep = ".")
 
   ctd_files_idx <- which(day_hour_id %in% day_hour)
@@ -1235,11 +1180,11 @@ list_ctd_files <- function(castdir, cruise, day_hour) {
 #'
 #' @return A string of only the 10 digit roi identifier
 #'
-#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{gettaxaid}}
+#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_category}}
 #' @export
 #'
 #'
-getroiid <- function(x) {
+vpr_roi <- function(x) {
 
   m <- gregexpr("\\d{10}", x)
 
@@ -1258,11 +1203,11 @@ getroiid <- function(x) {
 #'
 #' @return A string of only the taxa id
 #'
-#' @seealso \code{\link{gethour}}, \code{\link{getday}}, \code{\link{getroiid}}
+#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
 #' @export
 #'
 #'
-gettaxaid <- function(x) {
+vpr_category <- function(x) {
 
   taxa_ids <- c(
     "bad_image_blurry",
@@ -1317,11 +1262,11 @@ gettaxaid <- function(x) {
 #'
 #' @return A string of only the day identifier (i.e., "dXXX")
 #'
-#' @seealso \code{\link{gethour}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
 #' @export
 #'
 #'
-getday <- function(x) {
+vpr_day <- function(x) {
 
   m <- gregexpr("[d]+\\d{3}", x)
 
@@ -1333,7 +1278,7 @@ getday <- function(x) {
 
 
 
-gethour <- function(x) {
+vpr_hour <- function(x) {
 
   #' Get hour identifier
   #'
@@ -1341,7 +1286,7 @@ gethour <- function(x) {
   #' @param x A string specifying the directory and file name of the size file
   #'
   #' @return A string of only the hour identifier (i.e., "hXX")
-  #' @seealso \code{\link{getday}}, \code{\link{getroiid}}, \code{\link{gettaxaid}}
+  #' @seealso \code{\link{vpr_day}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
   #' @export
   #'
   #'
@@ -1357,7 +1302,7 @@ gethour <- function(x) {
 
 
 
-dataSummary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
+vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #'  Data Summary Report
   #'
   #'  Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
@@ -1453,7 +1398,7 @@ insertRow <- function(existingDF, newrow, r) {
 
 ##check through new aid files and fix errors
 
-#outputs aid_file_check report with any errors
+#outputs vpr_autoid_check report with any errors
 
 
 #' Checks manually created aid files for errors
@@ -1473,7 +1418,7 @@ insertRow <- function(existingDF, newrow, r) {
 #' @export
 #'
 #'
-aid_file_check <- function(basepath, cruise){
+vpr_autoid_check <- function(basepath, cruise){
 
 
 
@@ -1668,7 +1613,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
   #' @export
   #browser()
 
-  .Deprecated('read_aid')
+  .Deprecated('vpr_autoid_read')
 
   auto_measure_mm_alltaxa_ls <- list()
   # browser()
@@ -1678,7 +1623,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
     sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
     roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
 
-    #remove dummy files for clf_check
+    #remove dummy files for vpr_manual_classification
     #check for dummy files
     sfd <-  grep(sizefiles, pattern = 'dummy')
     rfd <-  grep(roifiles, pattern = 'dummy')
@@ -1745,7 +1690,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         #!!!!!!!!!!!!!!!!!!!!!!!!!#
 
         #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
-        #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, getroiid)
+        #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, vpr_roi)
 
         #taxa <- substr(taxafolder[i], nchar_folder + 2, nchar(taxafolder[i])) #Get taxa label
         #taxa <- substr(taxafolder[i], nchar_folder + 1, nchar(taxafolder[i])) #Get taxa label
@@ -1760,10 +1705,10 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         taxafolder_tmp <- taxafolder[i]
         # browser()
         auto_measure_mm <- auto_measure_mm_tmp %>%
-          dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, getroiid))) %>%
-          dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, gettaxaid))) %>%
-          dplyr::mutate(., day = unlist(lapply(sizefile, getday))) %>%
-          dplyr::mutate(., hour = unlist(lapply(sizefile, gethour))) %>%
+          dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, vpr_roi))) %>%
+          dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, vpr_category))) %>%
+          dplyr::mutate(., day = unlist(lapply(sizefile, vpr_day))) %>%
+          dplyr::mutate(., hour = unlist(lapply(sizefile, vpr_hour))) %>%
           dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
           dplyr::select(., -day, -hour)
 
@@ -1833,7 +1778,7 @@ bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
   # salinity <- binApply1D(data$pressure, data$salinity, xbreaks = x_breaks, mean)$result
   #
   #
-  # ###inserted new concentration calculation from bin_average_vpr
+  # ###inserted new concentration calculation from bin_calculate
   #
   # #calculates number of frames captured per depth bin by counting number of pressure observations per bin
   # n_frames <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, length)$result #KS edit 10/9/19
@@ -1923,7 +1868,7 @@ bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
 #' @export
 #'
 #'
-size_freq_plots <- function(x, number_of_classes, colour_of_bar) {
+vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
   data <- x
   taxa <- unique(data$taxa)
@@ -1955,7 +1900,7 @@ size_freq_plots <- function(x, number_of_classes, colour_of_bar) {
 #balloon plot with isopycnals final
 
 #create TS data frame
-get_isopycnals<- function(sal, pot.temp, reference.p = 0){
+isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
   #' Get vector to draw isopycnal lines on TS plot
   #' Used internally to create TS plots
   #' @author E. Chisholm
@@ -2004,7 +1949,7 @@ get_isopycnals<- function(sal, pot.temp, reference.p = 0){
   return(TS)
 }
 
-plotTS_balloon <- function(x, reference.p = 0, var){
+vpr_plot_TS <- function(x, reference.p = 0, var){
 
   #' Make a balloon plot against a TS plot
   #'
@@ -2107,12 +2052,12 @@ plotTS_balloon <- function(x, reference.p = 0, var){
 }
 
 
-plotTS_balloon_EC <- function(x, reference.p = 0){
+vpr_plot_TScat <- function(x, reference.p = 0){
 
   #' Make a balloon plot
   #'
   #' Balloon plot against a TS plot with ROI concentration and sorted by taxa
-  #' includes isopycnal line calculations. Version of \code{\link{plotTS_balloon}}, with only relevant* taxa specified.
+  #' includes isopycnal line calculations. Version of \code{\link{vpr_plot_TS}}, with only relevant* taxa specified.
   #' *to current analysis and research objectives (See note).
   #'
   #'
@@ -2218,7 +2163,7 @@ plotTS_balloon_EC <- function(x, reference.p = 0){
 
 
 
-vis_cm <- function(cm, classes, type, addLabels = T, threshold = NULL){
+vp_plot_matrix <- function(cm, classes, type, addLabels = T, threshold = NULL){
   #' Plots normalized confusion matrix
   #'
   #' @author E. Chisholm
@@ -2252,7 +2197,7 @@ vis_cm <- function(cm, classes, type, addLabels = T, threshold = NULL){
   #remove total columns
   conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
   #create matrix and normalize
-  input.matrix.normalized <- data.matrix(normalize(conf))
+  input.matrix.normalized <- data.matrix(normalize_matrix(conf))
 
 
   #add labels
@@ -2324,7 +2269,7 @@ vis_cm <- function(cm, classes, type, addLabels = T, threshold = NULL){
 
 
 
-size_histogram <- function(data, param, title = NULL , bw = 0.1, xlim = NULL){
+vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL){
   #' Plot size frequency histogram
   #'
   #'@author E. Chisholm
@@ -2361,7 +2306,7 @@ size_histogram <- function(data, param, title = NULL , bw = 0.1, xlim = NULL){
 }
 
 
-vis_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = NULL){
+vp_plot_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = NULL){
 
   #' Function to visualize losses to unknown category due to disagreement in Dual classifier
   #'
@@ -2451,7 +2396,7 @@ vis_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = NULL
 
 #contour plot with interpolation
 
-conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1){
+vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1){
 
   #' Interpolated contour plot of particular variable
   #'
@@ -2530,14 +2475,14 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
 #' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
 #' Facet wrap is used to create distinct panels for each taxa provided
 #'
-#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{calculate_vpr_concentrations}})
+#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})
 #' @param taxa_to_plot The specific classification groups which will be plotted
 #'
 #'
 #' @return A gridded object of at least 3 ggplot objects
 #' @export
 
-profile_plot <- function(taxa_conc_n, taxa_to_plot){
+vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot){
 # plot temp
 p <- ggplot(taxa_conc_n) +
   geom_point(aes(x = temperature, y = pressure), col = 'red') +
@@ -3070,7 +3015,7 @@ trim_ctd_plot <- function(ctd){
 
 #' Explore reclassified images
 #'
-#' Pull image from reclassified or misclassified files produced during \code{\link{clf_check}}
+#' Pull image from reclassified or misclassified files produced during \code{\link{vpr_manual_classification}}
 #'
 #' @param day Character string, 3 digit day of interest of VPR data
 #' @param hour Character string, 2 digit hour of interest of VPR data
@@ -3082,7 +3027,7 @@ trim_ctd_plot <- function(ctd){
 #' @export
 #'
 #'
-exploreImages_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_dir){
+vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_dir){
 
   ####directory where misclassified/reclassified files
   ####base_dir <- 'C:/VPR_PROJECT/r_project_data_vis/classification files/'
@@ -3167,7 +3112,7 @@ print(paste('Images saved to ', roi_folder))
 }
 
 
-exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format = 'list'){
+vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'list'){
 
   #' Explore VPR images by depth bin
   #'
@@ -3175,7 +3120,7 @@ exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format 
   #'
   #'
   #'
-  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param data data frame containing CTD and ROI data from \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables sigmaT and avg_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
   #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
@@ -3189,7 +3134,7 @@ exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format 
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- exploreImages_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
+  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
@@ -3251,7 +3196,7 @@ exploreImages_depth <- function(data, min.depth , max.depth, roiFolder , format 
 }
 
 
-exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format = 'list', taxa_of_interest){
+vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = 'list', taxa_of_interest){
 
   #' Explore images by depth and classification
   #'
@@ -3261,7 +3206,7 @@ exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format =
   #'
   #'
   #'
-  #' @param data data frame containing CTD and ROI data from \code{\link{merge_ctd_roi}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param data data frame containing CTD and ROI data from \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables sigmaT and avg_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
   #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
@@ -3276,7 +3221,7 @@ exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format =
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- exploreImages_taxa(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list', taxa = 'Calanus')
+  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list', taxa = 'Calanus')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
@@ -3341,7 +3286,7 @@ exploreImages_taxa <- function(data, min.depth , max.depth, roiFolder , format =
 }
 
 
-image_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
+vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
   #' Image copying function for specific taxa of interest
   #'
   #' This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
@@ -3450,11 +3395,11 @@ image_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
 
 }
 
-image_check <- function(folder_dir, basepath){
+vpr_img_check <- function(folder_dir, basepath){
 
   #' Remove ROI strings from aid and aidmeas files based on a manually organized folder of images
   #'
-  #' Should be used after \code{\link{image_copy}}, and manual image removal from created folders
+  #' Should be used after \code{\link{vpr_img_copy}}, and manual image removal from created folders
   #'
   #'
   #'
@@ -3497,8 +3442,8 @@ for (i in 1:length(stfolders)){ #for each day/hour loop
 
   #dayhr <- substr(stfolders[i], dh_ind[2], nchar(stfolders[i])-5 )
 
-  day <- getday(stfolders[i])
-  hour <- gethour(stfolders[i])
+  day <- vpr_day(stfolders[i])
+  hour <- vpr_hour(stfolders[i])
 
   dayhr <- paste0('d', day, '.h', hour)
 
@@ -3517,7 +3462,7 @@ for (i in 1:length(stfolders)){ #for each day/hour loop
   #aid_old_gen <- substr(aid$V1, nchar(aid$V1) - 17, nchar(aid$V1))
   #aid_old_gen <- trimws(aid_old_gen, which = 'both')
 
-  aid_old_gen <- getroiid(aid$V1)
+  aid_old_gen <- vpr_roi(aid$V1)
 
   #find index of images which are in maually verified folder
 
