@@ -37,8 +37,6 @@ VP outputs two text files for each category of classification (“aid” and “
 
 # Section 2: Summary of vprr data processing steps
 
-The data processing procedure using vprr can be broken down into 3 steps. 
-
 ## Section 2.1: Image Copying (optional): 
 Organization of ROIs into folders corresponding to classification categories used in VP. The information in each aid file produced by VP  is used to create a folder for each classification category containing ROIs that have been classified to that category. This step is only required if Manual Classification (see step 2) is intended.
 
@@ -202,7 +200,7 @@ vpr_autoid_create(reclassify, misclassified, auto_id_folder)
 ```
 
 ## Section 4.3: File check
-The last step of Manual Classification includes some manual file organization and final checks. These files should be reorganized in a new directory which will become the new auto_id_folder (see Appendix: Directory Structure). Remember, that aid and aidmeas files from any categories which were not manually checked and reclassified should also be added to this new auto_id_folder. 
+The last step of Manual Classification includes some manual file organization and final checks. These files should be reorganized in a new directory which will become the new auto_id_folder (see Appendix 1: Directory Structure). Remember, that aid and aidmeas files from any categories which were not manually checked and reclassified should also be added to this new auto_id_folder. 
 After the updated aid and aidmeas files have been manually organized they should be quality controlled using `vprr::vpr_autoid_check()`. This function removes any empty aid files created, if there are no images of a specific classification group in a particular hour of VPR deployment, which can cause errors in processing down the line. This function also checks that aid and aidmeas files are matching within an hour of data, that they include the same number of ROIs, and that the VPR tow number for all files is the same. 
 
 ```
@@ -233,9 +231,7 @@ This is the main chunk of coding required to generate data products from the VPR
 First, all libraries should be loaded and the processing environment, described in Section 2.4 should be loaded. 
 
 ```
-##### PROCESSING 
-# ==================================================================================================================================================
-
+##### PROCESSING  --------------------------------------------------------------------------------------------------------------------
 library(vprr)
 
 #### FILE PATHS & SETTINGS --------------------------------------------------------------------------------------------------------------------
@@ -579,7 +575,7 @@ TS plots can also be helpful to visualize how plankton concentration varies with
   # plot by taxa
   taxa_conc <- taxa_conc_n[taxa_conc_n$conc_m3 > 0,]
   png('TS_conc_taxa.png', width = 1000, height = 500)
-  p <- plotTS_balloon(taxa_conc[taxa_conc$taxa %in% c(taxa_to_plot),], var = 'conc_m3') +
+  p <- vpr_plot_TS(taxa_conc[taxa_conc$taxa %in% c(taxa_to_plot),], var = 'conc_m3') +
     facet_wrap(~taxa, nrow = 1) +
     theme(strip.text = element_text(size = 18),
           axis.title = element_text(size = 20),
@@ -602,17 +598,17 @@ The functions in vprr were created for a specific project here at BIO and have n
 
 ## Section 7.1: Potential issues when processing VPR data with vprr
 In the Manual Classification step there may be some human error due, which becomes significant when making inference on the distribution of a category with a small number of data points. This was sometimes the case for our “krill” category in the IML2018051 cruise. A check was developed to copy all ROIs manually classified as “krill” into a folder so that errors (i.e. non krill accidently classified as krill) could be manually removed. 
-This allows images to be manually sorted in file explorer, which requires deleting any non - krill images from the folders created using `vprr::image_copy`. The manually organized folders are then compared with aid and aidmeas files (`vprr::image_check`) and any ROI strings which are no longer present in manually sorted folders are removed from aid and aidmeas files. 
+This allows images to be manually sorted in file explorer, which requires deleting any non - krill images from the folders created using `vprr::vpr_img_copy`. The manually organized folders are then compared with aid and aidmeas files (`vprr::vpr_img_check`) and any ROI strings which are no longer present in manually sorted folders are removed from aid and aidmeas files. 
 
 
 ```
-image_copy(auto_id_folder, taxas.of.interest, day, hour)
+vpr_img_copy(auto_id_folder, taxas.of.interest, day, hour)
 
 # perform manual removal of images not matching classification group
 
-image_check_folder <- file.path(auto_id_folder, taxas.of.interest, fsep = '\')
+img_check_folder <- file.path(auto_id_folder, taxas.of.interest, fsep = '\')
 
-image_check(image_check_folder)
+vpr_img_check(img_check_folder)
 ```
 
 
@@ -707,7 +703,7 @@ Visual Plankton (MatLab image classification software) requires a very specific 
 **station**
 - A named geographic location, where the VPR was deployed
 
-**Classification category or Taxa**
+**Classification category (Taxa)**
 - A defined group under which VPR images can be classified, often represents a taxonomic group (e.g. Krill), but can also be defined by image type (e.g. 'bad_image_blurry'), or other (e.g. 'marine_snow'), should be one continuous string (no spaces)
 
 **BIO**
