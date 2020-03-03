@@ -4,7 +4,13 @@
 \alias{calculate_vpr_concentrations}
 \title{Calculate VPR concentrations}
 \usage{
-calculate_vpr_concentrations(data, taxas_list, station_of_interest)
+calculate_vpr_concentrations(
+  data,
+  taxas_list,
+  station_of_interest,
+  binSize,
+  imageVolume
+)
 }
 \arguments{
 \item{data}{a VPR dataframe as produced by \code{\link{merge_ctd_roi}}}
@@ -12,6 +18,10 @@ calculate_vpr_concentrations(data, taxas_list, station_of_interest)
 \item{taxas_list}{a list of character strings representing taxa present in the station being processed}
 
 \item{station_of_interest}{The station being processed}
+
+\item{binSize}{passed to \code{\link{bin_average_vpr}}, determines size of depth bins over which data is averaged}
+
+\item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
 Calculates concentrations for each named taxa in dataframe

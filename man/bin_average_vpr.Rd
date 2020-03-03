@@ -8,7 +8,7 @@ bin_average_vpr(data, binSize = 1, imageVolume, rev = FALSE)
 }
 \arguments{
 \item{data}{ctd data frame object including scan, salinity, temperature,
-pressure, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
+depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
 altitude, cast_id, n_roi}
 
 \item{binSize}{the height of bins over which to average, default is 1 metre}
@@ -33,6 +33,7 @@ Used internally ( \code{\link{bin_vpr_data}} ) after \code{\link{getCast_EC}} on
 
 
   @note binSize should be carefully considered for best results
+  @note Depth is used for calculations! Please ensure depth is included in dateframe using \code{\link{oce::swDepth}}
 
   @export
 }

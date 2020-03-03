@@ -7,7 +7,7 @@
 conPlot_EC(data, var, dup = "mean", method = "interp", labels = TRUE, bw = 1)
 }
 \arguments{
-\item{data}{data frame needs to include avg_hr, pressure, and variable of
+\item{data}{data frame needs to include avg_hr, depth, and variable of
 choice (var)}
 
 \item{var}{variable in dataframe which will be interpolated and plotted}

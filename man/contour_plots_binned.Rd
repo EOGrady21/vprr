@@ -22,8 +22,6 @@ PLOTTED AS BUBBLES}
 }
 \value{
 filled contour VPR plot
-
- @export
 }
 \description{
 This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption

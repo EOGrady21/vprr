@@ -1907,84 +1907,6 @@ bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
 
 #####PLOTTING FUNCTIONS#####
 
-bubble_plotTSconc <- function(x, r,lt, pos, inches, levels, round) {
-  #' Get TS bubble plot for rois - concentration
-  #'
-  #'
-  #' @details !!WARNING: Involves hard coded plot options
-  #'
-  #' @author K. Sorochan & R. Klaver
-  #'
-  #' @param pos position of legend (following legend() rules)
-  #' @param x oce CTD object
-  #' @param r VPR data frame  object with salinity, temperature, concentration, seems to be ctd data pulled to 'concentration' object
-  #' @param lt legend title
-  #' @param inches scales pt.cex of legend (set to 0.1)
-  #' @param levels number of legend intervals
-  #' @param round number of significant figures desired for size intervals
-  #'
-  #'
-  #'
-  #'
-  #' @note EC: (to do) Arguments could be reduced , try using ggplot with data classed
-  #'   with size, might be cleaner code (ref =
-  #'   https://r4ds.had.co.nz/data-visualisation.html , aes scaling...
-  #'   aes(size = class))
-  #'
-  #'
-  #'@export
-
-  #l is legend title, p is position of legend,
-  #scaling is ratio of pt.cex size to inches (might always be 2.7, not sure),
-  #levels how many levels of legend you want.
-  # this will not work if mfrow = c(1,2)
-  #round is #sigfigs rounded to (14938 to 2 sigs = 150000)
-  par(mfrow = c(1, 2))
-  slim = c(min(x@data$salinity),max(x@data$salinity)) #removed hard coded minimum for better scales (EC)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$concentration,
-          xlab  = "", ylab = "", fg = "grey22",
-          inches = inches, xlim = slim, ylim = tlim)
-  max <- max(r$concentration)
-  bigbubble <- signif(max,round)
-  leglev <- seq(0,bigbubble,bigbubble/levels)
-  leglev <- leglev[-1]
-  par(new = T)
-  legend(pos, legend=c(leglev), pt.cex=c((leglev/max)*((inches/0.1)*2.629)),
-         pch=1, title=lt)
-
-  plot.new()
-}
-
-
-bubble_plotTSnroi <- function(x, r) {
-  #' Get TS bubble plot for rois - number of rois
-  #'
-  #' @author K. Sorochan & R. Klaver
-  #'
-  #' @details Includes hard coded plotting options and variable names, not used in final product scripts
-  #'
-  #' @param x oce CTD object
-  #' @param r VPR data frame ( object with salinity, temperature, n_roi )
-  #'
-  #'
-  #' @note EC: (to do) not used in either Rmd file (deprecated older version?)
-  #' not exported
-
-  par(mfrow = c(1, 2))
-  slim = range(x@data$salinity)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
-          xlab  = "", ylab = "", fg = "blue",
-          inches = 0.1, xlim = slim, ylim = tlim)
-  plot.new()
-}
-
-
 
 #' Size Frequency plots for VPR data
 #'
@@ -2030,237 +1952,6 @@ size_freq_plots <- function(x, number_of_classes, colour_of_bar) {
 }
 
 
-
-contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_cont_tmp_subset) {
-  #' contour plots for binned VPR and CTD data
-  #'
-  #'
-  #'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
-  #'
-  #' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
-  #' I was unable to find the origin of these variables. This function also contains hard coding for
-  #' plot options and sizing
-  #'
-  #' @author R. Klaver & K. Sorochan
-  #'
-  #'
-  #' @param contour_binned_data a list of data frames containing x, y, z columns, this should be interpolated
-  #' data to fill the contours of the plot
-  #' @param binned_cont_tmp data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
-  #' PLOTTED AS VPR PATH
-  #' @param binned_cont_tmp_subset data frame containing VPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
-  #' PLOTTED AS BUBBLES
-  #' @return filled contour VPR plot
-  #'
-  #'  @export
-
-  # TODO  EC: (to do) make sure these data structures are stable add in ... for other plotting arguments
-  for(j in 1:length(contour_binned_data)) {
-
-    c_tmp <- contour_binned_data[[j]]
-    y_limits <- rev(range(c_tmp$y))
-    x_limits <- range(c_tmp$x)
-    hydro <- binned_vars[j] #not in function arguments
-
-
-    print(hydro)
-
-    par(mar = c(4, 4, 2, 2) + 0.1)
-
-    #INSERTED FROM CONFLICTING VERSIONS
-    if (hydro == 'conc_m3') {
-      #hydro=conc
-      x <- 10
-    }  else if (hydro == 'density') {
-      x <- length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm=T)),0.25))
-
-
-    } else {
-
-      x <-  length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm = T)),0.5))
-
-    }
-
-
-
-    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                   color.palette = colorRampPalette(c("white", "blue")),
-                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-
-                   plot.axes = {
-                     points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
-                     axis(1)
-                     axis(2)
-                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels=x, add = T)
-                     symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
-                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     #x was originally 'nlevels = 10'
-
-
-                     #ORIGINAL VERSION
-                     # filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                     #                color.palette = colorRampPalette(c("white", "blue")),
-                     #                ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-                     #
-                     #                plot.axes = {
-                     #                  points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
-                     #                  symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
-                     #                          fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     #                  axis(1)
-                     #                  axis(2)
-                     #                  contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
-                     #
-
-                   })
-  }
-
-}
-#' contour plots for VPR and CTD data
-#'
-#'
-#'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
-#'
-#' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
-#' I was unable to find the origin of these variables. This function also contains hard coding for
-#' plot options and sizing
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#'
-#' @param contour_data a list of data frames which is looped from the second index, containing x, y, z columns
-#' @param ctd_cont_tmp CTD data frame containing columns time_h and pressure
-#' @param roi_cont_tmp ROI data from VPR, data frame containing columns time_h, pressure and n_roi
-#'
-#' @return filled contour VPR plot
-#' @export
-#'
-#'
-#'
-
-
-
-contour_plots <- function(contour_data, ctd_cont_tmp, roi_cont_tmp) {
-
-
-  for(j in 2:length(contour_data)) {
-
-    c_tmp <- contour_data[[j]]
-    y_limits <- rev(range(c_tmp$y))
-    x_limits <- range(c_tmp$x)
-    hydro <- var_ts[j] #this variable is not present in function
-
-
-
-    print(hydro)
-
-    par(mar = c(4, 4, 2, 2) + 0.1)
-
-    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                   color.palette = colorRampPalette(c("white", "blue")),
-                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-
-                   plot.axes = {
-                     points(ctd_cont_tmp$time_h, ctd_cont_tmp$pressure, pch = ".")
-                     symbols(roi_cont_tmp$time_h, roi_cont_tmp$pressure, circles = roi_cont_tmp$n_roi,
-                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     axis(1)
-                     axis(2)
-                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
-
-
-                   })
-  }
-
-}
-
-
-#Get TS bubble plot for rois
-#' TS bubble plot for VPR data
-#'
-#' \strong{ !!WARNING:} This function is vulnerable to changes in oce structures and has some minimal hard coding
-#' with plotting details
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#' @param x oce CTD object
-#' @param r VPR / CTD data frame containing columns salinity, temperature, n_roi
-#'
-#' @return TS bubble plot
-#' @export
-#'
-#'
-bubble_plotTS <- function(x, r) {
-
-  par(mfrow = c(1, 2))
-  slim = range(x@data$salinity)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
-          xlab  = "", ylab = "", fg = "blue",
-          inches = 0.1, xlim = slim, ylim = tlim)
-  plot.new()
-}
-
-#' Concentration profile plot
-#'
-#'
-#'  Uses  \code{\link{plotProfile}} function to plot concentration from data frame
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#'
-#' @param x CTD / VPR data frame with column "concentration"
-#'
-#' @return Concentration profile plot
-#' @export
-#'
-#'
-roi_concentration_plot <- function(x) {
-  require(oce)
-  par(mfrow = c(1,2))
-  plotProfile(x, xtype = "concentration", type = 'p', colour = "black")
-
-}
-
-
-#Write function to plot CTD data (TS plot, map, depth profiles)
-#' CTD data plot
-#'
-#' Returns a series of plots for summarizing ctd data,
-#' including position, and profiles of temperature, salinity,
-#' sigmaTheta and fluorescence
-#'
-#'   \strong{!!!WARNING:} this function contains hard coding for both CTD variables and lat/lon ranges
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#' @param x CTD data frame
-#' @param x_pos numeric vector containing longitude information, where first value is used to determine minimum
-#' longitude limits on plot
-#' @param y_pos numeric vector containing latitude information, where first value is used as minimum latitude
-#' value on plot
-#'
-#' @return CTD plot
-#' @export
-
-# TODO EC: (to do) Improvement could be made by using lat/lon values within ctd
-#   object rather than inputting arguments
-myCTDplot <- function(x, x_pos, y_pos) {
-
-  require(oce)
-  par(mfrow=c(1, 2))
-  plotTS(x)
-  plot(coastlineWorldFine, clongitude = x_pos[1], clatitude = y_pos[1], span = 150)
-  #contour(bx, by, bz, levels = c(-100))
-  lines(x_pos, y_pos, col = "red", lwd = 2)
-  points(x_pos[1], y_pos[1], pch = 12)
-
-  plotProfile(x, xtype='temperature', type = 'p', col = 'red')
-  plotProfile(x, xtype='salinity', type = 'p', col = 'blue')
-  plotProfile(x, xtype='sigmaTheta', type = 'p', col = 'magenta')
-  plotProfile(x, xtype='fluorescence', type = 'p', col = 'green')
-}
 #balloon plot with isopycnals final
 
 #create TS data frame
@@ -2830,84 +2521,6 @@ conPlot_EC <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE,
 
 
 
-plot_profile_conc <- function(data, taxa, binSize, imageVolume){
-
-  #' Plot a profile of taxa specific ROI concentration
-  #' @author E. Chisholm
-  #'
-  #' @param data dataframe which will be run through bin_profile_taxa (see function requirements)
-  #' @param binSize required for bin_profile_taxa (size in metres over which data will be averaged)
-  #' @param imageVolume required for bin_profile_taxa (volume of ROI images calculated in mm^3)
-  #' @param taxa taxa of interest
-  #'
-  #' @note this function contains hard coding of concentration calculation based on image volume
-  #' and may require updates with different sampling methods
-  #'
-  #' @export
-  #'
-
-
-  # TODO  !!!! FIX ROI/L CALCULATION INSIDE THIS FUNCTION
-  #create binned profile summary
-
-  require(ggplot2)
-  bin <- bin_profile_taxa(data, taxa, binSize, imageVolume)
-  #bin <- binQC(bin) #removed QC step due to loss of data
-  roiL <- (bin$n_roi_bin/((0.000108155)*(13)*(bin$time_diff_s)))/1024
-  #calculate concentration in m3, convert to L
-  #subset to less than 100 roi/L
-  p <- ggplot(bin[roiL < 100, ]) +
-    geom_point(aes(y = roiL[roiL < 100], x = min_pressure[roiL< 100])) +
-    scale_x_reverse(name = 'Pressure (db)') +
-    scale_y_continuous(name = 'ROI L^-1') +
-    ggtitle(taxa) +
-    geom_smooth(aes(y = roiL[roiL < 100], x = min_pressure[roiL < 100])) +
-    coord_flip() +
-    theme_classic()
-
-  return(p)
-}
-
-
-conPlot_conc <- function(data, dup = 'mean', bw = 1){
-  #' Contour Concentration Plot
-  #'
-  #' Makes a contour plot of ROI concentration, interpolated over time and depth
-  #'
-  #' @param data vpr depth binned data, with parameters avg_hr , pressure, and conc_m3
-  #' @param dup string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')
-  #' @param bw bin width defining contour label intervals
-  #'
-  #'
-  #'
-  #' @export
-  #'
-
-bindat <- data[is.finite(data$conc_m3),]
-
-  interpdf <- akima::interp(x = bindat$avg_hr, y = bindat$pressure, z = bindat$conc_m3, duplicate = dup)
-  #convert to dataframe
-  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
-
-  #zero time values
-  df$x <- df$x - min(df$x)
-
-  p <- ggplot(df) +
-    geom_tile(aes(x = x, y = y, fill = z)) +
-    labs(fill = 'concentration \n (/m3)') +
-    scale_y_reverse(name = 'Pressure [db]') +
-    scale_x_continuous(name = 'Time [hr]') +
-    theme_classic() +
-    geom_contour(aes(x = x, y = y, z= z), col = 'black') +
-    geom_text_contour(aes(x = x, y = y, z= z), col = 'white', binwidth = bw)+
-    scale_fill_continuous(na.value = 'white')
-
-  return(p)
-
-}
-
-
-
 
 # profile plotting
 
@@ -2985,6 +2598,401 @@ return(p)
 
 
 # deprecated --------------------------------------------------------------------------
+
+
+#DEPRECATED
+bubble_plotTSconc <- function(x, r,lt, pos, inches, levels, round) {
+  #' Get TS bubble plot for rois - concentration
+  #'
+  #'
+  #' @details !!WARNING: Involves hard coded plot options
+  #'
+  #' @author K. Sorochan & R. Klaver
+  #'
+  #' @param pos position of legend (following legend() rules)
+  #' @param x oce CTD object
+  #' @param r VPR data frame  object with salinity, temperature, concentration, seems to be ctd data pulled to 'concentration' object
+  #' @param lt legend title
+  #' @param inches scales pt.cex of legend (set to 0.1)
+  #' @param levels number of legend intervals
+  #' @param round number of significant figures desired for size intervals
+  #'
+  #'
+  #'
+  #'
+  #' @note EC: (to do) Arguments could be reduced , try using ggplot with data classed
+  #'   with size, might be cleaner code (ref =
+  #'   https://r4ds.had.co.nz/data-visualisation.html , aes scaling...
+  #'   aes(size = class))
+  #'
+  #'
+  #'
+
+  #l is legend title, p is position of legend,
+  #scaling is ratio of pt.cex size to inches (might always be 2.7, not sure),
+  #levels how many levels of legend you want.
+  # this will not work if mfrow = c(1,2)
+  #round is #sigfigs rounded to (14938 to 2 sigs = 150000)
+  par(mfrow = c(1, 2))
+  slim = c(min(x@data$salinity),max(x@data$salinity)) #removed hard coded minimum for better scales (EC)
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$concentration,
+          xlab  = "", ylab = "", fg = "grey22",
+          inches = inches, xlim = slim, ylim = tlim)
+  max <- max(r$concentration)
+  bigbubble <- signif(max,round)
+  leglev <- seq(0,bigbubble,bigbubble/levels)
+  leglev <- leglev[-1]
+  par(new = T)
+  legend(pos, legend=c(leglev), pt.cex=c((leglev/max)*((inches/0.1)*2.629)),
+         pch=1, title=lt)
+
+  plot.new()
+}
+
+#DEPRECATED
+bubble_plotTSnroi <- function(x, r) {
+  #' Get TS bubble plot for rois - number of rois
+  #'
+  #' @author K. Sorochan & R. Klaver
+  #'
+  #' @details Includes hard coded plotting options and variable names, not used in final product scripts
+  #'
+  #' @param x oce CTD object
+  #' @param r VPR data frame ( object with salinity, temperature, n_roi )
+  #'
+  #'
+  #' @note EC: (to do) not used in either Rmd file (deprecated older version?)
+  #' not exported
+
+  par(mfrow = c(1, 2))
+  slim = range(x@data$salinity)
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
+          xlab  = "", ylab = "", fg = "blue",
+          inches = 0.1, xlim = slim, ylim = tlim)
+  plot.new()
+}
+
+
+# DEPRECATED
+contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_cont_tmp_subset) {
+  #' contour plots for binned VPR and CTD data
+  #'
+  #'
+  #'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
+  #'
+  #' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
+  #' I was unable to find the origin of these variables. This function also contains hard coding for
+  #' plot options and sizing
+  #'
+  #' @author R. Klaver & K. Sorochan
+  #'
+  #'
+  #' @param contour_binned_data a list of data frames containing x, y, z columns, this should be interpolated
+  #' data to fill the contours of the plot
+  #' @param binned_cont_tmp data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
+  #' PLOTTED AS VPR PATH
+  #' @param binned_cont_tmp_subset data frame containing VPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
+  #' PLOTTED AS BUBBLES
+  #' @return filled contour VPR plot
+  #'
+  #'
+
+  # TODO  EC: (to do) make sure these data structures are stable add in ... for other plotting arguments
+  for(j in 1:length(contour_binned_data)) {
+
+    c_tmp <- contour_binned_data[[j]]
+    y_limits <- rev(range(c_tmp$y))
+    x_limits <- range(c_tmp$x)
+    hydro <- binned_vars[j] #not in function arguments
+
+
+    print(hydro)
+
+    par(mar = c(4, 4, 2, 2) + 0.1)
+
+    #INSERTED FROM CONFLICTING VERSIONS
+    if (hydro == 'conc_m3') {
+      #hydro=conc
+      x <- 10
+    }  else if (hydro == 'density') {
+      x <- length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm=T)),0.25))
+
+
+    } else {
+
+      x <-  length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm = T)),0.5))
+
+    }
+
+
+
+    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                   color.palette = colorRampPalette(c("white", "blue")),
+                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+
+                   plot.axes = {
+                     points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
+                     axis(1)
+                     axis(2)
+                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels=x, add = T)
+                     symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
+                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     #x was originally 'nlevels = 10'
+
+
+                     #ORIGINAL VERSION
+                     # filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                     #                color.palette = colorRampPalette(c("white", "blue")),
+                     #                ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+                     #
+                     #                plot.axes = {
+                     #                  points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
+                     #                  symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
+                     #                          fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     #                  axis(1)
+                     #                  axis(2)
+                     #                  contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
+                     #
+
+                   })
+  }
+
+}
+
+# DEPRECATED
+#' contour plots for VPR and CTD data
+#'
+#'
+#'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
+#'
+#' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
+#' I was unable to find the origin of these variables. This function also contains hard coding for
+#' plot options and sizing
+#'
+#' @author R. Klaver & K. Sorochan
+#'
+#'
+#' @param contour_data a list of data frames which is looped from the second index, containing x, y, z columns
+#' @param ctd_cont_tmp CTD data frame containing columns time_h and pressure
+#' @param roi_cont_tmp ROI data from VPR, data frame containing columns time_h, pressure and n_roi
+#'
+#' @return filled contour VPR plot
+#'
+#'
+#'
+#'
+contour_plots <- function(contour_data, ctd_cont_tmp, roi_cont_tmp) {
+
+
+  for(j in 2:length(contour_data)) {
+
+    c_tmp <- contour_data[[j]]
+    y_limits <- rev(range(c_tmp$y))
+    x_limits <- range(c_tmp$x)
+    hydro <- var_ts[j] #this variable is not present in function
+
+
+
+    print(hydro)
+
+    par(mar = c(4, 4, 2, 2) + 0.1)
+
+    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
+                   color.palette = colorRampPalette(c("white", "blue")),
+                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
+
+                   plot.axes = {
+                     points(ctd_cont_tmp$time_h, ctd_cont_tmp$pressure, pch = ".")
+                     symbols(roi_cont_tmp$time_h, roi_cont_tmp$pressure, circles = roi_cont_tmp$n_roi,
+                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
+                     axis(1)
+                     axis(2)
+                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
+
+
+                   })
+  }
+
+}
+
+# DEPRECATED
+#Get TS bubble plot for rois
+#' TS bubble plot for VPR data
+#'
+#' \strong{ !!WARNING:} This function is vulnerable to changes in oce structures and has some minimal hard coding
+#' with plotting details
+#'
+#' @author R. Klaver & K. Sorochan
+#'
+#' @param x oce CTD object
+#' @param r VPR / CTD data frame containing columns salinity, temperature, n_roi
+#'
+#' @return TS bubble plot
+#'
+#'
+#'
+bubble_plotTS <- function(x, r) {
+
+  par(mfrow = c(1, 2))
+  slim = range(x@data$salinity)
+  tlim = range(x@data$temperature)
+  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
+  par(new = T)
+  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
+          xlab  = "", ylab = "", fg = "blue",
+          inches = 0.1, xlim = slim, ylim = tlim)
+  plot.new()
+}
+
+
+# DEPRECATED
+#' Concentration profile plot
+#'
+#'
+#'  Uses  \code{\link{plotProfile}} function to plot concentration from data frame
+#'
+#' @author R. Klaver & K. Sorochan
+#'
+#'
+#' @param x CTD / VPR data frame with column "concentration"
+#'
+#' @return Concentration profile plot
+#'
+#'
+#'
+roi_concentration_plot <- function(x) {
+  require(oce)
+  par(mfrow = c(1,2))
+  plotProfile(x, xtype = "concentration", type = 'p', colour = "black")
+
+}
+
+
+
+# DEPRECATED
+#Write function to plot CTD data (TS plot, map, depth profiles)
+#' CTD data plot
+#'
+#' Returns a series of plots for summarizing ctd data,
+#' including position, and profiles of temperature, salinity,
+#' sigmaTheta and fluorescence
+#'
+#'   \strong{!!!WARNING:} this function contains hard coding for both CTD variables and lat/lon ranges
+#'
+#' @author R. Klaver & K. Sorochan
+#'
+#' @param x CTD data frame
+#' @param x_pos numeric vector containing longitude information, where first value is used to determine minimum
+#' longitude limits on plot
+#' @param y_pos numeric vector containing latitude information, where first value is used as minimum latitude
+#' value on plot
+#'
+#' @return CTD plot
+#'
+
+# TODO EC: (to do) Improvement could be made by using lat/lon values within ctd
+#   object rather than inputting arguments
+myCTDplot <- function(x, x_pos, y_pos) {
+
+  require(oce)
+  par(mfrow=c(1, 2))
+  plotTS(x)
+  plot(coastlineWorldFine, clongitude = x_pos[1], clatitude = y_pos[1], span = 150)
+  #contour(bx, by, bz, levels = c(-100))
+  lines(x_pos, y_pos, col = "red", lwd = 2)
+  points(x_pos[1], y_pos[1], pch = 12)
+
+  plotProfile(x, xtype='temperature', type = 'p', col = 'red')
+  plotProfile(x, xtype='salinity', type = 'p', col = 'blue')
+  plotProfile(x, xtype='sigmaTheta', type = 'p', col = 'magenta')
+  plotProfile(x, xtype='fluorescence', type = 'p', col = 'green')
+}
+# DEPRECATED
+plot_profile_conc <- function(data, taxa, binSize, imageVolume){
+
+  #' Plot a profile of taxa specific ROI concentration
+  #' @author E. Chisholm
+  #'
+  #' @param data dataframe which will be run through bin_profile_taxa (see function requirements)
+  #' @param binSize required for bin_profile_taxa (size in metres over which data will be averaged)
+  #' @param imageVolume required for bin_profile_taxa (volume of ROI images calculated in mm^3)
+  #' @param taxa taxa of interest
+  #'
+  #' @note this function contains hard coding of concentration calculation based on image volume
+  #' and may require updates with different sampling methods
+  #'
+  #'
+  #'
+
+
+  # TODO  !!!! FIX ROI/L CALCULATION INSIDE THIS FUNCTION
+  #create binned profile summary
+
+  require(ggplot2)
+  bin <- bin_profile_taxa(data, taxa, binSize, imageVolume)
+  #bin <- binQC(bin) #removed QC step due to loss of data
+  roiL <- (bin$n_roi_bin/((0.000108155)*(13)*(bin$time_diff_s)))/1024
+  #calculate concentration in m3, convert to L
+  #subset to less than 100 roi/L
+  p <- ggplot(bin[roiL < 100, ]) +
+    geom_point(aes(y = roiL[roiL < 100], x = min_pressure[roiL< 100])) +
+    scale_x_reverse(name = 'Pressure (db)') +
+    scale_y_continuous(name = 'ROI L^-1') +
+    ggtitle(taxa) +
+    geom_smooth(aes(y = roiL[roiL < 100], x = min_pressure[roiL < 100])) +
+    coord_flip() +
+    theme_classic()
+
+  return(p)
+}
+
+
+
+# DEPRECATED
+conPlot_conc <- function(data, dup = 'mean', bw = 1){
+  #' Contour Concentration Plot
+  #'
+  #' Makes a contour plot of ROI concentration, interpolated over time and depth
+  #'
+  #' @param data vpr depth binned data, with parameters avg_hr , pressure, and conc_m3
+  #' @param dup string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')
+  #' @param bw bin width defining contour label intervals
+  #'
+  #'
+  #'
+  #'
+  #'
+
+  bindat <- data[is.finite(data$conc_m3),]
+
+  interpdf <- akima::interp(x = bindat$avg_hr, y = bindat$pressure, z = bindat$conc_m3, duplicate = dup)
+  #convert to dataframe
+  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
+
+  #zero time values
+  df$x <- df$x - min(df$x)
+
+  p <- ggplot(df) +
+    geom_tile(aes(x = x, y = y, fill = z)) +
+    labs(fill = 'concentration \n (/m3)') +
+    scale_y_reverse(name = 'Pressure [db]') +
+    scale_x_continuous(name = 'Time [hr]') +
+    theme_classic() +
+    geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+    geom_text_contour(aes(x = x, y = y, z= z), col = 'white', binwidth = bw)+
+    scale_fill_continuous(na.value = 'white')
+
+  return(p)
+
+}
+
+
 #TRIM CTD DATA#
 trim_ctd_plot <- function(ctd){
 

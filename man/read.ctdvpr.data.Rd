@@ -13,6 +13,11 @@ read.ctdvpr.data(x)
 Internal use \code{\link{read_ctd_vpr}}
 }
 \details{
+**WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+order of CTD data columns. The names and values in these columns can change
+based on the specific insturment and should be updated before processing data
+from a new VPR.
+
 Text file format .dat file
 Outputs ctd dataframe with variables time_ms, conductivity, temperature,
 pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,

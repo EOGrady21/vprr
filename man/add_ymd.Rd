@@ -4,15 +4,17 @@
 \alias{add_ymd}
 \title{Add Year/ month/ day hour:minute:second information}
 \usage{
-add_ymd(data, year)
+add_ymd(data, year, offset)
 }
 \arguments{
 \item{data}{VPR data frame from \code{\link{ctd_roi_merge}}}
 
 \item{year}{Year of data collection}
+
+\item{offset}{time offset in hours between VPR CPU and processed data times (optional)}
 }
 \value{
-a VPR data frame with complete date/time information in a new row named 'ymd'
+a VPR data frame with complete date/time information in a new row named 'ymdhms'
 }
 \description{
 Calculate and record calendar dates for vpr data from day-of-year, hour, amd time (in milliseconds) info.

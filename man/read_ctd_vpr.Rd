@@ -16,7 +16,13 @@ Acts as a wrapper for \code{\link{read.ctdvpr.data}}
 }
 \details{
 Reads CTD data and adds day, hour, and station information.
+Calculates sigma T and depth variables from existing CTD data to supplement raw data.
 If there are multiple hours of CTD data, combines them into single dataframe.
+
+**WARNING** \code{\link{read.ctdvpr.data}} is hard coded to accept a specific
+order of CTD data columns. The names and values in these columns can change
+based on the specific insturment and should be updated/confirmed before processing data
+from a new VPR.
 }
 \author{
 E. Chisholm & K. Sorochan

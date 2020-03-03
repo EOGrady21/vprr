@@ -4,7 +4,7 @@
 \alias{conc_byTaxa}
 \title{Binned concentrations}
 \usage{
-conc_byTaxa(data, taxa, binSize, imageVolume)
+conc_byTaxa(data, taxa, binSize, imageVolume, rev = FALSE)
 }
 \arguments{
 \item{data}{dataframe produced by processing}
