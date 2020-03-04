@@ -387,7 +387,7 @@ Before final export of data products, the following variables are added to the d
   remove(ctd_roi_merge)
   ```
    
-Average plankton concentration and water properties (e.g., temperature, salinity, density etc) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (the sampling rate is not constant in older versions) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::vpr_oce_create`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each classification group. 
+Average plankton concentration and water properties (e.g., temperature, salinity, density etc) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (the sampling rate is not constant in older versions) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::vpr_oce_create`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each category. 
    
   ```
   ##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------
