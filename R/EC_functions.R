@@ -21,7 +21,7 @@ NULL
 
 #' Save VPR data as an \code{\link{oce::as.oce}} object
 #'
-#' @details This function will pass a VPR data frame obect to an `oce` object.
+#' @details This function will pass a VPR data frame object to an `oce` object.
 #'   Using an `oce` object as the default export format for VPR data allows for
 #'   metadata and data to be kept in the same, space efficient file, and avoid
 #'   redundancy in the data frame. The function check for data parameters that
@@ -29,7 +29,7 @@ NULL
 #'   repeated for every observation). These parameters will automatically be
 #'   copied into the metadata slot of the `oce` object. The function will also
 #'   prompt for a variety of required metadata fields. Depending on specific
-#'   research / archiving requirements, these metadtaa parameters could be
+#'   research / archiving requirements, these metadata parameters could be
 #'   updated by providing the argument `metadata`.
 #'
 #'   Default metadata parameters include 'deploymentType', 'waterDepth',
@@ -40,7 +40,7 @@ NULL
 #' @param data a VPR data frame
 #' @param metadata (optional) a named list of character values giving metadata
 #'   values. If this argument is not provided user will be prompted for a few
-#'   generic metdata requirements.
+#'   generic metadata requirements.
 #'
 #'
 #' @return an oce CTD object with all VPR data as well as metadata
@@ -98,7 +98,7 @@ if(missing(metadata)){
 
 #' Add Year/ month/ day hour:minute:second information
 #'
-#' Calculate and record calendar dates for vpr data from day-of-year, hour, amd time (in milliseconds) info.
+#' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
 #' Will also add 'avg_hr' parameter if not already present.
 #'
 #' @param data VPR data frame from \code{\link{ctd_roi_merge}}
@@ -505,7 +505,7 @@ vpr_oce_create <- function(data){
 #'
 #' **WARNING** \code{\link{ctd_df_cols}} is hard coded to accept a specific
 #' order of CTD data columns. The names and values in these columns can change
-#' based on the specific insturment and should be updated/confirmed before processing data
+#' based on the specific instrument and should be updated/confirmed before processing data
 #' from a new VPR.
 #'
 #' @author E. Chisholm & K. Sorochan
@@ -789,7 +789,7 @@ px_to_mm <- function(x, opticalSetting) {
 #'
 #'**WARNING** This is hard coded to accept a specific
 #' order of CTD data columns. The names and values in these columns can change
-#' based on the specific insturment and should be updated before processing data
+#' based on the specific instrument and should be updated before processing data
 #' from a new VPR.
 #'
 #'Text file format .dat file
@@ -914,7 +914,7 @@ vpr_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'
 #'   @note binSize should be carefully considered for best results
-#'   @note Depth is used for calculations! Please ensure depth is included in dateframe using \code{\link{oce::swDepth}}
+#'   @note Depth is used for calculations! Please ensure depth is included in data frame using \code{\link{oce::swDepth}}
 #'
 #'   @export
 #'
