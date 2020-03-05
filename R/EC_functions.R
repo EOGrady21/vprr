@@ -2663,8 +2663,9 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ),
-  #'  format = 'list', taxa = 'Calanus')
+  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad,
+  #' roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list',
+  #' taxa = 'Calanus')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
