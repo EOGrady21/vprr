@@ -8,6 +8,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 
 author: Emily Chisholm, Kevin Sorochan
+
 ---
 
 ```{r, include = FALSE}
@@ -26,9 +27,13 @@ library(vprr)
 
 This document was produced at Bedford Institute of Oceanography (BIO) to accompany the vprr package, a processing and visualization package for data obtained from the Video Plankton Recorder (VPR). It will summarize procedures followed at BIO and the data products produced. 
 The VPR is an In Situ plankton imaging instrument initially designed at Woods Hole Oceanographic Institute (WHOI). This document refers to processing of data from the 2008 version of the Digital AutoVPR produced by SeaScan (for more information on the instrument please see SeaScan manual provided with your specific model). The instrument package consists of a CPU,  CTD (SBE49), and camera system with different optical settings (i.e. magnifications). It captures underwater images and records their corresponding salinity, temperature, and depth. The data processing tools in vprr should be adaptable to more recent VPR versions from SeaScan.  
+
+
 The VPR outputs two raw files (.dat and .idx) for a given time period in a deployment. These files are processed together in a software provided with the VPR (i.e. Autodeck), which decompresses the images, scans them for “regions of interest” (ROIs), and outputs ROI image files and a corresponding CTD data file (.dat). The ROI file names are numeric consisting of 10 digits. The first 8 digits correspond to the number of milliseconds in a day. The last two digits correspond to the ROI identifier (01-99) at the time the image was captured. The ROIs and corresponding CTD data are linked by their 8 digit time stamp. 
 After the ROIs have been extracted from the raw files they may be sorted manually or by an automated procedure.  At BIO, the images were sorted using automated classification using a software called “Visual Plankton” (VP) in Matlab, which was developed specifically for the VPR. A version of VP modified by personnel at BIO, primarily to update and utilize the Support Vector Machine (SVM) image classification component, can be found here (https://gccode.ssc-spc.gc.ca/dfo-mar-odis/visual-plankton/matlab). For permission to view the linked project on GC code, contact Emily.Chisholm@dfo-mpo.gc.ca. 
-VP outputs two text files for each category of classification (“aid” and “aidmeas” files). Each “aid” (i.e. autoid) file contains file paths to individual ROIs that have been classified to the category of interest. The corresponding “aidmeas” file contains morphological data for the ROIs (e.g., long axis length, perimeter etc). These aid, aidmeas, and CTD files are the data inputs for processing using vprr. The primary functions of the vprr package are to manually correct mistakes made by VP, join CTD and ROI datasets, and compute bin averaged plankton concentrations over the VPR deployment. Examples for visualization of final data products are provided in this vignette. Note that the functionality of vprr is dependent on the format and directory structure of the data output from VP, but is not dependent on the use of VP itself. 
+
+
+Visual Plankton outputs two text files for each category of classification (“aid” and “aidmeas” files). Each “aid” (i.e. autoid) file contains file paths to individual ROIs that have been classified to the category of interest. The corresponding “aidmeas” file contains morphological data for the ROIs (e.g., long axis length, perimeter etc). These aid, aidmeas, and CTD files are the data inputs for processing using vprr. The primary functions of the vprr package are to manually correct mistakes made by VP, join CTD and ROI datasets, and compute bin averaged plankton concentrations over the VPR deployment. Examples for visualization of final data products are provided in this vignette. Note that the functionality of vprr is dependent on the format and directory structure of the data output from VP, but is not dependent on the use of VP itself. 
 
 ![Figure 1. VPR data processing flow chart.](flowchart1.png)
 
