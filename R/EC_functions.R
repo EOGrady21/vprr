@@ -19,7 +19,7 @@ NULL
 #### PROCESSING FUNCTIONS ####
 
 
-#' Save VPR data as an \code{\link{oce::as.oce}} object
+#' Save VPR data as an \link[oce]{as.oce} object
 #'
 #' @details This function will pass a VPR data frame object to an `oce` object.
 #'   Using an `oce` object as the default export format for VPR data allows for
@@ -209,13 +209,7 @@ bin_size_data <- function(data_all, bin_mea){
 #' @return A dataframe containing VPR CTD and size data
 #' @export
 #'
-#' @examples
-#'
-#' data <- data.frame(stationdata)
-#'
-#' data_mea <- data.frame(measdata)
-#'
-#' data_all <- format_size_data(data, data_mea, taxa_of_interest = c("Calanus"))
+
 
 format_size_data <- function(data, data_mea, taxa_of_interest, max_pressure = 100){
 
@@ -466,8 +460,8 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #Remove infinite concentrations (why do these occur again?)
   vpr_depth_bin <- vpr_depth_bin %>%
-    dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>%
-    dplyr::filter(., is.finite(conc_m3))
+    dplyr::mutate(.data, avg_hr = avg_hr - min(avg_hr)) %>%
+    dplyr::filter(.data, is.finite(conc_m3))
 
   return(vpr_depth_bin)
 }
@@ -914,7 +908,7 @@ vpr_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'
 #'   @note binSize should be carefully considered for best results
-#'   @note Depth is used for calculations! Please ensure depth is included in data frame using \code{\link{oce::swDepth}}
+#'   @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
 #'
 #'   @export
 #'
@@ -1032,8 +1026,8 @@ if (rev == TRUE){
 #' @param data an \code{oce} ctd object
 #' @param cast_direction 'ascending' or 'descending' depending on desired section
 #' @param data_type specify 'oce' or 'df' depending on class of desired output
-#' @param cutoff Argument passed to \code{\link{oce::ctdFindProfiles}}
-#' @param breaks Argument passed to \code{\link{oce::ctdFindProfiles}}
+#' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+#' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
 #' @return Outputs either data frame or oce ctd object
 #'
 #'
@@ -2555,16 +2549,20 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
 
   #' Explore VPR images by depth bin
   #'
-  #' Allows user to pull VPR images from specific depth ranges, to investigate trends before classification of images into taxa groups
+  #' Allows user to pull VPR images from specific depth ranges, to investigate
+  #' trends before classification of images into taxa groups
   #'
   #'
   #'
-  #' @param data data frame containing CTD and ROI data from \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param data data frame containing CTD and ROI data from
+  #'   \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
+  #'   sigmaT and avg_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
-  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
-  #' @param format option of how images will be output, either as 'list'
-  #'     a list of file names or 'image' where images will be displayed
+  #' @param roiFolder directory that ROIs are within (can be very general eg.
+  #'   C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list' a list
+  #'   of file names or 'image' where images will be displayed
   #'
   #' @export
   #'
@@ -2573,8 +2571,8 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ),
-  #' format = 'list')
+  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad,
+  #' roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
@@ -2646,13 +2644,17 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #'
   #'
   #'
-  #' @param data data frame containing CTD and ROI data from \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables sigmaT and avg_hr
+  #' @param data data frame containing CTD and ROI data from
+  #'   \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
+  #'   sigmaT and avg_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
-  #' @param roiFolder directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)
-  #' @param format option of how images will be output, either as 'list'
-  #'     a list of file names or 'image' where images will be displayed
-  #' @param taxa_of_interest character string of classification group from which to pull images
+  #' @param roiFolder directory that ROIs are within (can be very general eg.
+  #'   C:/data, but will be quicker to process with more specific file path)
+  #' @param format option of how images will be output, either as 'list' a list
+  #'   of file names or 'image' where images will be displayed
+  #' @param taxa_of_interest character string of classification group from which
+  #'   to pull images
   #'
   #' @export
   #'
