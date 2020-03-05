@@ -13,8 +13,10 @@ vp_plot_unkn(cm, classes, threshold = 0, summary = T, sample_size = NULL)
 
 \item{threshold}{minimum value which will be labelled in plot}
 
-\item{sample_size}{character string describes the sample size used to train the model being plotted (optional)
+\item{summary}{logical to add text summary to plot
 E. Chisholm May 2019}
+
+\item{sample_size}{character string describes the sample size used to train the model being plotted (optional)}
 }
 \description{
 Makes confusion matrix like plot, where x axis represent SVM classification, y axis represent NN classification

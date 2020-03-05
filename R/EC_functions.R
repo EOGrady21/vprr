@@ -101,7 +101,7 @@ if(missing(metadata)){
 #' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
 #' Will also add 'avg_hr' parameter if not already present.
 #'
-#' @param data VPR data frame from \code{\link{ctd_roi_merge}}
+#' @param data VPR data frame from \code{\link{vpr_ctdroi_merge}}
 #' @param year Year of data collection
 #' @param offset time offset in hours between VPR CPU and processed data times (optional)
 #'
@@ -200,7 +200,7 @@ bin_size_data <- function(data_all, bin_mea){
 #' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
 #'
 #' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
-#' @param measdata VPR size data frame from \code{\link{vpr_autoid_read}}
+#' @param data_mea VPR size data frame from \code{\link{vpr_autoid_read}}
 #' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
 #' @param max_pressure maximum pressure cut off on data, allows comparison
 #'   between stations of different depths, should be the maximum depth which all
@@ -210,9 +210,6 @@ bin_size_data <- function(data_all, bin_mea){
 #' @export
 #'
 #' @examples
-#'
-#' stationdata <- loadrdata(names_stationdata, path_name)
-#' measdata <- loadrdata(names_measdata, path_name)
 #'
 #' data <- data.frame(stationdata)
 #'
@@ -377,6 +374,9 @@ vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize
 #' @param taxa name of taxa isolated
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev Logical value defining direction of binning, FALSE - bins will be
+#'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
+#'   surface
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -430,7 +430,7 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
 #'
 #' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
 #'
-#' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}
+#' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #' @param rev logical value,passed to \code{\link{bin_calculate}} if TRUE, binning will begin at bottom of each cast,
@@ -1032,7 +1032,8 @@ if (rev == TRUE){
 #' @param data an \code{oce} ctd object
 #' @param cast_direction 'ascending' or 'descending' depending on desired section
 #' @param data_type specify 'oce' or 'df' depending on class of desired output
-#'
+#' @param cutoff Argument passed to \code{\link{oce::ctdFindProfiles}}
+#' @param breaks Argument passed to \code{\link{oce::ctdFindProfiles}}
 #' @return Outputs either data frame or oce ctd object
 #'
 #'
@@ -1312,6 +1313,9 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #'   avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
   #'   turbidity_mv, sigmaT
   #' @param fn file name to save data summary
+  #' @param tow VPR tow number
+  #' @param day julian day
+  #' @param hour two digit hour (24 hr clock)
   #'
   #' @return
   #' @export
@@ -1382,11 +1386,16 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
 
 
 
+#' INTERNAL USE ONLY
+#' quick data frame function from github to insert row inside dat frame
+#'
+#'
+#' @param existingDF data frame
+#' @param newrow new row of data
+#' @param r index of new row
+#'
 insertRow <- function(existingDF, newrow, r) {
-  #' INTERNAL USE ONLY
-  #' quick data frame function from github to insert row inside dat frame
-  #'
-  #'
+
 
   existingDF[seq(r+1,nrow(existingDF)+1),] <- existingDF[seq(r,nrow(existingDF)),]
   existingDF[r,] <- newrow
@@ -1744,110 +1753,6 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 }
 
 # deprecated ? ----------------------------------------------------------------------------------------------------------
-bin_profile_taxa <- function(data, taxa, binSize, imageVolume){
-
-  #' Bin VPR data for a specific taxa
-  #'
-  #' Bins all CTD data but n_roi_bin value will be only for taxa specified
-  #'
-  #' @param data a dataframe object with rows, pressure, time_ms, and number of roi data for taxa specified
-  #' @param taxa the taxa for which you want to bin data
-  #' @param binSize size of depth bins over which to average
-  #'  @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-  #'
-  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
-  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
-  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
-  #'
-  #'
-  #' bins data based on KS/RK method
-  #'
-  #' @note This function is deprecated
-  #'
-  #
-  # x_breaks <- seq(from = floor(min(data$pressure)), to = ceiling(max(data$pressure)), by = binSize)
-  #
-  # min_time_s <- binApply1D(data$pressure, data$time_ms/1000, xbreaks = x_breaks, min)$result
-  # max_time_s <- binApply1D(data$pressure, data$time_ms/1000, xbreaks = x_breaks, max)$result
-  # time_diff_s <- max_time_s - min_time_s
-  # n_roi_bin <- binApply1D(data$pressure, data[[taxa]], xbreaks = x_breaks, sum)$result
-  # min_pressure <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, min)$result
-  # max_pressure <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, max)$result
-  # #bin temp and salinity
-  # temperature <- binApply1D(data$pressure, data$temperature, xbreaks = x_breaks, mean)$result
-  # salinity <- binApply1D(data$pressure, data$salinity, xbreaks = x_breaks, mean)$result
-  #
-  #
-  # ###inserted new concentration calculation from bin_calculate
-  #
-  # #calculates number of frames captured per depth bin by counting number of pressure observations per bin
-  # n_frames <- binApply1D(data$pressure, data$pressure, xbreaks = x_breaks, length)$result #KS edit 10/9/19
-  #
-  # #WARNING
-  # #binApply1D does not calculate NAs, if there is binned depth range that does
-  # #not contain any data, the binApply function will not create an empty or NA
-  # #placeholder bin in that case the result length will be different than the
-  # #length of midpoints since pressure is a mid point calculation it is used to
-  # #test for non existent empty bins If there are non existant empty bins,
-  # #binMean1D will calculate them as NA, this loop finds where the bins would
-  # #have been located and removes those indexes from the pressure vector so the
-  # #length of variables is all identical
-  #
-  # # if (!(length(pressure) == length(salinity))) {
-  # #
-  # #   salinity_mean <- binMean1D(data$pressure, data$salinity, xbreaks = x_breaks)$result
-  # #
-  # #   idx_rm <- which(is.na(salinity_mean))
-  # #
-  # #   #informs user where bins where removed due to NAs
-  # #   #note if a bin is 'NA' typically because there is no valid data in that depth range,
-  # #   #if you have a lot of NA bins, think about increasing your binSize
-  # #   browser()
-  # #   print(paste('Removed bins at', pressure[idx_rm]))
-  # #
-  # #   lp <- length(pressure)
-  # #   pressure <- pressure[-idx_rm]
-  # #   if (length(n_frames) == lp){
-  # #     n_frames <- n_frames[-idx_rm]
-  # #   }
-  # #
-  # # }
-  # # #make sure n_frames matches the length of other data frame rows
-  # # if (length(n_frames) > length(pressure)){
-  # #   n_frames <- n_frames[-length(n_frames)]
-  # # }
-  # # if( length(n_frames) < length(pressure)){
-  # #   n_frames <- c(n_frames, 0)
-  # # }
-  # # if (length(n_frames) != length(pressure)){
-  # #   length(n_frames) <- length(pressure)
-  # # }
-  # #Get derived variables
-  # time_diff_s <- max_time_s - min_time_s
-  #
-  # #calculate concentration based on opticalSetting
-  #
-  #
-  # # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s))
-  # vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
-  # conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) #KS edit 10/9/19
-  #
-  # #Assumes cubic image volume and 15 fps image aquisition (detailed in VPR manual), updated October 2019 EC
-  # #use imageVoume given in function (converted to m^3 from mm^3)
-  #
-  # #IML2018051 -- image volume updated with results from seascan (6.6 cubic inch = 0.000108155m^3)
-  # pressure_diff <- max_pressure - min_pressure
-  #
-  # #Output is data frame
-  # # df <- data.frame(pressure, min_pressure, max_pressure, pressure_diff, min_time_s, max_time_s, time_diff_s,
-  # #            n_roi_bin, conc_m3,
-  # #           temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3)
-  #
-  # df <- data.frame(time_diff_s, min_pressure, max_pressure, n_roi_bin, temperature, salinity)
-  # return (df)
-  #
-}
-
 
 
 #####PLOTTING FUNCTIONS#####
@@ -2286,7 +2191,7 @@ vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL)
   #' @export
   #'
 
-  require(ggplot2)
+
 
   if (is.null(title)){
     title <- paste(param , ':', data$taxa[1])
@@ -2318,6 +2223,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = 
   #' @param classes taxa groups in order, from VP
   #' @param threshold minimum value which will be labelled in plot
   #' @param sample_size character string describes the sample size used to train the model being plotted (optional)
+  #' @param summary logical to add text summary to plot
   #' E. Chisholm May 2019
   #'
   #'
@@ -2542,473 +2448,6 @@ return(p)
 }
 
 
-# deprecated --------------------------------------------------------------------------
-
-
-#DEPRECATED
-bubble_plotTSconc <- function(x, r,lt, pos, inches, levels, round) {
-  #' Get TS bubble plot for rois - concentration
-  #'
-  #'
-  #' @details !!WARNING: Involves hard coded plot options
-  #'
-  #' @author K. Sorochan & R. Klaver
-  #'
-  #' @param pos position of legend (following legend() rules)
-  #' @param x oce CTD object
-  #' @param r VPR data frame  object with salinity, temperature, concentration, seems to be ctd data pulled to 'concentration' object
-  #' @param lt legend title
-  #' @param inches scales pt.cex of legend (set to 0.1)
-  #' @param levels number of legend intervals
-  #' @param round number of significant figures desired for size intervals
-  #'
-  #'
-  #'
-  #'
-  #' @note EC: (to do) Arguments could be reduced , try using ggplot with data classed
-  #'   with size, might be cleaner code (ref =
-  #'   https://r4ds.had.co.nz/data-visualisation.html , aes scaling...
-  #'   aes(size = class))
-  #'
-  #'
-  #'
-
-  #l is legend title, p is position of legend,
-  #scaling is ratio of pt.cex size to inches (might always be 2.7, not sure),
-  #levels how many levels of legend you want.
-  # this will not work if mfrow = c(1,2)
-  #round is #sigfigs rounded to (14938 to 2 sigs = 150000)
-  par(mfrow = c(1, 2))
-  slim = c(min(x@data$salinity),max(x@data$salinity)) #removed hard coded minimum for better scales (EC)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$concentration,
-          xlab  = "", ylab = "", fg = "grey22",
-          inches = inches, xlim = slim, ylim = tlim)
-  max <- max(r$concentration)
-  bigbubble <- signif(max,round)
-  leglev <- seq(0,bigbubble,bigbubble/levels)
-  leglev <- leglev[-1]
-  par(new = T)
-  legend(pos, legend=c(leglev), pt.cex=c((leglev/max)*((inches/0.1)*2.629)),
-         pch=1, title=lt)
-
-  plot.new()
-}
-
-#DEPRECATED
-bubble_plotTSnroi <- function(x, r) {
-  #' Get TS bubble plot for rois - number of rois
-  #'
-  #' @author K. Sorochan & R. Klaver
-  #'
-  #' @details Includes hard coded plotting options and variable names, not used in final product scripts
-  #'
-  #' @param x oce CTD object
-  #' @param r VPR data frame ( object with salinity, temperature, n_roi )
-  #'
-  #'
-  #' @note EC: (to do) not used in either Rmd file (deprecated older version?)
-  #' not exported
-
-  par(mfrow = c(1, 2))
-  slim = range(x@data$salinity)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
-          xlab  = "", ylab = "", fg = "blue",
-          inches = 0.1, xlim = slim, ylim = tlim)
-  plot.new()
-}
-
-
-# DEPRECATED
-contour_plots_binned <- function(contour_binned_data, binned_cont_tmp, binned_cont_tmp_subset) {
-  #' contour plots for binned VPR and CTD data
-  #'
-  #'
-  #'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
-  #'
-  #' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
-  #' I was unable to find the origin of these variables. This function also contains hard coding for
-  #' plot options and sizing
-  #'
-  #' @author R. Klaver & K. Sorochan
-  #'
-  #'
-  #' @param contour_binned_data a list of data frames containing x, y, z columns, this should be interpolated
-  #' data to fill the contours of the plot
-  #' @param binned_cont_tmp data frame containing VPR data and CTD data with columns 'avg_hr' and 'pressure'
-  #' PLOTTED AS VPR PATH
-  #' @param binned_cont_tmp_subset data frame containing VPR and CTD data with columns 'avg_hr', 'pressure', and 'conc_m3',
-  #' PLOTTED AS BUBBLES
-  #' @return filled contour VPR plot
-  #'
-  #'
-
-  # TODO  EC: (to do) make sure these data structures are stable add in ... for other plotting arguments
-  for(j in 1:length(contour_binned_data)) {
-
-    c_tmp <- contour_binned_data[[j]]
-    y_limits <- rev(range(c_tmp$y))
-    x_limits <- range(c_tmp$x)
-    hydro <- binned_vars[j] #not in function arguments
-
-
-    print(hydro)
-
-    par(mar = c(4, 4, 2, 2) + 0.1)
-
-    #INSERTED FROM CONFLICTING VERSIONS
-    if (hydro == 'conc_m3') {
-      #hydro=conc
-      x <- 10
-    }  else if (hydro == 'density') {
-      x <- length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm=T)),0.25))
-
-
-    } else {
-
-      x <-  length(seq(floor(min(c_tmp$z, na.rm =T)),ceiling(max(c_tmp$z, na.rm = T)),0.5))
-
-    }
-
-
-
-    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                   color.palette = colorRampPalette(c("white", "blue")),
-                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-
-                   plot.axes = {
-                     points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
-                     axis(1)
-                     axis(2)
-                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels=x, add = T)
-                     symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
-                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     #x was originally 'nlevels = 10'
-
-
-                     #ORIGINAL VERSION
-                     # filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                     #                color.palette = colorRampPalette(c("white", "blue")),
-                     #                ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-                     #
-                     #                plot.axes = {
-                     #                  points(binned_cont_tmp$avg_hr, binned_cont_tmp$pressure, pch = ".")
-                     #                  symbols(binned_cont_tmp_subset$avg_hr, binned_cont_tmp_subset$pressure, circles = binned_cont_tmp_subset$conc_m3,
-                     #                          fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     #                  axis(1)
-                     #                  axis(2)
-                     #                  contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
-                     #
-
-                   })
-  }
-
-}
-
-# DEPRECATED
-#' contour plots for VPR and CTD data
-#'
-#'
-#'  This function uses oce filled.contour() to plot VPR and CTD data along with hydro data caption
-#'
-#' \strong{!!!WARNING:} It is hard coded and depends on variables which are not listed in function arguments,
-#' I was unable to find the origin of these variables. This function also contains hard coding for
-#' plot options and sizing
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#'
-#' @param contour_data a list of data frames which is looped from the second index, containing x, y, z columns
-#' @param ctd_cont_tmp CTD data frame containing columns time_h and pressure
-#' @param roi_cont_tmp ROI data from VPR, data frame containing columns time_h, pressure and n_roi
-#'
-#' @return filled contour VPR plot
-#'
-#'
-#'
-#'
-contour_plots <- function(contour_data, ctd_cont_tmp, roi_cont_tmp) {
-
-
-  for(j in 2:length(contour_data)) {
-
-    c_tmp <- contour_data[[j]]
-    y_limits <- rev(range(c_tmp$y))
-    x_limits <- range(c_tmp$x)
-    hydro <- var_ts[j] #this variable is not present in function
-
-
-
-    print(hydro)
-
-    par(mar = c(4, 4, 2, 2) + 0.1)
-
-    filled.contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 50,
-                   color.palette = colorRampPalette(c("white", "blue")),
-                   ylim = y_limits, xlab = "Time (h)", ylab = "Depth (m)",
-
-                   plot.axes = {
-                     points(ctd_cont_tmp$time_h, ctd_cont_tmp$pressure, pch = ".")
-                     symbols(roi_cont_tmp$time_h, roi_cont_tmp$pressure, circles = roi_cont_tmp$n_roi,
-                             fg = "darkgrey", bg = "grey", inches = 0.1, add = T)
-                     axis(1)
-                     axis(2)
-                     contour(c_tmp$x, c_tmp$y, c_tmp$z, nlevels = 10, add = T)
-
-
-                   })
-  }
-
-}
-
-# DEPRECATED
-#Get TS bubble plot for rois
-#' TS bubble plot for VPR data
-#'
-#' \strong{ !!WARNING:} This function is vulnerable to changes in oce structures and has some minimal hard coding
-#' with plotting details
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#' @param x oce CTD object
-#' @param r VPR / CTD data frame containing columns salinity, temperature, n_roi
-#'
-#' @return TS bubble plot
-#'
-#'
-#'
-bubble_plotTS <- function(x, r) {
-
-  par(mfrow = c(1, 2))
-  slim = range(x@data$salinity)
-  tlim = range(x@data$temperature)
-  plotTS(x, Slim = slim, Tlim = tlim, type = "n")
-  par(new = T)
-  symbols(x = r$salinity, y = r$temperature, circles = r$n_roi,
-          xlab  = "", ylab = "", fg = "blue",
-          inches = 0.1, xlim = slim, ylim = tlim)
-  plot.new()
-}
-
-
-# DEPRECATED
-#' Concentration profile plot
-#'
-#'
-#'  Uses  \code{\link{plotProfile}} function to plot concentration from data frame
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#'
-#' @param x CTD / VPR data frame with column "concentration"
-#'
-#' @return Concentration profile plot
-#'
-#'
-#'
-roi_concentration_plot <- function(x) {
-  require(oce)
-  par(mfrow = c(1,2))
-  plotProfile(x, xtype = "concentration", type = 'p', colour = "black")
-
-}
-
-
-
-# DEPRECATED
-#Write function to plot CTD data (TS plot, map, depth profiles)
-#' CTD data plot
-#'
-#' Returns a series of plots for summarizing ctd data,
-#' including position, and profiles of temperature, salinity,
-#' sigmaTheta and fluorescence
-#'
-#'   \strong{!!!WARNING:} this function contains hard coding for both CTD variables and lat/lon ranges
-#'
-#' @author R. Klaver & K. Sorochan
-#'
-#' @param x CTD data frame
-#' @param x_pos numeric vector containing longitude information, where first value is used to determine minimum
-#' longitude limits on plot
-#' @param y_pos numeric vector containing latitude information, where first value is used as minimum latitude
-#' value on plot
-#'
-#' @return CTD plot
-#'
-
-# TODO EC: (to do) Improvement could be made by using lat/lon values within ctd
-#   object rather than inputting arguments
-myCTDplot <- function(x, x_pos, y_pos) {
-
-  require(oce)
-  par(mfrow=c(1, 2))
-  plotTS(x)
-  plot(coastlineWorldFine, clongitude = x_pos[1], clatitude = y_pos[1], span = 150)
-  #contour(bx, by, bz, levels = c(-100))
-  lines(x_pos, y_pos, col = "red", lwd = 2)
-  points(x_pos[1], y_pos[1], pch = 12)
-
-  plotProfile(x, xtype='temperature', type = 'p', col = 'red')
-  plotProfile(x, xtype='salinity', type = 'p', col = 'blue')
-  plotProfile(x, xtype='sigmaTheta', type = 'p', col = 'magenta')
-  plotProfile(x, xtype='fluorescence', type = 'p', col = 'green')
-}
-# DEPRECATED
-plot_profile_conc <- function(data, taxa, binSize, imageVolume){
-
-  #' Plot a profile of taxa specific ROI concentration
-  #' @author E. Chisholm
-  #'
-  #' @param data dataframe which will be run through bin_profile_taxa (see function requirements)
-  #' @param binSize required for bin_profile_taxa (size in metres over which data will be averaged)
-  #' @param imageVolume required for bin_profile_taxa (volume of ROI images calculated in mm^3)
-  #' @param taxa taxa of interest
-  #'
-  #' @note this function contains hard coding of concentration calculation based on image volume
-  #' and may require updates with different sampling methods
-  #'
-  #'
-  #'
-
-
-  # TODO  !!!! FIX ROI/L CALCULATION INSIDE THIS FUNCTION
-  #create binned profile summary
-
-  require(ggplot2)
-  bin <- bin_profile_taxa(data, taxa, binSize, imageVolume)
-  #bin <- binQC(bin) #removed QC step due to loss of data
-  roiL <- (bin$n_roi_bin/((0.000108155)*(13)*(bin$time_diff_s)))/1024
-  #calculate concentration in m3, convert to L
-  #subset to less than 100 roi/L
-  p <- ggplot(bin[roiL < 100, ]) +
-    geom_point(aes(y = roiL[roiL < 100], x = min_pressure[roiL< 100])) +
-    scale_x_reverse(name = 'Pressure (db)') +
-    scale_y_continuous(name = 'ROI L^-1') +
-    ggtitle(taxa) +
-    geom_smooth(aes(y = roiL[roiL < 100], x = min_pressure[roiL < 100])) +
-    coord_flip() +
-    theme_classic()
-
-  return(p)
-}
-
-
-
-# DEPRECATED
-conPlot_conc <- function(data, dup = 'mean', bw = 1){
-  #' Contour Concentration Plot
-  #'
-  #' Makes a contour plot of ROI concentration, interpolated over time and depth
-  #'
-  #' @param data vpr depth binned data, with parameters avg_hr , pressure, and conc_m3
-  #' @param dup string defining handling of duplicates, passed to interp function ('mean', 'strip' or 'error')
-  #' @param bw bin width defining contour label intervals
-  #'
-  #'
-  #'
-  #'
-  #'
-
-  bindat <- data[is.finite(data$conc_m3),]
-
-  interpdf <- akima::interp(x = bindat$avg_hr, y = bindat$pressure, z = bindat$conc_m3, duplicate = dup)
-  #convert to dataframe
-  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
-
-  #zero time values
-  df$x <- df$x - min(df$x)
-
-  p <- ggplot(df) +
-    geom_tile(aes(x = x, y = y, fill = z)) +
-    labs(fill = 'concentration \n (/m3)') +
-    scale_y_reverse(name = 'Pressure [db]') +
-    scale_x_continuous(name = 'Time [hr]') +
-    theme_classic() +
-    geom_contour(aes(x = x, y = y, z= z), col = 'black') +
-    geom_text_contour(aes(x = x, y = y, z= z), col = 'white', binwidth = bw)+
-    scale_fill_continuous(na.value = 'white')
-
-  return(p)
-
-}
-
-
-#TRIM CTD DATA#
-trim_ctd_plot <- function(ctd){
-
-
-  #'
-  #'
-  #' Plot a list of CTD casts to determine if they require trimming
-  #' Internally calls trim_ctd to trim casts based on user input
-  #'
-  #' @param ctd a list of oce CTD objects to be trimmed
-  #'
-  #' @note If each ctd object contains multiple up/down casts,
-  #' different procedure may be required
-  #' this function only trims based on the start/end index of entire data
-  #'
-
-  #
-  #
-  # for (i in 1 :length(ctd)){
-  #
-  #   #trim ctd object
-  #   plot(ctd[[i]], which = 1)
-  #   par(new = TRUE)
-  #   title(main = i)
-  #
-  #   trim <- readline('Does this cast require trimming? (y/n)')
-  #   end_Trim <- readline('Does this cast require trimming at the end? (y/n)')
-  #
-  #   if(trim == 'y'){
-  #     plot(ctd[[i]][['salinity', 'data']][1:10000])
-  #     abline(v = 100, col = 'red')
-  #     abline(v = 200, col = 'orange')
-  #     abline(v = 300, col = 'yellow')
-  #     abline(v = 400, col = 'green')
-  #     abline(v = 500, col = 'blue')
-  #     abline(v = 600, col = 'orchid')
-  #     abline(v = 700, col = 'pink')
-  #     abline(v = 800, col = 'purple')
-  #     trimIndex <- readline('Provide desired index for trimming (numeric) **lines at 100 point intervals**')
-  #     trim_ctd(ctd[[i]], trimLength = trimIndex)
-  #
-  #   }
-  #
-  #   if (trim  == 'y' & end_Trim=='y'){
-  #     plot(ctd[[i]][['salinity', 'data']][1:10000])
-  #     abline(v = 100, col = 'red')
-  #     abline(v = 200, col = 'orange')
-  #     abline(v = 300, col = 'yellow')
-  #     abline(v = 400, col = 'green')
-  #     abline(v = 500, col = 'blue')
-  #     abline(v = 600, col = 'orchid')
-  #     abline(v = 700, col = 'pink')
-  #     abline(v = 800, col = 'purple')
-  #     trimIndex <- readline('Provide desired index for trimming (numeric)')
-  #
-  #     plot(ctd[[i]][['salinity', 'data']][(length(ctd[[i]][['salinity', 'data']])-10000): length(ctd[[i]][['salinity', 'data']])], ylab = '' )
-  #     abline(v = 10000, col = 'red')
-  #     abline(v = 9900, col = 'orange')
-  #     abline(v = 9800, col = 'yellow')
-  #     abline(v = 9700, col = 'green')
-  #     abline(v = 9600, col = 'blue')
-  #     abline(v = 9500, col = 'orchid')
-  #     abline(v = 9400, col = 'pink')
-  #     abline(v = 9300, col = 'purple')
-  #     endIndex <- readline('Provide desired index for trimming end (numeric)')
-  #
-  #     trim_ctd(ctd[[i]], trimLength = as.numeric(trimIndex), end = TRUE, endTrim = as.numeric(endIndex))
-  #
-  #   }
-  # }
-}
 
 
 #### IMAGE ANALYSIS FUNCTIONS ####
@@ -3134,7 +2573,8 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
+  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ),
+  #' format = 'list')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
@@ -3221,7 +2661,8 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
   #' #run image exploration
-  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list', taxa = 'Calanus')
+  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad, roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ),
+  #'  format = 'list', taxa = 'Calanus')
   #'
   #' #copy image files into new directory to be browsed
   #' roi_file_unlist <- unlist(roi_files)
@@ -3403,7 +2844,7 @@ vpr_img_check <- function(folder_dir, basepath){
   #'
   #'
   #'
-  #'     @param folder_dir directory path to day hour folders containing manually
+  #' @param folder_dir directory path to day hour folders containing manually
   #'   reorganized images of a specific taxa eg.
   #'   'C:/data/cruise_IML2018051/krill/images/' where that folder contains
   #'   '......d123.h01/' which contains manually sorted images of krill

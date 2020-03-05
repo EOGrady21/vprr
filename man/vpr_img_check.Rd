@@ -7,16 +7,15 @@
 vpr_img_check(folder_dir, basepath)
 }
 \arguments{
+\item{folder_dir}{directory path to day hour folders containing manually
+reorganized images of a specific taxa eg.
+'C:/data/cruise_IML2018051/krill/images/' where that folder contains
+'......d123.h01/' which contains manually sorted images of krill}
+
 \item{basepath}{directory path to original Visual Plankton files, specified
 down to the classification group. eg.
 'C:/data/cruise_IML2018051/autoid/krill'}
 }
 \description{
 Should be used after \code{\link{vpr_img_copy}}, and manual image removal from created folders
-}
-\details{
-@param folder_dir directory path to day hour folders containing manually
-  reorganized images of a specific taxa eg.
-  'C:/data/cruise_IML2018051/krill/images/' where that folder contains
-  '......d123.h01/' which contains manually sorted images of krill
 }

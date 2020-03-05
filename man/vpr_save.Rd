@@ -11,7 +11,7 @@ vpr_save(data, metadata)
 
 \item{metadata}{(optional) a named list of character values giving metadata
 values. If this argument is not provided user will be prompted for a few
-generic metdata requirements.}
+generic metadata requirements.}
 }
 \value{
 an oce CTD object with all VPR data as well as metadata
@@ -20,7 +20,7 @@ an oce CTD object with all VPR data as well as metadata
 Save VPR data as an \code{\link{oce::as.oce}} object
 }
 \details{
-This function will pass a VPR data frame obect to an `oce` object.
+This function will pass a VPR data frame object to an `oce` object.
   Using an `oce` object as the default export format for VPR data allows for
   metadata and data to be kept in the same, space efficient file, and avoid
   redundancy in the data frame. The function check for data parameters that
@@ -28,7 +28,7 @@ This function will pass a VPR data frame obect to an `oce` object.
   repeated for every observation). These parameters will automatically be
   copied into the metadata slot of the `oce` object. The function will also
   prompt for a variety of required metadata fields. Depending on specific
-  research / archiving requirements, these metadtaa parameters could be
+  research / archiving requirements, these metadata parameters could be
   updated by providing the argument `metadata`.
 
   Default metadata parameters include 'deploymentType', 'waterDepth',

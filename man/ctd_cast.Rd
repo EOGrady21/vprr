@@ -18,6 +18,10 @@ ctd_cast(
 \item{cast_direction}{'ascending' or 'descending' depending on desired section}
 
 \item{data_type}{specify 'oce' or 'df' depending on class of desired output}
+
+\item{cutoff}{Argument passed to \code{\link{oce::ctdFindProfiles}}}
+
+\item{breaks}{Argument passed to \code{\link{oce::ctdFindProfiles}}}
 }
 \value{
 Outputs either data frame or oce ctd object

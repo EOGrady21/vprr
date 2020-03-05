@@ -14,6 +14,10 @@ concentration_category(data, taxa, binSize, imageVolume, rev = FALSE)
 \item{binSize}{passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged}
 
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
+
+\item{rev}{Logical value defining direction of binning, FALSE - bins will be
+calculated from surface to bottom, TRUE- bins will be calculated bottom to
+surface}
 }
 \description{
 This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_cast}} but calculates concentrations for only one taxa.

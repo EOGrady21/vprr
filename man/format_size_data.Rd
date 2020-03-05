@@ -9,13 +9,13 @@ format_size_data(data, data_mea, taxa_of_interest, max_pressure = 100)
 \arguments{
 \item{data}{VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT}
 
+\item{data_mea}{VPR size data frame from \code{\link{vpr_autoid_read}}}
+
 \item{taxa_of_interest}{a list of taxa of interest to be included in output dataframe}
 
 \item{max_pressure}{maximum pressure cut off on data, allows comparison
 between stations of different depths, should be the maximum depth which all
 stations considered reach}
-
-\item{measdata}{VPR size data frame from \code{\link{vpr_autoid_read}}}
 }
 \value{
 A dataframe containing VPR CTD and size data
@@ -24,9 +24,6 @@ A dataframe containing VPR CTD and size data
 Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
 }
 \examples{
-
-stationdata <- loadrdata(names_stationdata, path_name)
-measdata <- loadrdata(names_measdata, path_name)
 
 data <- data.frame(stationdata)
 

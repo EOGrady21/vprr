@@ -21,7 +21,7 @@ If there are multiple hours of CTD data, combines them into single dataframe.
 
 **WARNING** \code{\link{ctd_df_cols}} is hard coded to accept a specific
 order of CTD data columns. The names and values in these columns can change
-based on the specific insturment and should be updated/confirmed before processing data
+based on the specific instrument and should be updated/confirmed before processing data
 from a new VPR.
 }
 \author{

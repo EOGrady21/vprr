@@ -7,6 +7,13 @@ quick data frame function from github to insert row inside dat frame}
 \usage{
 insertRow(existingDF, newrow, r)
 }
+\arguments{
+\item{existingDF}{data frame}
+
+\item{newrow}{new row of data}
+
+\item{r}{index of new row}
+}
 \description{
 INTERNAL USE ONLY
 quick data frame function from github to insert row inside dat frame

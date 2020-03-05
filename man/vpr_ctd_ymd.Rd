@@ -7,7 +7,7 @@
 vpr_ctd_ymd(data, year, offset)
 }
 \arguments{
-\item{data}{VPR data frame from \code{\link{ctd_roi_merge}}}
+\item{data}{VPR data frame from \code{\link{vpr_ctdroi_merge}}}
 
 \item{year}{Year of data collection}
 
@@ -17,6 +17,6 @@ vpr_ctd_ymd(data, year, offset)
 a VPR data frame with complete date/time information in a new row named 'ymdhms'
 }
 \description{
-Calculate and record calendar dates for vpr data from day-of-year, hour, amd time (in milliseconds) info.
+Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
 Will also add 'avg_hr' parameter if not already present.
 }

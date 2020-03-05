@@ -33,7 +33,7 @@ Used internally ( \code{\link{bin_cast}} ) after \code{\link{ctd_cast}} on a sin
 
 
   @note binSize should be carefully considered for best results
-  @note Depth is used for calculations! Please ensure depth is included in dateframe using \code{\link{oce::swDepth}}
+  @note Depth is used for calculations! Please ensure depth is included in data frame using \code{\link{oce::swDepth}}
 
   @export
 }

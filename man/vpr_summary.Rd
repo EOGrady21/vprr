@@ -12,6 +12,12 @@ avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
 turbidity_mv, sigmaT}
 
 \item{fn}{file name to save data summary}
+
+\item{tow}{VPR tow number}
+
+\item{day}{julian day}
+
+\item{hour}{two digit hour (24 hr clock)}
 }
 \value{
 

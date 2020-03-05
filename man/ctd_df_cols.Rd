@@ -15,7 +15,7 @@ Internal use \code{\link{vpr_ctd_read}}
 \details{
 **WARNING** This is hard coded to accept a specific
 order of CTD data columns. The names and values in these columns can change
-based on the specific insturment and should be updated before processing data
+based on the specific instrument and should be updated before processing data
 from a new VPR.
 
 Text file format .dat file

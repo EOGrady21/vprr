@@ -7,7 +7,7 @@
 bin_cast(ctd_roi_oce, imageVolume, binSize, rev = FALSE)
 }
 \arguments{
-\item{ctd_roi_oce}{\code{oce} ctd format VPR data from \code{\link{create.oce.vpr}}}
+\item{ctd_roi_oce}{\code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}}
 
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 
