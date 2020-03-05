@@ -23,11 +23,3 @@ A dataframe containing VPR CTD and size data
 \description{
 Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
 }
-\examples{
-
-data <- data.frame(stationdata)
-
-data_mea <- data.frame(measdata)
-
-data_all <- format_size_data(data, data_mea, taxa_of_interest = c("Calanus"))
-}

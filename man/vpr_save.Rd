@@ -2,7 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{vpr_save}
 \alias{vpr_save}
-\title{Save VPR data as an \code{\link{oce::as.oce}} object}
+\title{Save VPR data as an \link[oce]{as.oce} object}
 \usage{
 vpr_save(data, metadata)
 }
@@ -17,7 +17,7 @@ generic metadata requirements.}
 an oce CTD object with all VPR data as well as metadata
 }
 \description{
-Save VPR data as an \code{\link{oce::as.oce}} object
+Save VPR data as an \link[oce]{as.oce} object
 }
 \details{
 This function will pass a VPR data frame object to an `oce` object.

@@ -14,18 +14,22 @@ vpr_img_category(
 )
 }
 \arguments{
-\item{data}{data frame containing CTD and ROI data from \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables sigmaT and avg_hr}
+\item{data}{data frame containing CTD and ROI data from
+\code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
+sigmaT and avg_hr}
 
 \item{min.depth}{minimum depth of ROIs you are interested in looking at}
 
 \item{max.depth}{maximum depth of ROIs you are interested in exploring}
 
-\item{roiFolder}{directory that ROIs are within (can be very general eg. C:/data, but will be quicker to process with more specific file path)}
+\item{roiFolder}{directory that ROIs are within (can be very general eg.
+C:/data, but will be quicker to process with more specific file path)}
 
-\item{format}{option of how images will be output, either as 'list'
-a list of file names or 'image' where images will be displayed}
+\item{format}{option of how images will be output, either as 'list' a list
+of file names or 'image' where images will be displayed}
 
-\item{taxa_of_interest}{character string of classification group from which to pull images}
+\item{taxa_of_interest}{character string of classification group from which
+to pull images}
 }
 \description{
 Pulls images from specific depth ranges in specific classification group
