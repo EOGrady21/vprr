@@ -29,13 +29,11 @@ Image volume calculations can change based on optical setting of VPR as well as 
 For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
 For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
 Used internally ( \code{\link{bin_cast}} ) after \code{\link{ctd_cast}} on a single ascending or descending section of VPR cast
+}
+\note{
+binSize should be carefully considered for best results
 
-
-
-  @note binSize should be carefully considered for best results
-  @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
-
-  @export
+Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
 }
 \author{
 E. Chisholm, K. Sorochan

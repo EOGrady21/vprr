@@ -460,8 +460,8 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #Remove infinite concentrations (why do these occur again?)
   vpr_depth_bin <- vpr_depth_bin %>%
-    dplyr::mutate(.data, avg_hr = avg_hr - min(avg_hr)) %>%
-    dplyr::filter(.data, is.finite(conc_m3))
+    dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>%
+    dplyr::filter(., is.finite(conc_m3))
 
   return(vpr_depth_bin)
 }
@@ -481,7 +481,7 @@ vpr_oce_create <- function(data){
 
   # create oce objects
   ctd_roi_oce <- as.ctd(data)
-  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth') # TODO edit to avoid hard coding variable names
+  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'avg_hr') # TODO edit to avoid hard coding variable names
   for ( o in otherVars){
     eval(parse(text = paste0("ctd_roi_oce <- oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
   }
@@ -507,17 +507,30 @@ vpr_oce_create <- function(data){
 #'
 #' @param ctd_files full file paths to vpr ctd \code{.dat} files
 #' @param station_of_interest VPR station name
+#' @param day Day of interest, if not provided will be pulled from file path
+#' @param hour Hour of interest, if not provided will be pulled from file path
 #'
 #' @export
 
-vpr_ctd_read <- function(ctd_files, station_of_interest){
+vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour){
 
 
   ctd_dat <- list()
   for (i in 1:length(ctd_files)){
 
+    if(missing(day)){
     day_id <- unlist(vpr_day(ctd_files[i]))
+    }else{
+      day_id <- day
+    }
+
+    if(missing(hour)){
     hour_id <- unlist(vpr_hour(ctd_files[i]))
+    }else{
+      hour_id <- hour
+    }
+
+
     station_id <- station_of_interest
 
     ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
@@ -907,10 +920,10 @@ vpr_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 #'
 #'
-#'   @note binSize should be carefully considered for best results
-#'   @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
+#' @note binSize should be carefully considered for best results
+#' @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
 #'
-#'   @export
+#' @export
 #'
 bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
@@ -1306,7 +1319,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #' @param all_dat data frame containing VPR and CTD data including time_ms,
   #'   avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
   #'   turbidity_mv, sigmaT
-  #' @param fn file name to save data summary
+  #' @param fn file name to save data summary, if not provided, summary will print to console
   #' @param tow VPR tow number
   #' @param day julian day
   #' @param hour two digit hour (24 hr clock)
@@ -1315,7 +1328,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #' @export
 
   #prints a data summary report, part of VP easyPlot
-  sink(fn)
+  if(!missing(fn)){sink(fn)}
 
   cat('                  Data Summary Report \n')
   cat('Report processed:', as.character(Sys.time()), '\n')
@@ -1374,7 +1387,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   cat('QC: ', length(all_dat[all_dat$sigmaT < 22 ]), 'points below twenty-two  \n')
   cat('QC: ', length(all_dat[all_dat$sigmaT > 28 ]), 'points above twenty-eight  \n')
 
-  sink()
+  if(!missing(fn)){sink()}
 
 }
 
@@ -2376,7 +2389,7 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 #' Facet wrap is used to create distinct panels for each taxa provided
 #'
 #' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})
-#' @param taxa_to_plot The specific classification groups which will be plotted
+#' @param taxa_to_plot The specific classification groups which will be plotted, if NULL, will plot all taxa combined
 #'
 #'
 #' @return A gridded object of at least 3 ggplot objects
@@ -2385,10 +2398,10 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot){
 # plot temp
 p <- ggplot(taxa_conc_n) +
-  geom_point(aes(x = temperature, y = pressure), col = 'red') +
-  scale_y_reverse(name = 'Pressure [db]')
+  geom_point(aes(x = temperature, y = depth), col = 'red') +
+  scale_y_reverse(name = 'Depth [m]')
 # plot salinity
-p_TS <- p + geom_point(aes(x = (salinity -25), y = pressure), col = 'blue') +
+p_TS <- p + geom_point(aes(x = (salinity -25), y = depth), col = 'blue') +
   scale_x_continuous(name = expression(paste("Temperature [",degree,"C]")),sec.axis = sec_axis(~ . +25, name = 'Salinity [PSU]')) +
   theme(axis.line.x.bottom = element_line(colour = 'red'),
         axis.ticks.x.bottom = element_line(colour = 'red'),
@@ -2403,11 +2416,11 @@ p_TS <- p + geom_point(aes(x = (salinity -25), y = pressure), col = 'blue') +
 
 # plot fluorescence
 p <- ggplot(taxa_conc_n) +
-  geom_point(aes(x = fluorescence, y = pressure), col = 'green') +
-  scale_y_reverse(name = 'Pressure [db]')
+  geom_point(aes(x = fluorescence, y = depth), col = 'green') +
+  scale_y_reverse(name = 'Depth [m]')
 
 # plot density
-p_FD <- p + geom_point(aes(x = (density  -20) *20, y = pressure)) +
+p_FD <- p + geom_point(aes(x = (density  -20) *20, y = depth)) +
   scale_x_continuous(name = 'Fluorescence [mv]',sec.axis = sec_axis(~. /20  +20, name = 'Density')) +
   theme(axis.line.x.bottom = element_line(colour = 'green'),
         axis.ticks.x.bottom = element_line(colour = 'green'),
@@ -2420,10 +2433,23 @@ p_FD <- p + geom_point(aes(x = (density  -20) *20, y = pressure)) +
 # manual rescale
 
 
+if(is.null(taxa_to_plot)){
+  pp <- ggplot(taxa_conc_n) +
+    geom_point(aes(x = depth, y = conc_m3/1000)) + #conversion of m3 to L using default density
+    stat_summary_bin(aes(x = depth, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
+    scale_x_reverse(name = 'Depth [m]') +
+    scale_y_continuous(name = expression('ROI L'^'-1')) +
+    # ggtitle('Concentrations') +
+    theme_classic() +
+    theme(strip.text = element_text(size = 18),
+          plot.title = element_text(size = 25),
+          axis.title = element_text(size = 20))+
+    coord_flip()
+}else{
 # facet wrap plot all taxa, if only one taxa, comment out facet wrap
 pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
-  geom_point(aes(x = pressure, y = conc_m3/1024)) + #conversion of m3 to L using default density
-  stat_summary_bin(aes(x = pressure, y = conc_m3/1024), fun.y = 'mean', col = 'red', geom = 'line', size = 3)  +
+  geom_point(aes(x = pressure, y = conc_m3/1000)) + #conversion of m3 to L using default density
+  stat_summary_bin(aes(x = pressure, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
   scale_x_reverse(name = 'Pressure [db]') +
   scale_y_continuous(name = expression('ROI L'^'-1')) +
   # ggtitle('Concentrations') +
@@ -2433,6 +2459,7 @@ pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
         plot.title = element_text(size = 25),
         axis.title = element_text(size = 20))+
   coord_flip()
+}
 
 p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = c(2), nrow = 1, ncol = 3)
 # for 4.85
