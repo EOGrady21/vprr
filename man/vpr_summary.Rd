@@ -11,7 +11,7 @@ vpr_summary(all_dat, fn, tow = tow, day = day, hour = hour)
 avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
 turbidity_mv, sigmaT}
 
-\item{fn}{file name to save data summary}
+\item{fn}{file name to save data summary, if not provided, summary will print to console}
 
 \item{tow}{VPR tow number}
 

@@ -9,7 +9,7 @@ vpr_plot_profile(taxa_conc_n, taxa_to_plot)
 \arguments{
 \item{taxa_conc_n}{A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})}
 
-\item{taxa_to_plot}{The specific classification groups which will be plotted}
+\item{taxa_to_plot}{The specific classification groups which will be plotted, if NULL, will plot all taxa combined}
 }
 \value{
 A gridded object of at least 3 ggplot objects

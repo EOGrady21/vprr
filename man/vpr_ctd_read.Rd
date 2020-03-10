@@ -4,12 +4,16 @@
 \alias{vpr_ctd_read}
 \title{Read and format CTD VPR data}
 \usage{
-vpr_ctd_read(ctd_files, station_of_interest)
+vpr_ctd_read(ctd_files, station_of_interest, day, hour)
 }
 \arguments{
 \item{ctd_files}{full file paths to vpr ctd \code{.dat} files}
 
 \item{station_of_interest}{VPR station name}
+
+\item{day}{Day of interest, if not provided will be pulled from file path}
+
+\item{hour}{Hour of interest, if not provided will be pulled from file path}
 }
 \description{
 Acts as a wrapper for \code{\link{ctd_df_cols}}
