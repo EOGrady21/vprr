@@ -509,10 +509,11 @@ vpr_oce_create <- function(data){
 #' @param station_of_interest VPR station name
 #' @param day Day of interest, if not provided will be pulled from file path
 #' @param hour Hour of interest, if not provided will be pulled from file path
+#' @param col_list Optional list of CTD data column names
 #'
 #' @export
 
-vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour){
+vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
 
 
   ctd_dat <- list()
@@ -533,7 +534,12 @@ vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour){
 
     station_id <- station_of_interest
 
-    ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
+    if(missing(col_list)){
+      ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
+    }else{
+        ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
+    }
+
     ctd_dat[[i]] <- data.frame(ctd_dat_tmp,
                                day = day_id,
                                hour = hour_id,
@@ -808,11 +814,16 @@ px_to_mm <- function(x, opticalSetting) {
 #'
 #'
 #'@param x full filename (ctd .dat file)
-#'
+#' @param col_list list of CTD data column names
 #'
 #'@export
-ctd_df_cols <- function(x) {
+ctd_df_cols <- function(x, col_list) {
 
+  if(missing(col_list)){
+    col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
+      "turbidity_ref", "turbidity_mv", "altitude_NA")
+    warning('CTD data columns named based on 2019 defaults!')
+  }
 
 
   data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
@@ -821,8 +832,7 @@ ctd_df_cols <- function(x) {
 
 
   data2 <- cbind(time, data[,-c(1)])
-  colnames(data2) <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
-                       "turbidity_ref", "turbidity_mv", "altitude_NA")
+  colnames(data2) <- col_list
   data2 <- data2[!duplicated(data2), ]
   data2
 }

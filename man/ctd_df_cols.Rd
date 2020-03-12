@@ -4,10 +4,12 @@
 \alias{ctd_df_cols}
 \title{Read CTD data (SBE49) and Fluorometer data from CTD- VPR package}
 \usage{
-ctd_df_cols(x)
+ctd_df_cols(x, col_list)
 }
 \arguments{
 \item{x}{full filename (ctd .dat file)}
+
+\item{col_list}{list of CTD data column names}
 }
 \description{
 Internal use \code{\link{vpr_ctd_read}}
