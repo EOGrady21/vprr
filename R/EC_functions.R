@@ -147,7 +147,7 @@ vpr_ctd_ymd <- function(data, year, offset){
 #'
 #' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
 #'
-#' @param data_all a VPR CTD and measurement dataframe from \code{\link{format_size_data}}
+#' @param data_all a VPR CTD and measurement dataframe from \code{\link{vpr_ctroisize_merge}}
 #' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
 #'
 #' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
@@ -155,7 +155,7 @@ vpr_ctd_ymd <- function(data, year, offset){
 #' @export
 #'
 #' @examples
-bin_size_data <- function(data_all, bin_mea){
+vpr_size_bin <- function(data_all, bin_mea){
 
   #Bin by depth
   p <- data_all$pressure
@@ -169,6 +169,7 @@ bin_size_data <- function(data_all, bin_mea){
   iqr3 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
   iqr1 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
   n_obs <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
+  temperature <- binApply1D(p, data_all$temperature, xbreaks = x_breaks, mean)$result
   salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
   pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
 
@@ -190,9 +191,11 @@ bin_size_data <- function(data_all, bin_mea){
 
   station_id <- unique(data$station)
 
-  box_p_data <- data.frame(pressure, median = med, iqr1, iqr3, n_obs, station_id)
-
-  return(box_p_data)
+  dfs <- data.frame('median' = med, 'IQR1' = iqr1,
+                    'IQR3' = iqr3, 'n_obs' = n_obs,
+                    'temperature' = temperature, 'salinity' = salinity,
+                    'pressure' = pressure)
+  return(dfs)
 }
 
 #' Format CTD and Size data from VPR
@@ -202,16 +205,13 @@ bin_size_data <- function(data_all, bin_mea){
 #' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
 #' @param data_mea VPR size data frame from \code{\link{vpr_autoid_read}}
 #' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
-#' @param max_pressure maximum pressure cut off on data, allows comparison
-#'   between stations of different depths, should be the maximum depth which all
-#'   stations considered reach
 #'
 #' @return A dataframe containing VPR CTD and size data
 #' @export
 #'
 
 
-format_size_data <- function(data, data_mea, taxa_of_interest, max_pressure = 100){
+vpr_ctdroisize_merge <- function(data, data_mea, taxa_of_interest){
 
 
 data <- data[!duplicated(data$time_ms),]
@@ -236,8 +236,8 @@ data_all <- right_join(data_ctd, data_mea) %>%
   dplyr::filter(., taxa %in% taxa_of_interest)
 
 #cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
-data_all <- data_all %>%
-  dplyr::filter(., pressure <= max_pressure)
+#data_all <- data_all %>%
+  #dplyr::filter(., pressure <= max_pressure)
 
 return(data_all)
 
