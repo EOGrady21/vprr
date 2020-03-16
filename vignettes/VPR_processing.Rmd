@@ -35,7 +35,7 @@ After the ROIs have been extracted from the raw files they may be sorted manuall
 
 Visual Plankton outputs two text files for each category of classification (“aid” and “aidmeas” files). Each “aid” (i.e., autoid) file contains file paths to individual ROIs that have been classified to the category of interest. The corresponding “aidmeas” file contains morphological data for the ROIs (e.g., long axis length, perimeter, etc.). These aid, aidmeas, and CTD files are the data inputs for processing using vprr. The primary functions of the vprr package are to manually correct misclassifications made by VP, join CTD and ROI datasets, and compute bin averaged plankton concentrations over the VPR deployment. Examples for visualization of final data products are provided in this vignette. Note that the functionality of vprr is dependent on the format and directory structure of the data output from VP, but is not dependent on the use of VP itself. 
 
-![Figure 1. VPR data processing flow chart. Blue boxes represent software, green boxes represent data sets. ](flowchart1.png)
+![Figure 1. VPR data processing flow chart. Blue boxes represent software, green and yellow boxes represent data sets, where yellow is visual data and green is text format data. This document outlines the processes within 'Processing and Visualization (R). ](vp_flowchart.png)
 
  
 
