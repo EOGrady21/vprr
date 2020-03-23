@@ -392,7 +392,7 @@ Before final export of data products, the following variables are added to the d
   remove(ctd_roi_merge)
   ```
    
-Average plankton concentration and water properties (e.g., temperature, salinity, density, etc.) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (due to characteristics of the deployment or variability in the sampling rate, which is not constant in older versions of the VPR) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::vpr_oce_create`, then binning data using `vprr::bin_vpr_data`. Concentrations are calculated for each category. 
+Average plankton concentration and water properties (e.g., temperature, salinity, density, etc.) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly (due to characteristics of the deployment or variability in the sampling rate, which is not constant in older versions of the VPR) and reduces noise in the data. The bin-averaging is done by creating an `oce` CTD object using `vprr::vpr_oce_create`, then binning data using `vprr::bin_cast`. Concentrations are calculated for each category. 
    
   ```
   ##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------
@@ -400,7 +400,7 @@ Average plankton concentration and water properties (e.g., temperature, salinity
   ctd_roi_oce <- vpr_oce_create(data)
   
 # bin and calculate concentration for all taxa (combined)
-  vpr_depth_bin <- bin_vpr_data(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
+  vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
   
   # get list of valid taxa
   taxas_list <- unique(roimeas_dat_combine$taxa)
