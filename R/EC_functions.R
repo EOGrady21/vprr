@@ -2400,12 +2400,12 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 #'
 #' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})
 #' @param taxa_to_plot The specific classification groups which will be plotted, if NULL, will plot all taxa combined
-#'
+#' @param plot_conc Logical value whether or not to include a concentration plot (FALSE just shows CTD data)
 #'
 #' @return A gridded object of at least 3 ggplot objects
 #' @export
 
-vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot){
+vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot, plot_conc){
 # plot temp
 p <- ggplot(taxa_conc_n) +
   geom_point(aes(x = temperature, y = depth), col = 'red') +
@@ -2471,10 +2471,12 @@ pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
   coord_flip()
 }
 
+if(plot_conc == TRUE){
 p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = c(2), nrow = 1, ncol = 3)
-# for 4.85
-# grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 1), heights = c(2), nrow = 1, ncol = 3)
+}else{
+  p <- grid.arrange(p_TS, p_FD, widths = c(1, 1), heights = c(2), nrow = 1, ncol = 2)
 
+}
 return(p)
 }
 
