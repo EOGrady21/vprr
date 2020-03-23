@@ -165,13 +165,13 @@ vpr_size_bin <- function(data_all, bin_mea){
 
   #Get variables of interest using oce bin functions
 
-  med <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
-  iqr3 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
-  iqr1 <- binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
-  n_obs <- binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
-  temperature <- binApply1D(p, data_all$temperature, xbreaks = x_breaks, mean)$result
-  salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
-  pressure <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
+  med <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
+  iqr3 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
+  iqr1 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
+  n_obs <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
+  temperature <- oce::binApply1D(p, data_all$temperature, xbreaks = x_breaks, mean)$result
+  salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  pressure <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
 
   if (!(length(pressure) == length(salinity))) {
 
@@ -209,8 +209,6 @@ vpr_size_bin <- function(data_all, bin_mea){
 #' @return A dataframe containing VPR CTD and size data
 #' @export
 #'
-
-
 vpr_ctdroisize_merge <- function(data, data_mea, taxa_of_interest){
 
 
@@ -480,10 +478,10 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 vpr_oce_create <- function(data){
 
   # create oce objects
-  ctd_roi_oce <- as.ctd(data)
+  ctd_roi_oce <- oce::as.ctd(data)
   otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'avg_hr') # TODO edit to avoid hard coding variable names
   for ( o in otherVars){
-    eval(parse(text = paste0("ctd_roi_oce <- oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
+    eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
   }
 
   return(ctd_roi_oce)
@@ -556,7 +554,7 @@ vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
   # sigma t, depth
 
   ctd_dat_combine <- ctd_dat_combine %>%
-    dplyr::mutate(., sigmaT = swSigmaT(
+    dplyr::mutate(., sigmaT = oce::swSigmaT(
       ctd_dat_combine$salinity,
       ctd_dat_combine$temperature,
       ctd_dat_combine$pressure
@@ -954,28 +952,28 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
   # Get variables of interest using oce bin functions
 
-  min_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, min)$result
-  max_time_s <- binApply1D(p, data$time/1000, xbreaks = x_breaks, max)$result
-  min_depth <- binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
-  max_depth <- binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
-  n_roi_bin <- binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
-  temperature <- binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
-  salinity <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
-  density <- binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
-  fluorescence <- binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
-  turbidity <- binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
-  avg_hr <- binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
+  min_time_s <- oce::binApply1D(p, data$time/1000, xbreaks = x_breaks, min)$result
+  max_time_s <- oce::binApply1D(p, data$time/1000, xbreaks = x_breaks, max)$result
+  min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
+  max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
+  n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
+  temperature <- oce::binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
+  salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
+  fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
+  turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
+  avg_hr <- oce::binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
 if (rev == TRUE){
 
-  depth <- rev(binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
+  depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
 
 }else{ # simplify?
 
-    depth <- binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
+    depth <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
 
   }
   # calculates number of frames captured per depth bin by counting number of pressure observations per bin
-  n_frames <- binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
+  n_frames <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
 
   # WARNING
   # binApply1D does not calculate NAs, if there is binned depth range that does
@@ -1067,9 +1065,9 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 
   if (is.null(breaks)){
-    cast <- ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
+    cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
   }else{
-    cast <- ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
+    cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
 
   }
 
@@ -1085,7 +1083,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
     cast_id <- paste(cast_direction, i, sep = "_")
     cast_id_vec <- rep(cast_id, n_obs)
 
-    cast_updated[[i]] <- oceSetData(data, "cast_id", cast_id_vec, "no_unit")
+    cast_updated[[i]] <- oce::oceSetData(data, "cast_id", cast_id_vec, "no_unit")
 
   }
 
