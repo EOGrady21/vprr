@@ -27,5 +27,6 @@ Imports: ggplot2,
     lubridate
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr

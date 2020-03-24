@@ -6,7 +6,7 @@
 
 # set up data directory
 
-save_dir <- 'data/processed/'
+# save_dir <- 'data/processed/'
 
 
 ## load raw files
@@ -59,8 +59,8 @@ auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 
   ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
 
-save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
-
+# save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
+usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
 
   # Path to aid for each taxa
@@ -83,9 +83,11 @@ save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
   aidmea_file_list_all <- unlist(aidmea_file_list)
 
 
-  save(aid_file_list_all, file = paste0(save_dir,'aid_files.RData'))
-  save(aidmea_file_list_all, file = paste0(save_dir, 'aidmea_files.RData'))
+  # save(aid_file_list_all, file = paste0(save_dir,'aid_files.RData'))
+  # save(aidmea_file_list_all, file = paste0(save_dir, 'aidmea_files.RData'))
 
+  usethis::use_data( aid_file_list_all, overwrite = TRUE)
+  usethis::use_data(aidmea_file_list_all, overwrite = TRUE)
   ##### READ ROI AND MEASUREMENT DATA ------------------------------------------------------------------------------------------------------------
 
 
@@ -99,7 +101,8 @@ save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
       opticalSetting = opticalSetting
     )
 
-  save(roi_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aid.RData'))
+  # save(roi_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aid.RData'))
+  usethis::use_data(roi_dat_combine, overwrite = TRUE)
 
   # MEASUREMENTS
   roimeas_dat_combine <-
@@ -111,12 +114,16 @@ save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
       opticalSetting = opticalSetting
     )
 
- save(roimeas_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aidmeas.RData'))
+ # save(roimeas_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aidmeas.RData'))
+ usethis::use_data(roimeas_dat_combine, overwrite = TRUE)
+
 
   ##### MERGE CTD AND ROI DATA ---------------------------------------------------------------------------------------------------------------------
   ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
 
- save(ctd_roi_merge, file = paste0(save_dir, 'vpr_ctdroi_merge.RData'))
+ # save(ctd_roi_merge, file = paste0(save_dir, 'vpr_ctdroi_merge.RData'))
+ usethis::use_data(ctd_roi_merge, overwrite = TRUE)
+
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
 
   # add avg hr and sigma T data and depth
@@ -130,14 +137,14 @@ save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
 
   ctd_roi_oce <- vpr_oce_create(data)
 
-  save(ctd_roi_oce, file = paste0(save_dir, 'vpr_oce_create.RData'))
-
+  # save(ctd_roi_oce, file = paste0(save_dir, 'vpr_oce_create.RData'))
+  usethis::use_data(ctd_roi_oce, overwrite = TRUE)
 
   # bin and calculate concentration for all taxa (combined)
   vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
 
-  save(vpr_depth_bin, file = paste0(save_dir, 'bin_vpr_data.RData'))
-
+  # save(vpr_depth_bin, file = paste0(save_dir, 'bin_vpr_data.RData'))
+  usethis::use_data(vpr_depth_bin, overwrite = TRUE)
 
   # get list of valid taxa
   taxas_list <- unique(roimeas_dat_combine$taxa)
@@ -145,18 +152,25 @@ save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
   # bin and calculate concentrations for each category
   taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
 
-  save(taxa_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
+  # save(taxa_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
+  usethis::use_data(taxa_conc_n, overwrite = TRUE)
+
+
   # bin size data
 
   size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest)
 
-  save(size_df_f, file = paste0(save_dir, 'vpr_ctdroisize_merge.RData'))
+  # save(size_df_f, file = paste0(save_dir, 'vpr_ctdroisize_merge.RData'))
+  usethis::use_data(size_df_f, overwrite = TRUE)
+
 
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
   # Save oce object
-  oce_dat <- vpr_save(taxa_conc_n)
+  # oce_dat <- vpr_save(taxa_conc_n)
 
-  save(oce_dat, file = paste0(save_dir, 'vpr_save.RData'))
+  # save(oce_dat, file = paste0(save_dir, 'vpr_save.RData'))
+  # usethis::use_data(oce_dat, overwrite = TRUE)
+
 
   # Save RData files
   # save(file = paste0(savedir, '/ctdData_', station_of_interest,'.RData'), ctd_dat_combine) #CTD data

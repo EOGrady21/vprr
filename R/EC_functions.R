@@ -11,7 +11,7 @@
 #'
 #'These packages are needed!
 #'
-#' @import dplyr ggplot2 oce
+#' @import dplyr ggplot2 oce testthat
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
 #'
@@ -513,7 +513,9 @@ vpr_oce_create <- function(data){
 
 vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
 
-
+if(length(ctd_files) == 0){
+  stop('No CTD files provided!')
+}
   ctd_dat <- list()
   for (i in 1:length(ctd_files)){
 
@@ -721,7 +723,7 @@ if(!is.na(opticalSetting)){
     dat_combine_selected <- dat_combine_aidmeas %>%
       dplyr::select(., taxa, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
 
-    roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected) %>%
+    roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('taxa', 'day_hour', 'id') ) %>%
       dplyr::select(., - id) %>%
       dplyr::mutate(., station = station_of_interest) %>%
       dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
@@ -1224,7 +1226,7 @@ vpr_roi <- function(x) {
 #'
 #'
 vpr_category <- function(x) {
-
+# TODO if x is a list
   taxa_ids <- c(
     "bad_image_blurry",
     "bad_image_malfunction",
