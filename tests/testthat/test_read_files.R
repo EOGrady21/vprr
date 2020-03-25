@@ -90,7 +90,8 @@ test_that("VPR autoid files are read in accurately", {
 
   # check that all ROI images are accounted for in aid files
   # !! WARNING sample data fails this test
-  # thought failure was due to reclassification but these are original aid files
+  # failure is likely due to removal of some images before matlab classification based on image size
+
 
   # img1 <- list.files(path = paste0(castdir, 'h', hour_of_interest[[1]]))
   # img2 <- list.files(path = paste0(castdir, 'h', hour_of_interest[[2]]))
@@ -111,7 +112,7 @@ test_that("VPR autoid files are read in accurately", {
   # get roi ids from 'missing' rois
   # tt <- roi_folder_nums[-which(roi_folder_nums %in% roi_dat_combine$roi)]
 
-  # test that should pass
+  # test
   # expect_identical(unique(roi_folder_nums), roi_dat_combine$roi)
 
   # aid mea files
