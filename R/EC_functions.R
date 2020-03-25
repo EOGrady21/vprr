@@ -12,6 +12,9 @@
 #'These packages are needed!
 #'
 #' @import dplyr ggplot2 oce
+#' @importFrom graphics hist par plot.new
+#' @importFrom stats aggregate median quantile
+#' @importFrom utils menu read.csv read.table write.table
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
 #'
