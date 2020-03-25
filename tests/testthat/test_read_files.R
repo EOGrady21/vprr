@@ -3,7 +3,13 @@ context("read files")
 library(vprr)
 
 # required metadata and data
+<<<<<<< HEAD
 
+=======
+# base <- 'C:/Users/ChisholmE/Documents/vprr/'
+# castdir <- paste0(base, 'inst/extdata/COR2019002/rois/vpr5/d222/')
+# ctd_files <- list.files('.dat', path = castdir, full.names = TRUE)
+>>>>>>> 1f377141109909b962590282eb5be38a11eedc5a
 ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat', package = 'vprr', mustWork = TRUE)
 ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
 
@@ -50,6 +56,11 @@ test_that("CTD files are read in accurately",{
 })
 
 # VPR autoid file read in
+<<<<<<< HEAD
+=======
+# auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+# auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+>>>>>>> 1f377141109909b962590282eb5be38a11eedc5a
 
 autoid_files <- list.files(system.file('extdata/COR2019002/autoid/', package = 'vprr'), recursive = TRUE)
 autoidfull_files <- file.path(system.file('extdata/COR2019002/autoid/', package = 'vprr'), autoid_files)
