@@ -3,9 +3,13 @@ context("read files")
 library(vprr)
 
 # required metadata and data
-base <- 'C:/Users/ChisholmE/Documents/vprr/'
-castdir <- paste0(base, 'inst/extdata/COR2019002/rois/vpr5/d222/')
-ctd_files <- list.files('.dat', path = castdir, full.names = TRUE)
+# base <- 'C:/Users/ChisholmE/Documents/vprr/'
+# castdir <- paste0(base, 'inst/extdata/COR2019002/rois/vpr5/d222/')
+# ctd_files <- list.files('.dat', path = castdir, full.names = TRUE)
+ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat', package = 'vprr', mustWork = TRUE)
+ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
+
+
 station_of_interest <- 'test'
 day_of_interest <- '222'
 hour_of_interest <- c('03', '04')
@@ -48,30 +52,18 @@ test_that("CTD files are read in accurately",{
 })
 
 # VPR autoid file read in
-auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
-auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+# auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+# auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 
-# Path to aid for each taxa
-aid_path <- file.path(base, auto_id_path, 'aid')
-# Path to mea for each taxa
-aidmea_path <- file.path(base, auto_id_path, 'aidmea')
+autoid_files <- list.files(system.file('extdata/COR2019002/autoid/', package = 'vprr'), recursive = TRUE)
+autoidfull_files <- file.path(system.file('extdata/COR2019002/autoid/', package = 'vprr'), autoid_files)
 
-# AUTO ID FILES
-aid_file_list <- list()
-aidmea_file_list <- list()
-for (i in 1:length(dayhour)) {
-  aid_file_list[[i]] <-
-    list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
-  # SIZE DATA FILES
-  aidmea_file_list[[i]] <-
-    list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
-}
+aidmea_files <- grep(autoidfull_files, pattern = 'aidmea', value = TRUE)
+aid_files <- autoidfull_files[!autoidfull_files %in% aidmea_files]
 
 
 opticalSetting <- "S2"
 
-aid_file_list_all <- paste0(base, aid_file_list_all)
-aidmea_file_list_all <- paste0(base, aidmea_file_list_all)
 
 
 test_that("VPR autoid files are read in accurately", {
@@ -79,8 +71,8 @@ test_that("VPR autoid files are read in accurately", {
   # AID files
   expect_silent(roi_dat_combine <-
     vpr_autoid_read(
-      file_list_aid = aid_file_list_all,
-      file_list_aidmeas = aidmea_file_list_all,
+      file_list_aid = aid_files,
+      file_list_aidmeas = aidmea_files,
       export = 'aid',
       station_of_interest = station_of_interest,
       opticalSetting = opticalSetting
@@ -92,8 +84,8 @@ test_that("VPR autoid files are read in accurately", {
 
   taxa_names <- names(roi_dat_combine)[-c(1,13)]
   t_names_exp <- list()
-  for(i in 1:length(aid_file_list_all)){
-    t_names_exp[[i]] <- vpr_category(aid_file_list_all[[i]])
+  for(i in 1:length(aid_files)){
+    t_names_exp[[i]] <- vpr_category(aid_files[[i]])
   }
   t_names_exp <- unique(unlist(t_names_exp))
 
@@ -135,8 +127,8 @@ test_that("VPR autoid files are read in accurately", {
 
   expect_silent(roimeas_dat_combine <-
     vpr_autoid_read(
-      file_list_aid = aid_file_list_all,
-      file_list_aidmeas = aidmea_file_list_all,
+      file_list_aid = aid_files,
+      file_list_aidmeas = aidmea_files,
       export = 'aidmeas',
       station_of_interest = station_of_interest,
       opticalSetting = opticalSetting
@@ -145,8 +137,8 @@ test_that("VPR autoid files are read in accurately", {
   # pixel data
   expect_warning(roimeas_dat_combine_px <-
                    vpr_autoid_read(
-                     file_list_aid = aid_file_list_all,
-                     file_list_aidmeas = aidmea_file_list_all,
+                     file_list_aid = aid_files,
+                     file_list_aidmeas = aidmea_files,
                      export = 'aidmeas',
                      station_of_interest = station_of_interest
                    ))
