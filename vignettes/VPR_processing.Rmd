@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 
-author: Emily Chisholm, Kevin Sorochan
+author: Emily Chisholm, Kevin Sorochan, Catherine Johnson
 
 ---
 
@@ -414,7 +414,9 @@ Average plankton concentration and water properties (e.g., temperature, salinity
   # bin size data
   
   size_df_f <- vpr_ctdroisize_merge(data, measdata = roimeas_dat_combine, taxa_of_interest = category_of_interest)
+  
   size_df_b <- vpr_size_bin(size_df_f, bin_mea = 3)
+  
   ```
   
   

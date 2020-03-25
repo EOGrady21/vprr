@@ -4,12 +4,14 @@
 \alias{vpr_plot_profile}
 \title{Plots VPR profiles of temperature, salinity, density, fluorescence and concentration (by classification group)}
 \usage{
-vpr_plot_profile(taxa_conc_n, taxa_to_plot)
+vpr_plot_profile(taxa_conc_n, taxa_to_plot, plot_conc)
 }
 \arguments{
 \item{taxa_conc_n}{A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})}
 
 \item{taxa_to_plot}{The specific classification groups which will be plotted, if NULL, will plot all taxa combined}
+
+\item{plot_conc}{Logical value whether or not to include a concentration plot (FALSE just shows CTD data)}
 }
 \value{
 A gridded object of at least 3 ggplot objects

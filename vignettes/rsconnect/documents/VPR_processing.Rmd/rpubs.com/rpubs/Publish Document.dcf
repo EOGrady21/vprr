@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/581779/7df4f7d224ab45adb5402d94d2efefdd
+bundleId: https://api.rpubs.com/api/v1/document/581779/7df4f7d224ab45adb5402d94d2efefdd
+url: http://rpubs.com/e_chisholm/581779
+when: 1585141279.72607
