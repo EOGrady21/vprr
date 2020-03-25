@@ -4,7 +4,7 @@ library(vprr)
 
 # required metadata and data
 base <- 'C:/Users/ChisholmE/Documents/vprr/'
-castdir <- paste0(base, 'data/raw/COR2019002/rois/vpr5/d222/')
+castdir <- paste0(base, 'inst/extdata/COR2019002/rois/vpr5/d222/')
 ctd_files <- list.files('.dat', path = castdir, full.names = TRUE)
 station_of_interest <- 'test'
 day_of_interest <- '222'
@@ -48,9 +48,25 @@ test_that("CTD files are read in accurately",{
 })
 
 # VPR autoid file read in
+auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 
-data('aid_file_list_all')
-data('aidmea_file_list_all')
+# Path to aid for each taxa
+aid_path <- file.path(base, auto_id_path, 'aid')
+# Path to mea for each taxa
+aidmea_path <- file.path(base, auto_id_path, 'aidmea')
+
+# AUTO ID FILES
+aid_file_list <- list()
+aidmea_file_list <- list()
+for (i in 1:length(dayhour)) {
+  aid_file_list[[i]] <-
+    list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
+  # SIZE DATA FILES
+  aidmea_file_list[[i]] <-
+    list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
+}
+
 
 opticalSetting <- "S2"
 

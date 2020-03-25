@@ -24,7 +24,6 @@ source('R/EC_functions.R')
 #### FILE PATHS & SETTINGS --------------------------------------------------------------------------------------------------------------------
 # loads processing environment specific to user
 
-# load('IML2018051_env.RData')
 cruise <- 'COR2019002'
 station_of_interest <- 'test'
 day_of_interest <- '222'
@@ -38,8 +37,8 @@ category_of_interest <- c('Calanus', 'krill')
 opticalSetting <- "S2"
 imageVolume <- 83663 #mm^3
 
-castdir <- 'data/raw/COR2019002/rois/vpr5/d222/'
-auto_id_folder <- 'data/raw/COR2019002/autoid/'
+castdir <- 'inst/extdata/COR2019002/rois/vpr5/d222/'
+auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
 auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 
 
@@ -59,6 +58,8 @@ auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 
   ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
 
+ # subset data for size concerns
+ctd_dat_combine <- ctd_dat_combine[1:1000,]
 # save(ctd_dat_combine, file = paste0(save_dir, 'vpr_ctd_read.RData'))
 usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
@@ -86,8 +87,8 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   # save(aid_file_list_all, file = paste0(save_dir,'aid_files.RData'))
   # save(aidmea_file_list_all, file = paste0(save_dir, 'aidmea_files.RData'))
 
-  usethis::use_data( aid_file_list_all, overwrite = TRUE)
-  usethis::use_data(aidmea_file_list_all, overwrite = TRUE)
+  # usethis::use_data( aid_file_list_all, overwrite = TRUE)
+  # usethis::use_data(aidmea_file_list_all, overwrite = TRUE)
   ##### READ ROI AND MEASUREMENT DATA ------------------------------------------------------------------------------------------------------------
 
 
@@ -98,9 +99,12 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aid',
       station_of_interest = station_of_interest,
-      opticalSetting = opticalSetting
+      opticalSetting = opticalSetting,
+      warn = FALSE
     )
 
+  # subset for size concerns
+  roi_dat_combine <- roi_dat_combine[1:1000,]
   # save(roi_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aid.RData'))
   usethis::use_data(roi_dat_combine, overwrite = TRUE)
 
@@ -111,8 +115,12 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
       file_list_aidmeas = aidmea_file_list_all,
       export = 'aidmeas',
       station_of_interest = station_of_interest,
-      opticalSetting = opticalSetting
+      opticalSetting = opticalSetting,
+      warn = FALSE
     )
+
+  # subset for size concerns
+  roimeas_dat_combine <- roimeas_dat_combine[1:1000,]
 
  # save(roimeas_dat_combine, file = paste0(save_dir, 'vpr_autoid_read_aidmeas.RData'))
  usethis::use_data(roimeas_dat_combine, overwrite = TRUE)
@@ -144,7 +152,7 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
 
   # save(vpr_depth_bin, file = paste0(save_dir, 'bin_vpr_data.RData'))
-  usethis::use_data(vpr_depth_bin, overwrite = TRUE)
+  # usethis::use_data(vpr_depth_bin, overwrite = TRUE)
 
   # get list of valid taxa
   taxas_list <- unique(roimeas_dat_combine$taxa)

@@ -11,7 +11,7 @@
 #'
 #'These packages are needed!
 #'
-#' @import dplyr ggplot2 oce testthat
+#' @import dplyr ggplot2 oce
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
 #'
@@ -147,14 +147,14 @@ vpr_ctd_ymd <- function(data, year, offset){
 #'
 #' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
 #'
-#' @param data_all a VPR CTD and measurement dataframe from \code{\link{vpr_ctroisize_merge}}
+#' @param data_all a VPR CTD and measurement dataframe from \code{\link{vpr_ctdroisize_merge}}
 #' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
 #'
 #' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
 #'
 #' @export
 #'
-#' @examples
+#'
 vpr_size_bin <- function(data_all, bin_mea){
 
   #Bin by depth
@@ -2605,7 +2605,9 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #'
   #' @export
   #'
-  #' @examples
+
+
+  #'      #### examples
   #' #determine range of interest
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))
@@ -2619,7 +2621,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #' dir.create(newdir)
   #' file.copy(roi_file_unlist, newdir)
   #'
-  #'
+
   data_filtered <- data %>%
     dplyr::filter(., pressure >= min.depth) %>%
     dplyr::filter(., pressure <= max.depth)
@@ -2697,7 +2699,7 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #'
   #' @export
   #'
-  #' @examples
+  #'  ### examples
   #' #determine range of interest
   #' mid <- as.numeric(readline('Minimum depth of interest? '))
   #' mad <- as.numeric(readline('Maximum depth of interest? '))

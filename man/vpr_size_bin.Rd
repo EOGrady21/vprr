@@ -7,7 +7,7 @@
 vpr_size_bin(data_all, bin_mea)
 }
 \arguments{
-\item{data_all}{a VPR CTD and measurement dataframe from \code{\link{vpr_ctroisize_merge}}}
+\item{data_all}{a VPR CTD and measurement dataframe from \code{\link{vpr_ctdroisize_merge}}}
 
 \item{bin_mea}{Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5}
 }

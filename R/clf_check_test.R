@@ -281,7 +281,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
   #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
   #'
   #'
-  #'@examples
+  #' ### examples
   #'basepath <- 'E:/autoID_EC_07032019/'
   #'day <- '289'
   #'hr <- '08'
