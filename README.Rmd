@@ -65,7 +65,7 @@ vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FA
 
 Data files from image classification can be read in and combined into easy to work with data frames.
 
-```{r example}
+```{r , eval = FALSE}
 library(vprr)
 
 # CTD data read in 
@@ -96,13 +96,14 @@ roi_dat_combine <-
 
 Plankton concentration can be calculated from VPR data. Concentration is calculated in bins along the VPR path for each category identified in image classifications.
 
-```{r}
+```{r, eval = FALSE}
 
 data("ctd_roi_merge") # CTD and ROI data
 data("roimeas_dat_combine") # Measurement data
 
 binSize <- 5
 imageVolume <- 83663
+
 
 data <- ctd_roi_merge %>%
   dplyr::mutate(., avg_hr = time_ms / 3.6e+06)

@@ -99,6 +99,7 @@ data("roimeas_dat_combine") # Measurement data
 binSize <- 5
 imageVolume <- 83663
 
+
 data <- ctd_roi_merge %>%
   dplyr::mutate(., avg_hr = time_ms / 3.6e+06)
 
