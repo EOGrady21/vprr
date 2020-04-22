@@ -15,6 +15,11 @@ A string of only the taxa id
 \description{
 Get taxa ids from string
 }
+\examples{
+taxa_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+vpr_category(taxa_string)
+
+}
 \seealso{
 \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
 }

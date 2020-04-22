@@ -20,3 +20,10 @@ a VPR data frame with complete date/time information in a new row named 'ymdhms'
 Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
 Will also add 'avg_hr' parameter if not already present.
 }
+\examples{
+year <- 2019
+data('ctd_roi_merge')
+dat <- vpr_ctd_ymd(ctd_roi_merge, year)
+
+
+}

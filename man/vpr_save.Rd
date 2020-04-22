@@ -35,3 +35,15 @@ This function will pass a VPR data frame object to an `oce` object.
   'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
   'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
 }
+\examples{
+data("taxa_conc_n")
+metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
+max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitude' = 47,
+'longitude' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
+'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
+'S2', 'imageVolume' = 83663, 'comment' = 'test data')
+
+oce_dat <- vpr_save(taxa_conc_n, metadata)
+# save(oce_dat, file = vpr_save.RData') # save data
+
+}

@@ -13,9 +13,6 @@ vpr_plot_sizefreq(x, number_of_classes, colour_of_bar)
 
 \item{colour_of_bar}{character value defining colour of plotted bars}
 }
-\value{
-
-}
 \description{
 This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
 \strong{!!WARNING:} this function uses hard coded plot attributes

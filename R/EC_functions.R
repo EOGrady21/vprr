@@ -49,6 +49,16 @@ NULL
 #' @return an oce CTD object with all VPR data as well as metadata
 #' @export
 #'
+#' @examples
+#' data("taxa_conc_n")
+#' metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
+#' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitude' = 47,
+#' 'longitude' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
+#' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
+#' 'S2', 'imageVolume' = 83663, 'comment' = 'test data')
+#'
+#' oce_dat <- vpr_save(taxa_conc_n, metadata)
+#' # save(oce_dat, file = vpr_save.RData') # save data
 #'
 vpr_save <- function(data, metadata){
 
@@ -109,6 +119,13 @@ if(missing(metadata)){
 #' @param offset time offset in hours between VPR CPU and processed data times (optional)
 #'
 #' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
+#'
+#' @examples
+#' year <- 2019
+#' data('ctd_roi_merge')
+#' dat <- vpr_ctd_ymd(ctd_roi_merge, year)
+#'
+#'
 #' @export
 
 vpr_ctd_ymd <- function(data, year, offset){
@@ -155,7 +172,13 @@ vpr_ctd_ymd <- function(data, year, offset){
 #'
 #' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
 #'
+#' @examples
+#'
+#' data('size_df_f')
+#' vpr_size_bin(size_df_f, bin_mea = 5)
+#'
 #' @export
+#'
 #'
 #'
 vpr_size_bin <- function(data_all, bin_mea){
@@ -210,6 +233,18 @@ vpr_size_bin <- function(data_all, bin_mea){
 #' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
 #'
 #' @return A dataframe containing VPR CTD and size data
+#'
+#' @examples
+#'
+#' data("ctd_roi_merge")
+#' data("roimeas_dat_combine")
+#' category_of_interest = 'Calanus'
+#'
+#'ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+#'
+#' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
+#'  taxa_of_interest = category_of_interest)
+#'
 #' @export
 #'
 vpr_ctdroisize_merge <- function(data, data_mea, taxa_of_interest){
@@ -329,7 +364,18 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #'
+#' @examples
 #'
+#' data('ctd_roi_merge')
+#' ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+#'
+#' taxas_list <- c('Calanus', 'krill')
+#' binSize <- 5
+#' station_of_interest <- 'test'
+#' imageVolume <- 83663
+#'
+#' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
+#' station_of_interest, binSize, imageVolume)
 #'
 #'@export
 #'
@@ -365,7 +411,7 @@ vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize
 #' Used inside \code{\link{vpr_roi_concentration}}
 #'
 #'
-#' @param data dataframe produced by processing
+#' @param data dataframe produced by processing internal to vpr_roi_concentration
 #' @param taxa name of taxa isolated
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
@@ -424,6 +470,8 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
 #' Bin vpr data
 #'
 #' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
+#' This function is used inside \code{\link{concentration_category}}
+#'
 #'
 #' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
@@ -477,6 +525,10 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 #'
 #' @param data data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}
 #'
+#' @examples
+#' data('ctd_roi_merge')
+#' oce_dat <- vpr_oce_create(ctd_roi_merge)
+#'
 #' @export
 vpr_oce_create <- function(data){
 
@@ -512,6 +564,13 @@ vpr_oce_create <- function(data){
 #' @param hour Hour of interest, if not provided will be pulled from file path
 #' @param col_list Optional list of CTD data column names
 #'
+#' @examples
+#' \dontrun{
+#' station_of_interest <- 'test'
+#' ctd_files <- list() # list ctd files
+#'
+#' ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
+#' }
 #' @export
 
 vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
@@ -582,6 +641,12 @@ if(length(ctd_files) == 0){
 #'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{vpr_ctd_read}}
 #'@param roi_dat_combine a data frame of roi aid data from \code{\link{vpr_autoid_read}}
 #'
+#'
+#' @examples
+#' data('ctd_dat_combine')
+#' data('roi_dat_combine')
+#'
+#' ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
 #'@export
 #'
 vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
@@ -635,6 +700,58 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'
 #'@note Full paths to each file should be specified
 #'
+#' @examples
+#' \dontrun{
+#' station_of_interest <- 'test'
+#'
+#' #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
+#' opticalSetting <- "S2"
+#' imageVolume <- 83663 #mm^3
+#'
+#' auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+#' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+#'
+#' #'   # Path to aid for each taxa
+#' aid_path <- paste0(auto_id_path, '/aid/')
+#' # Path to mea for each taxa
+#' aidmea_path <- paste0(auto_id_path, '/aidmea/')
+#'
+#' # AUTO ID FILES
+#' aid_file_list <- list()
+#' aidmea_file_list <- list()
+#' for (i in 1:length(dayhour)) {
+#'   aid_file_list[[i]] <-
+#'     list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
+#'   # SIZE DATA FILES
+#'   aidmea_file_list[[i]] <-
+#'     list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
+#' }
+#'
+#' aid_file_list_all <- unlist(aid_file_list)
+#' aidmea_file_list_all <- unlist(aidmea_file_list)
+#'
+#'  # ROIs
+#' roi_dat_combine <-
+#'   vpr_autoid_read(
+#'     file_list_aid = aid_file_list_all,
+#'     file_list_aidmeas = aidmea_file_list_all,
+#'     export = 'aid',
+#'     station_of_interest = station_of_interest,
+#'     opticalSetting = opticalSetting,
+#'     warn = FALSE
+#'   )
+#'
+#' # MEASUREMENTS
+#' roimeas_dat_combine <-
+#'   vpr_autoid_read(
+#'     file_list_aid = aid_file_list_all,
+#'     file_list_aidmeas = aidmea_file_list_all,
+#'     export = 'aidmeas',
+#'     station_of_interest = station_of_interest,
+#'     opticalSetting = opticalSetting,
+#'     warn = FALSE
+#'  )
+#'}
 #' @export
 vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
@@ -878,6 +995,10 @@ normalize_matrix <- function(mat){
 #'@param taxa list of character elements containing taxa of interest
 #'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
 #'
+#' @examples
+#' \dontrun{
+#'
+#' }
 #' @export
 vpr_trrois_size <- function(directory, taxa, opticalSetting){
 
@@ -1201,6 +1322,11 @@ vpr_ctd_files <- function(castdir, cruise, day_hour) {
 #'
 #' @return A string of only the 10 digit roi identifier
 #'
+#' @examples
+#'
+#' roi_string <- 'roi.0100000000.tif'
+#' vpr_roi(roi_string)
+#'
 #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_category}}
 #' @export
 #'
@@ -1223,6 +1349,10 @@ vpr_roi <- function(x) {
 #' @param x A string specifying the directory of the "taxafolder", containing the taxa id
 #'
 #' @return A string of only the taxa id
+#'
+#' @examples
+#' taxa_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+#' vpr_category(taxa_string)
 #'
 #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
 #' @export
@@ -1283,6 +1413,10 @@ vpr_category <- function(x) {
 #'
 #' @return A string of only the day identifier (i.e., "dXXX")
 #'
+#' @examples
+#' day_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+#' vpr_day(day_string)
+#'
 #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
 #' @export
 #'
@@ -1308,6 +1442,11 @@ vpr_hour <- function(x) {
   #'
   #' @return A string of only the hour identifier (i.e., "hXX")
   #' @seealso \code{\link{vpr_day}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
+  #'
+  #' @examples
+  #' hour_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+  #' vpr_hour(hour_string)
+  #'
   #' @export
   #'
   #'
@@ -1337,7 +1476,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #' @param day julian day
   #' @param hour two digit hour (24 hr clock)
   #'
-  #' @return
+  #'
   #' @export
 
   #prints a data summary report, part of VP easyPlot
@@ -1789,7 +1928,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 #' @param number_of_classes numeric value passed to nclass argument in hist()
 #' @param colour_of_bar character value defining colour of plotted bars
 #'
-#' @return
+#'
 #' @export
 #'
 #'

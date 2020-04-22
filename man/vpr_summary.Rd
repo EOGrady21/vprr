@@ -19,9 +19,6 @@ turbidity_mv, sigmaT}
 
 \item{hour}{two digit hour (24 hr clock)}
 }
-\value{
-
-}
 \description{
 Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
 }

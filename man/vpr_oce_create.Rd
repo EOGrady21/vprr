@@ -12,6 +12,11 @@ vpr_oce_create(data)
 \description{
 Formats VPR data frame into \code{oce} format CTD object
 }
+\examples{
+data('ctd_roi_merge')
+oce_dat <- vpr_oce_create(ctd_roi_merge)
+
+}
 \author{
 E. Chisholm
 }

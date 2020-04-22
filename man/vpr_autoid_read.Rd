@@ -35,6 +35,59 @@ Only outputs either ROI string information OR measurement data but both file typ
 \note{
 Full paths to each file should be specified
 }
+\examples{
+\dontrun{
+station_of_interest <- 'test'
+
+#' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
+opticalSetting <- "S2"
+imageVolume <- 83663 #mm^3
+
+auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+
+#'   # Path to aid for each taxa
+aid_path <- paste0(auto_id_path, '/aid/')
+# Path to mea for each taxa
+aidmea_path <- paste0(auto_id_path, '/aidmea/')
+
+# AUTO ID FILES
+aid_file_list <- list()
+aidmea_file_list <- list()
+for (i in 1:length(dayhour)) {
+  aid_file_list[[i]] <-
+    list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
+  # SIZE DATA FILES
+  aidmea_file_list[[i]] <-
+    list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
+}
+
+aid_file_list_all <- unlist(aid_file_list)
+aidmea_file_list_all <- unlist(aidmea_file_list)
+
+ # ROIs
+roi_dat_combine <-
+  vpr_autoid_read(
+    file_list_aid = aid_file_list_all,
+    file_list_aidmeas = aidmea_file_list_all,
+    export = 'aid',
+    station_of_interest = station_of_interest,
+    opticalSetting = opticalSetting,
+    warn = FALSE
+  )
+
+# MEASUREMENTS
+roimeas_dat_combine <-
+  vpr_autoid_read(
+    file_list_aid = aid_file_list_all,
+    file_list_aidmeas = aidmea_file_list_all,
+    export = 'aidmeas',
+    station_of_interest = station_of_interest,
+    opticalSetting = opticalSetting,
+    warn = FALSE
+ )
+}
+}
 \author{
 E. Chisholm & K. Sorochan
 }

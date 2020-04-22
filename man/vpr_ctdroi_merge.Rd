@@ -16,6 +16,12 @@ Combines CTD data (time, hydrographic parameters), with ROI information
 (identification number) into single dataframe, aligning ROI identification
 numbers and taxa classifications with time and hydrographic parameters
 }
+\examples{
+data('ctd_dat_combine')
+data('roi_dat_combine')
+
+ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
+}
 \author{
 E. Chisholm & K. Sorochan
 }

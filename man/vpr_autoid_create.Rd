@@ -11,20 +11,20 @@ vpr_autoid_create(reclassify, misclassified, basepath)
 
 \item{misclassified}{list misclassify files (output from vpr_manual_classification())}
 
-\item{basepath}{base path to auto ID folder eg 'E:/autoID_EC_07032019/'}
-}
-\description{
-Modifies aid and aid mea files based on manual reclassification
-}
-\examples{
+\item{basepath}{base path to auto ID folder eg 'E:/autoID_EC_07032019/'
+
+
+### examples
 basepath <- 'E:/autoID_EC_07032019/'
 day <- '289'
 hr <- '08'
 day_hour_files <-  paste0('d', day, '.h', hr)
 misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
 reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-vpr_autoid_create(reclassify, misclassified, basepath)
-
+vpr_autoid_create(reclassify, misclassified, basepath)}
+}
+\description{
+Modifies aid and aid mea files based on manual reclassification
 }
 \author{
 E. Chisholm

@@ -15,6 +15,11 @@ A string of only the hour identifier (i.e., "hXX")
 \description{
 Get hour identifier
 }
+\examples{
+hour_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+vpr_hour(hour_string)
+
+}
 \seealso{
 \code{\link{vpr_day}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
 }

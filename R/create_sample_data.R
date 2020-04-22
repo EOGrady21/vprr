@@ -53,6 +53,9 @@ auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
   # list ctd files for desired day.hours
   # ctd_files <- vpr_ctd_files(castdir, cruise, dayhour)
   ctd_files <- list.files('.dat', path = castdir, full.names = TRUE)
+#ctd_files <- list()
+#ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat', package = 'vprr', mustWork = TRUE)
+#ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
 
 ##### READ CTD DATA ----------------------------------------------------------------------------------------------------------------------------
 

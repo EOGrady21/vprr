@@ -7,7 +7,7 @@
 concentration_category(data, taxa, binSize, imageVolume, rev = FALSE)
 }
 \arguments{
-\item{data}{dataframe produced by processing}
+\item{data}{dataframe produced by processing internal to vpr_roi_concentration}
 
 \item{taxa}{name of taxa isolated}
 

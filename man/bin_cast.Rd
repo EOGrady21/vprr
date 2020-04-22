@@ -24,6 +24,7 @@ A dataframe of depth averaged bins of VPR data over an entire cast with calculat
 }
 \description{
 Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
+This function is used inside \code{\link{concentration_category}}
 }
 \details{
 Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images

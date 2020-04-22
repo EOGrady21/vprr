@@ -18,3 +18,8 @@ useful for getting size distribution of known rois from each taxa. gathers
 size information from idsize text files produced when training a new
 classifier in VP (Visual Plankton)
 }
+\examples{
+\dontrun{
+
+}
+}

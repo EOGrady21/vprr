@@ -15,6 +15,12 @@ A string of only the 10 digit roi identifier
 \description{
 Get roi ids from string
 }
+\examples{
+
+roi_string <- 'roi.0100000000.tif'
+vpr_roi(roi_string)
+
+}
 \seealso{
 \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_category}}
 }

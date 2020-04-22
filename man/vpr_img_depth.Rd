@@ -25,19 +25,3 @@ of file names or 'image' where images will be displayed}
 Allows user to pull VPR images from specific depth ranges, to investigate
 trends before classification of images into taxa groups
 }
-\examples{
-#determine range of interest
-mid <- as.numeric(readline('Minimum depth of interest? '))
-mad <- as.numeric(readline('Maximum depth of interest? '))
-#run image exploration
-roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad,
-roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
-
-#copy image files into new directory to be browsed
-roi_file_unlist <- unlist(roi_files)
-newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, ''))
-dir.create(newdir)
-file.copy(roi_file_unlist, newdir)
-
-
-}

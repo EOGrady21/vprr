@@ -30,6 +30,14 @@ order of CTD data columns. The names and values in these columns can change
 based on the specific instrument and should be updated/confirmed before processing data
 from a new VPR.
 }
+\examples{
+\dontrun{
+station_of_interest <- 'test'
+ctd_files <- list() # list ctd files
+
+ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
+}
+}
 \author{
 E. Chisholm & K. Sorochan
 }

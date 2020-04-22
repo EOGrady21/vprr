@@ -15,6 +15,11 @@ A string of only the day identifier (i.e., "dXXX")
 \description{
 Get day identifier
 }
+\examples{
+day_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+vpr_day(day_string)
+
+}
 \seealso{
 \code{\link{vpr_hour}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
 }
