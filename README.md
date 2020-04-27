@@ -8,13 +8,13 @@
 <!-- badges: end -->
 
 The goal of vprr is to process Video Plankton Recorder (VPR) data in R.
-This package helps to format data, calculate important ecological
-metrics such as concentration of plankton, save data in easy to analyze
-formats with self contained meta data, as well as analyze and display
-data in plots.
+This package allows for manual classification of plankton images,
+calculation of important ecological metrics such as concentration of
+plankton, data visualization, and data output with self-contained
+metadata.
 
-Mpre detailed information about the package and its uses can be found in
-the VPR\_processing vignette.
+Detailed information about vprr and its use can be found in the
+VPR\_processing vignette.
 
 ## Installation
 
@@ -32,78 +32,49 @@ And the development version from [GitHub](https://github.com/) with:
 devtools::install_github("Echisholm21/vprr")
 ```
 
-## Example
+## Details
 
-VPRR has an interactive GUI which can be used to manually check Visual
-Plankton image classifications.
+VPRR is designed to be used after processing VPR data with Visual
+Plankton (VP), a MatLab image classification software. Although not
+dependent on any specific elements of VP, the data processing is
+designed around VP file formats and directory structures.
 
-``` r
-drive <- 'C:/'
-auto_id_folder <- paste0(drive, "cruise_", cruise, "/", autoid)
+Visual Plankton code can be found:
+(<https://gccode.ssc-spc.gc.ca/dfo-mar-odis/visual-plankton/matlab>).
+For permission to view the linked project on GC code, contact
+<DataServicesDonnees@dfo-mpo.gc.ca>.
 
-day <- '222' 
-hr <- '03'
+![](vignettes/vp_flowchart.png) Figure 1. VPR data processing flow
+chart. Blue boxes represent software, green and yellow boxes represent
+data sets, where yellow is visual data and green is text format data.
+This package represents ‘Processing and Visualization (R)’.
 
-category_of_interest <-
-  c(
-    'krill',
-    'Calanus')
+The first element of processing VPR data is to classify the images
+output. This can be done in VP, using machine learning techniques and
+then checked or manually edited in VPRR. VPRR uses a GUI function
+`vpr_manual_classification` to allow a user to review and change image
+classifications.
 
-# reclassify images
-vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
-          taxa_of_interest = category_of_interest, scale = 'x300',
-          opticalSetting = 'S2')
-```
+![](vignettes/clf_check_3.png)
 
-Data files from image classification can be read in and combined into
-easy to work with data frames.
+Figure 2. A screenshot from VPRR manual reclassification. VPR images are
+displayed in the RStudio Viewer, prompts are displayed in the RStudio
+console. Users are asked in VP classifications are correct, if not, they
+are asked to select the proper classification from a pre set list of
+categories.
 
-``` r
-library(vprr)
+Once images have been properly classified, all data sources are combined
+in order to analyze data and calculate relevant environmental metrics
+such as plankton concentration. Data files from CTD files
+(`vpr_ctd_read`) and image classification (`vpr_autoid_read`) can be
+read in and combined into easy to work with data frames. VPRR combines
+VPR CTD, and VPR image classifications into bins before calculating
+concentration (`vpr_roi_concentration`).
 
-# CTD data read in 
-ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat', package = 'vprr', mustWork = TRUE)
-ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
+After data is processed, it can be visualized for easy interpretation.
+Although this package does not focus on plotting, it does provide some
+basic plotting structures for tow-yo VPR data (`vpr_plot_contour`).
 
-station_of_interest <- 'example'
-
-ctd_data <- vpr_ctd_read(ctd_files, station_of_interest)
-
-# VP autoID file read in 
-
-autoid_files <- list.files(system.file('extdata/COR2019002/autoid/', package = 'vprr'), recursive = TRUE)
-autoidfull_files <- file.path(system.file('extdata/COR2019002/autoid/', package = 'vprr'), autoid_files)
-
-aidmea_files <- grep(autoidfull_files, pattern = 'aidmea', value = TRUE)
-aid_files <- autoidfull_files[!autoidfull_files %in% aidmea_files]
-
-roi_dat_combine <-
-    vpr_autoid_read(
-      file_list_aid = aid_files,
-      file_list_aidmeas = aidmea_files,
-      export = 'aid',
-      station_of_interest = station_of_interest,
-      opticalSetting = opticalSetting
-    )
-```
-
-Plankton concentration can be calculated from VPR data. Concentration is
-calculated in bins along the VPR path for each category identified in
-image classifications.
-
-``` r
-
-data("ctd_roi_merge") # CTD and ROI data
-data("roimeas_dat_combine") # Measurement data
-
-binSize <- 5
-imageVolume <- 83663
-
-
-data <- ctd_roi_merge %>%
-  dplyr::mutate(., avg_hr = time_ms / 3.6e+06)
-
-taxas_list <- unique(roimeas_dat_combine$taxa)
-
-taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
-```
+![](vignettes/conPlot_cal_dens.png) Figure 3. An example of
+visualization of VPR data showing calculated concentration of Calanus
+along the VPR tow-yo path, over density contours.
