@@ -19,5 +19,10 @@ test_that("CTD and ROI data merges",{
   # expect_true(max(roi_dat_combine$time_ms) < max(ctd_roi_merge$time_ms)) # not true for sample data because of subsetting
 
   # check for NAs
+  expect_false(anyNA(ctd_roi_merge$time_ms))
+  expect_false(anyNA(ctd_roi_merge$depth))
+  expect_false(anyNA(ctd_roi_merge$Calanus))
+  expect_false(anyNA(ctd_roi_merge$n_roi_total))
+
 
 })
