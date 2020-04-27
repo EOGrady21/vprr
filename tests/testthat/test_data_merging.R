@@ -18,6 +18,6 @@ test_that("CTD and ROI data merges",{
   expect_true(min(roi_dat_combine$time_ms) > min(ctd_roi_merge$time_ms)) # check that all ROI data is within CTD time range
   # expect_true(max(roi_dat_combine$time_ms) < max(ctd_roi_merge$time_ms)) # not true for sample data because of subsetting
 
-
+  # check for NAs
 
 })

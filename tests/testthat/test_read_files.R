@@ -18,12 +18,12 @@ col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", 
               "turbidity_ref", "turbidity_mv", "altitude_NA")
 # read raw ctd files
 
-raw1 <- readLines( ctd_files[1])
+raw1 <- readLines(ctd_files[1])
 raw2 <- readLines(ctd_files[2])
 
 # CTD file read in
 test_that("CTD files are read in accurately",{
-  expect_warning( vpr_ctd_read(ctd_files, station_of_interest), 'CTD data columns named based on 2019 defaults!') # produces warning about column names
+  expect_warning(vpr_ctd_read(ctd_files, station_of_interest), 'CTD data columns named based on 2019 defaults!') # produces warning about column names
   expect_error(vpr_ctd_read(no_ctd_files, station_of_interest)) # error when no files given
   expect_silent(ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest, col_list = col_list )) # no warnings when col_list is specififed
 

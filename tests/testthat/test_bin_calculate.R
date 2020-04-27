@@ -53,6 +53,9 @@ test_that('VPR data is properly binned',{
   expect_equal(length(taxa_conc_n[[1]])/length(taxas_list), length(vpr_depth_bin[[1]])) # same number of bins, just multiplied by number of taxa
   expect_identical(taxas_list, unique(taxa_conc_n$taxa)) # check that all taxa are included
 
+  # TODO: try and test concentration calculation...
+
+
   # bin size data
   expect_message(size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest))
   expect_true(is.data.frame(size_df_f))
