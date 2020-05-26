@@ -1,13 +1,6 @@
-# Functions for analysis and visualization of VPR data
-# E Chisholm, K Sorochan
-# May 2019
-
-# Last updated
-# January 2020
-
-
 ##### Import packages ####
-#' VPR processing functions depend on these packages
+#' Packages
+#'  VPR processing functions depend on these packages
 #'
 #'These packages are needed!
 #'
@@ -15,6 +8,7 @@
 #' @importFrom graphics hist par plot.new
 #' @importFrom stats aggregate median quantile
 #' @importFrom utils menu read.csv read.table write.table
+#'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
 #'
@@ -492,6 +486,7 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
 #'
 #'
 bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
+
 
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
@@ -995,11 +990,14 @@ normalize_matrix <- function(mat){
 #'@param taxa list of character elements containing taxa of interest
 #'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
 #'
-#' @examples
-#' \dontrun{
-#'
-#' }
 #' @export
+
+
+# @examples
+# \dontrun{
+#
+# }
+
 vpr_trrois_size <- function(directory, taxa, opticalSetting){
 
   #loop for each taxa of interest
@@ -2749,20 +2747,20 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #'
 
 
-  #'      #### examples
-  #' #determine range of interest
-  #' mid <- as.numeric(readline('Minimum depth of interest? '))
-  #' mad <- as.numeric(readline('Maximum depth of interest? '))
-  #' #run image exploration
-  #' roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad,
-  #' roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
-  #'
-  #' #copy image files into new directory to be browsed
-  #' roi_file_unlist <- unlist(roi_files)
-  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, ''))
-  #' dir.create(newdir)
-  #' file.copy(roi_file_unlist, newdir)
-  #'
+  #      #### examples
+  # #determine range of interest
+  # mid <- as.numeric(readline('Minimum depth of interest? '))
+  # mad <- as.numeric(readline('Maximum depth of interest? '))
+  # #run image exploration
+  # roi_files <- vpr_img_depth(all_dat, min.depth = mid, max.depth = mad,
+  # roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list')
+  #
+  # #copy image files into new directory to be browsed
+  # roi_file_unlist <- unlist(roi_files)
+  # newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, ''))
+  # dir.create(newdir)
+  # file.copy(roi_file_unlist, newdir)
+  #
 
   data_filtered <- data %>%
     dplyr::filter(., pressure >= min.depth) %>%
@@ -2841,22 +2839,22 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #'
   #' @export
   #'
-  #'  ### examples
-  #' #determine range of interest
-  #' mid <- as.numeric(readline('Minimum depth of interest? '))
-  #' mad <- as.numeric(readline('Maximum depth of interest? '))
-  #' #run image exploration
-  #' roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad,
-  #' roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list',
-  #' taxa = 'Calanus')
-  #'
-  #' #copy image files into new directory to be browsed
-  #' roi_file_unlist <- unlist(roi_files)
-  #' newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', taxa))
-  #' dir.create(newdir)
-  #' file.copy(roi_file_unlist, newdir)
-  #'
-  #'
+  #  ### examples
+  # #determine range of interest
+  # mid <- as.numeric(readline('Minimum depth of interest? '))
+  # mad <- as.numeric(readline('Maximum depth of interest? '))
+  # #run image exploration
+  # roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad,
+  # roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list',
+  # taxa = 'Calanus')
+  #
+  # #copy image files into new directory to be browsed
+  # roi_file_unlist <- unlist(roi_files)
+  # newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', taxa))
+  # dir.create(newdir)
+  # file.copy(roi_file_unlist, newdir)
+  #
+  #
 
   if(length(taxa_of_interest) > 1){
     stop("Only explore one taxa at a time!")
