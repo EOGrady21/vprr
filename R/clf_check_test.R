@@ -50,7 +50,8 @@ vpr_manual_classification <-
     #'       \item show ROI number for image somewhere for reference when in doubt of classification
     #'       }
 
-
+# avoid CRAN notes
+    hr <- NA
 
     day_hour <- paste0('d', day, '.h', hr)
 
@@ -292,7 +293,8 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
   #'
   #'@export
 
-
+  # avoid CRAN notes
+  . <- day <- hour <- NA
   taxaNames <- list.files(basepath)
 
   # find aid txt files

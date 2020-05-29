@@ -123,6 +123,8 @@ if(missing(metadata)){
 #' @export
 
 vpr_ctd_ymd <- function(data, year, offset){
+  # avoid CRAN notes
+  . <- time_ms <- NA
 
   d <- grep(names(data), pattern = 'avg_hr')
   if(length(d) == 0){
@@ -243,6 +245,8 @@ vpr_size_bin <- function(data_all, bin_mea){
 #'
 vpr_ctdroisize_merge <- function(data, data_mea, taxa_of_interest){
 
+  # avoid CRAN notes
+  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- taxa <- NA
 
 data <- data[!duplicated(data$time_ms),]
 
@@ -376,6 +380,8 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize, imageVolume){
 
+  # avoid CRAN notes
+  . <- NA
   # check that taxa exist for this station
 
   taxa_in_data <- names(data) %in% taxas_list
@@ -422,6 +428,7 @@ vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize
 #'
 #' @export
 concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE){
+  . <- NA # avoid CRAN notes
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   nontaxa <-
@@ -487,7 +494,7 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
 #'
 bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
-
+. <- avg_hr <- conc_m3 <- NA
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
@@ -570,6 +577,9 @@ vpr_oce_create <- function(data){
 
 vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
 
+  # avoid CRAN notes
+  . <- NA
+
 if(length(ctd_files) == 0){
   stop('No CTD files provided!')
 }
@@ -646,6 +656,8 @@ if(length(ctd_files) == 0){
 #'
 vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 
+  # avoid CRAN notes
+  . <- roi <- NA
   # First subset ctd data by roi id
   ctd_time <- ctd_dat_combine$time_ms
   roi_time <- as.numeric(roi_dat_combine$time_ms)
@@ -750,6 +762,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #' @export
 vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
+  # avoid CRAN notes
+  . <- roi <- taxa <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
 if( export == 'aidmeas'){
   if (missing(opticalSetting)){
     opticalSetting <- NA
@@ -1245,6 +1259,9 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 #'
 #' @export
 vpr_dayhour <- function(stations, file) {
+
+  # avoid CRAN notes
+  . <- station <- NA
 
   #####DEFINE FOR MULTIPLE STATIONS
   stations_of_interest <- stations
@@ -1779,6 +1796,9 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
   #' @export
   #browser()
 
+  # avoid CRAN notes
+  . <- day <- hour <- NA
+
   .Deprecated('vpr_autoid_read')
 
   auto_measure_mm_alltaxa_ls <- list()
@@ -1932,6 +1952,8 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 #'
 vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
+  # avoid CRAN notes
+  . <- NA
   data <- x
   taxa <- unique(data$taxa)
 
@@ -1975,6 +1997,8 @@ isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
   #' @note: modified from source:\url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
   #' @export
 
+  # avoid CRAN notes
+  density <- NA
 
   TS <- expand.grid(
     sal = seq(floor(min(sal, na.rm = TRUE)), ceiling(max(sal, na.rm = TRUE)), length.out = 100),
@@ -2030,7 +2054,8 @@ vpr_plot_TS <- function(x, reference.p = 0, var){
   #'
   #'@export
 
-
+# avoid CRAN notes
+  p <- NA
 
   #get isopycnal lines
   sal <-  x$salinity
@@ -2135,7 +2160,8 @@ vpr_plot_TScat <- function(x, reference.p = 0){
   #'
   #'@export
 
-
+# avoid CRAN notes
+  density <- salinity <- temperature <- calanus <- chaetognaths <- small_copepod <- krill <- echinoderm_larvae <- NA
 
   #get isopycnal lines
   sal <-  x$salinity
@@ -2246,6 +2272,9 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = T, threshold = NULL){
   #' @export
 
   #check dimensions
+
+  # avoid CRAN notes
+  Var1 <- Var2 <- Freq <- NA
 
   # TODO check that this function runs , removed require(stringr), cant find stringr function
 
@@ -2386,6 +2415,8 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = 
   #'
   #' @export
 
+  # avoid CRAN notes
+  Var1 <- Var2 <- Freq <- taxas <- NA
   dimcm <- dim(cm)
   #remove total columns
   conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
@@ -2480,7 +2511,8 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #' @export
 
 
-
+ # avoid CRAN notes
+  x <- y <- z <- NA
   #interpolate
   #use interp package rather than akima to avoid breaking R
   #ref: https://www.user2017.brussels/uploads/bivand_gebhardt_user17_a0.pdf
@@ -2546,6 +2578,9 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 #' @export
 
 vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot, plot_conc){
+
+  # avoid CRAN notes
+  temperature <- depth <- salinity <- fluorescence <- density <- conc_m3 <- pressure <- NA
 # plot temp
 p <- ggplot(taxa_conc_n) +
   geom_point(aes(x = temperature, y = depth), col = 'red') +
@@ -2762,6 +2797,9 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   # file.copy(roi_file_unlist, newdir)
   #
 
+  # avoid CRAN notes
+  . <- pressure <- roi <- NA
+
   data_filtered <- data %>%
     dplyr::filter(., pressure >= min.depth) %>%
     dplyr::filter(., pressure <= max.depth)
@@ -2856,6 +2894,8 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #
   #
 
+  # avoid CRAN notes
+  . <- pressure <- taxa <- roi <- NA
   if(length(taxa_of_interest) > 1){
     stop("Only explore one taxa at a time!")
   }
