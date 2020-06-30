@@ -3,6 +3,4 @@ addons:
   apt:
     packages: libmagick++-dev
 notifications:
-  slack:
-    rooms:
-	  - biozooplanktonlab:lOhK5bfxMxUVKqFFQZIlr8yD#vprr
+  slack: biozooplanktonlab:lOhK5bfxMxUVKqFFQZIlr8yD
