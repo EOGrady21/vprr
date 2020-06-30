@@ -158,7 +158,7 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   # usethis::use_data(vpr_depth_bin, overwrite = TRUE)
 
   # get list of valid taxa
-  # taxas_list <- unique(roimeas_dat_combine$taxa)
+   taxas_list <- unique(roimeas_dat_combine$taxa)
 
   # bin and calculate concentrations for each category
   taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
