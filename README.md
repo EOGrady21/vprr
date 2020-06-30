@@ -39,9 +39,9 @@ Plankton (VP), a MatLab image classification software. Although not
 dependent on any specific elements of VP, the data processing is
 designed around VP file formats and directory structures.
 
-Visual Plankton code can be found:
-(<https://gccode.ssc-spc.gc.ca/dfo-mar-odis/visual-plankton/matlab>).
-For permission to view the linked project on GC code, contact
+Visual Plankton code can be found: On GC code (for internal DFO users),
+within the dfo-mar-odis group, and ‘visual plankton’ project. For
+permission to view the project on GC code, contact
 <DataServicesDonnees@dfo-mpo.gc.ca>.
 
 ![](vignettes/vp_flowchart.png) Figure 1. VPR data processing flow
