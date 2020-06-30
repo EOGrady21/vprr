@@ -152,19 +152,19 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   usethis::use_data(ctd_roi_oce, overwrite = TRUE)
 
   # bin and calculate concentration for all taxa (combined)
-  vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
+  # vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
 
   # save(vpr_depth_bin, file = paste0(save_dir, 'bin_vpr_data.RData'))
   # usethis::use_data(vpr_depth_bin, overwrite = TRUE)
 
   # get list of valid taxa
-  taxas_list <- unique(roimeas_dat_combine$taxa)
+  # taxas_list <- unique(roimeas_dat_combine$taxa)
 
   # bin and calculate concentrations for each category
-  #taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
+  taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
 
   # save(taxa_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
-  #usethis::use_data(taxa_conc_n, overwrite = TRUE)
+  usethis::use_data(taxa_conc_n, overwrite = TRUE)
 
 
   # bin size data
