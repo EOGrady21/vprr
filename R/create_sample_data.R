@@ -151,6 +151,7 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   # save(ctd_roi_oce, file = paste0(save_dir, 'vpr_oce_create.RData'))
   usethis::use_data(ctd_roi_oce, overwrite = TRUE)
 
+
   # bin and calculate concentration for all taxa (combined)
   # vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
 
