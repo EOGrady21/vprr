@@ -27,7 +27,7 @@ vpr_roi_concentration(
 Calculates concentrations for each named taxa in dataframe
 }
 \examples{
-
+\dontrun{
 data('ctd_roi_merge')
 ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
 
@@ -38,5 +38,5 @@ imageVolume <- 83663
 
 taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
 station_of_interest, binSize, imageVolume)
-
+}
 }
