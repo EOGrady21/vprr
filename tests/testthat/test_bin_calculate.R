@@ -31,9 +31,9 @@ test_that('VPR data is properly binned',{
 
 
   # bin and calculate concentration for all taxa (combined)
-  expect_silent(vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume))
-  expect_true(max(vpr_depth_bin$depth_diff) < binSize) # check that bin size is enforced
-  expect_true(diff(vpr_depth_bin$depth)[1] >0) # check that depth is increasing
+  # expect_silent(vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume))
+  # expect_true(max(vpr_depth_bin$depth_diff) < binSize) # check that bin size is enforced
+  # expect_true(diff(vpr_depth_bin$depth)[1] >0) # check that depth is increasing
 
   # test reversed bins
   expect_silent(vpr_depth_bin_rev <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume, rev = TRUE))
