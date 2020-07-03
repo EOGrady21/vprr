@@ -363,7 +363,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #'
 #' @examples
-#'
+#' \dontrun{
 #' data('ctd_roi_merge')
 #' ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
@@ -374,7 +374,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 #' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
 #' station_of_interest, binSize, imageVolume)
-#'
+#' }
 #'@export
 #'
 #'
