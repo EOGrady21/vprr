@@ -36,22 +36,22 @@ test_that('VPR data is properly binned',{
   # expect_true(diff(vpr_depth_bin$depth)[1] >0) # check that depth is increasing
 
   # test reversed bins
-  expect_silent(vpr_depth_bin_rev <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume, rev = TRUE))
-  expect_true(max(vpr_depth_bin_rev$depth_diff) < binSize) # check that bin size is enforced
-  expect_true(diff(vpr_depth_bin_rev$depth)[1] >0) # check that depth is increasing
-
-  expect_true(max(vpr_depth_bin_rev$max_depth) > max(vpr_depth_bin$max_depth)) # max bin depth should be greater if bins are reversed
-  expect_true(min(vpr_depth_bin$min_depth) < min(vpr_depth_bin_rev$min_depth)) # min bin depth should be greater with reversed bins
-  expect_equal(vpr_depth_bin$max_cast_depth, vpr_depth_bin_rev$max_cast_depth) # max cast depth should not change
-
-
-  taxas_list <- unique(roimeas_dat_combine$taxa)
-
-  # bin and calculate concentrations for each category
-  expect_silent(taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume))
-  expect_true(is.data.frame(taxa_conc_n)) # check output is data frame
-  expect_equal(length(taxa_conc_n[[1]])/length(taxas_list), length(vpr_depth_bin[[1]])) # same number of bins, just multiplied by number of taxa
-  expect_identical(taxas_list, unique(taxa_conc_n$taxa)) # check that all taxa are included
+  # expect_silent(vpr_depth_bin_rev <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume, rev = TRUE))
+  # expect_true(max(vpr_depth_bin_rev$depth_diff) < binSize) # check that bin size is enforced
+  # expect_true(diff(vpr_depth_bin_rev$depth)[1] >0) # check that depth is increasing
+  #
+  # expect_true(max(vpr_depth_bin_rev$max_depth) > max(vpr_depth_bin$max_depth)) # max bin depth should be greater if bins are reversed
+  # expect_true(min(vpr_depth_bin$min_depth) < min(vpr_depth_bin_rev$min_depth)) # min bin depth should be greater with reversed bins
+  # expect_equal(vpr_depth_bin$max_cast_depth, vpr_depth_bin_rev$max_cast_depth) # max cast depth should not change
+  #
+  #
+  # taxas_list <- unique(roimeas_dat_combine$taxa)
+  #
+  # # bin and calculate concentrations for each category
+  # expect_silent(taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume))
+  # expect_true(is.data.frame(taxa_conc_n)) # check output is data frame
+  # expect_equal(length(taxa_conc_n[[1]])/length(taxas_list), length(vpr_depth_bin[[1]])) # same number of bins, just multiplied by number of taxa
+  # expect_identical(taxas_list, unique(taxa_conc_n$taxa)) # check that all taxa are included
 
   # TODO: try and test concentration calculation...
 
