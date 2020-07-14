@@ -4,7 +4,9 @@
 \name{size_df_f}
 \alias{size_df_f}
 \title{VPR size information dataframe}
-\format{An object of class \code{data.frame} with 14 rows and 14 columns.}
+\format{
+An object of class \code{data.frame} with 14 rows and 14 columns.
+}
 \usage{
 size_df_f
 }

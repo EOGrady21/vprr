@@ -4,7 +4,8 @@
 \name{ctd_roi_merge}
 \alias{ctd_roi_merge}
 \title{VPR CTD data combined with tabulated ROIs}
-\format{A dataframe with 28 variables
+\format{
+A dataframe with 28 variables
   \describe{
      \item{time_ms}{Time stamp when ROI was collected (milliseconds)}
      \item{conductivity}{Conductivity collected by the VPR CTD}
@@ -25,7 +26,8 @@
      \item{categories}{For each category name (eg. bad_image_blurry, Calanus, krill), there is a line in the dataframe representing the number of ROIs identified in this category}
      \item{n_roi_total}{Total number of ROIs in all categories for each CTD data point}
 
-  }}
+  }
+}
 \usage{
 ctd_roi_merge
 }

@@ -4,7 +4,8 @@
 \name{ctd_dat_combine}
 \alias{ctd_dat_combine}
 \title{VPR CTD data}
-\format{A dataframe with 15 variables
+\format{
+A dataframe with 15 variables
    \describe{
      \item{time_ms}{Time stamp when ROI was collected (milliseconds)}
      \item{conductivity}{Conductivity collected by the VPR CTD}
@@ -21,7 +22,8 @@
      \item{station}{Station idnetifier provided during processing}
      \item{sigmaT}{Density caluclated from temperature, pressure and salinity data}
      \item{depth}{Depth in metres caluclated form pressure}
-   }}
+   }
+}
 \usage{
 ctd_dat_combine
 }

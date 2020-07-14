@@ -19,7 +19,7 @@
 #library(vprr)
 #library(dplyr)
 
-source('R/EC_functions.R')
+# source('R/EC_functions.R')
 
 #### FILE PATHS & SETTINGS --------------------------------------------------------------------------------------------------------------------
 # loads processing environment specific to user

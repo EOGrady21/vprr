@@ -4,7 +4,8 @@
 \name{taxa_conc_n}
 \alias{taxa_conc_n}
 \title{A binned data frame of concentration data per category}
-\format{A dataframe with 21 variables
+\format{
+A dataframe with 21 variables
 \describe{
     \item{depth}{Depth calculated from pressure in metres}
     \item{min_depth}{The minimum depth of the bin in metres}
@@ -29,7 +30,8 @@
   \item{max_cast_depth}{The maximum depth of the entire VPR cast}
   \item{taxa}{The category in which ROIs in bin have been classified by Visual Plankton}
   \item{station}{Station identifier provided during processing}
-}}
+}
+}
 \usage{
 taxa_conc_n
 }

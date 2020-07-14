@@ -2,3 +2,23 @@
 title: "cran-comments"
 output: html_document
 ---
+
+## Test environments
+* local Windows install, R 4.0.2
+* ubuntu 16.04 (on travis-ci), R 4.0.0
+
+
+## R CMD check results
+There were no ERRORs or WARNINGs. 
+
+There was 1 NOTE:
+* checking installed package size ... NOTE
+    installed size is  9.1Mb
+    sub-directories of 1Mb or more:
+      extdata   8.5Mb
+      
+        * The external data in this package has been cut down to a bare minimum but due to the nature of the data being processed by this package (images and video), the data is inherantly large and difficult to reduce any further
+        
+        
+  
+  * This is my first submission of a package to CRAN, thank you!

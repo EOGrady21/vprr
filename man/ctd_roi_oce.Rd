@@ -4,8 +4,10 @@
 \name{ctd_roi_oce}
 \alias{ctd_roi_oce}
 \title{VPR data including CTD and ROI information}
-\format{An oce package format, a 'CTD' object with VPR CTD and ROI data (1000
-  data rows)}
+\format{
+An oce package format, a 'CTD' object with VPR CTD and ROI data (1000
+  data rows)
+}
 \usage{
 ctd_roi_oce
 }

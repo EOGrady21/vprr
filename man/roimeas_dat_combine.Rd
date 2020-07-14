@@ -4,7 +4,8 @@
 \name{roimeas_dat_combine}
 \alias{roimeas_dat_combine}
 \title{VPR measurement data calculated by Visual Plankton}
-\format{A data frame with 12 variables
+\format{
+A data frame with 12 variables
   \describe{
     \item{roi}{Unique ROI identifier - 10 digit}
     \item{taxa}{Category in which ROI has been classified by Visual Plankton}
@@ -18,7 +19,8 @@
     \item{long_axis_length}{The length in millimeters of the ROI along the longer axis}
     \item{station}{Station identifier provided in processing}
     \item{time_ms}{Time stamp when ROI was collected in milliseconds}
-  }}
+  }
+}
 \usage{
 roimeas_dat_combine
 }
