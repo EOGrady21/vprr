@@ -17,8 +17,14 @@ There was 1 NOTE:
     sub-directories of 1Mb or more:
       extdata   8.5Mb
       
+      
         * The external data in this package has been cut down to a bare minimum but due to the nature of the data being processed by this package (images and video), the data is inherantly large and difficult to reduce any further
         
         
+Note from RHub check
+  * Possibly mis-spelled words in DESCRIPTION:
+  Bedford (9:54)
+  WHOI (9:18)
+  * Bedford is a place name and WHOI is the name of a research institute
   
   * This is my first submission of a package to CRAN, thank you!

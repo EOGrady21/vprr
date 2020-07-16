@@ -6,3 +6,4 @@
 cran-comments.Rmd
 ^doc$
 ^Meta$
+^CRAN-RELEASE$
