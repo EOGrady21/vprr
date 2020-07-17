@@ -2,7 +2,26 @@
 title: "cran-comments"
 output: html_document
 ---
+07/17/2020
+From first submission:
 
+*   Found the following (possibly) invalid URLs:
+     URL: https://gccode.ssc-spc.gc.ca/dfo-mar-odis/visual-plankton/matlab
+       From: inst/doc/VPR_processing.html
+       Status: Error
+       Message: libcurl error code 28:
+                Failed to connect to gccode.ssc-spc.gc.ca port 443: Connection
+timed out
+
+  * removed URL
+  
+* Is there some reference about the method you can add in the Description
+field in the form Authors (year) <doi:.....>?
+
+  * As of now there is no published work to reference in the description. When a publication becomes available (likely before the next version of the package), I will update. 
+  
+---
+07/14/2020
 ## Test environments
 * local Windows install, R 4.0.2
 * ubuntu 16.04 (on travis-ci), R 4.0.0
