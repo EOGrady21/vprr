@@ -41,7 +41,7 @@ Visual Plankton outputs two text files (“aid” and “aidmeas” files) for e
 
 # Section 2: Summary of vprr data processing steps
 
-The processing steps in R can be sub dividided from the 'Post PRocessing and Visualization box in Figure 1.
+The processing steps in R can be sub divided from the 'Post Processing and Visualization box in Figure 1.
 
 ![ Figure 2. Processing steps in R using vprr. Blue boxes represent each section of processing, green ovals represent sub steps or routines within each step.](r_flowchart.png)
 
