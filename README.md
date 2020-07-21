@@ -34,8 +34,8 @@ devtools::install_github("Echisholm21/vprr")
 
 ## Details
 
-VPRR is designed to be used after processing VPR data with Visual
-Plankton (VP), a MatLab image classification software. Although not
+vprr is designed to be used after processing VPR data with Visual
+Plankton (VP), a Matlab image classification software. Although not
 dependent on any specific elements of VP, the data processing is
 designed around VP file formats and directory structures.
 
@@ -51,13 +51,13 @@ This package represents ‘Processing and Visualization (R)’.
 
 The first element of processing VPR data is to classify the images
 output. This can be done in VP, using machine learning techniques and
-then checked or manually edited in VPRR. VPRR uses a GUI function
+then checked or manually edited in vprr. vprr uses a GUI function
 `vpr_manual_classification` to allow a user to review and change image
 classifications.
 
 ![](vignettes/clf_check_3.png)
 
-Figure 2. A screenshot from VPRR manual reclassification. VPR images are
+Figure 2. A screenshot from vprr manual reclassification. VPR images are
 displayed in the RStudio Viewer, prompts are displayed in the RStudio
 console. Users are asked in VP classifications are correct, if not, they
 are asked to select the proper classification from a pre set list of
@@ -65,16 +65,18 @@ categories.
 
 Once images have been properly classified, all data sources are combined
 in order to analyze data and calculate relevant environmental metrics
-such as plankton concentration. Data files from CTD files
-(`vpr_ctd_read`) and image classification (`vpr_autoid_read`) can be
-read in and combined into easy to work with data frames. VPRR combines
-VPR CTD, and VPR image classifications into bins before calculating
-concentration (`vpr_roi_concentration`).
+such as plankton concentration. Data from CTD files (`vpr_ctd_read`) and
+image classification (`vpr_autoid_read`) can be read in and combined
+into easy to work with data frames. vprr combines VPR CTD, and VPR image
+classifications into depth bins before calculating concentration
+(`vpr_roi_concentration`).
 
 After data is processed, it can be visualized for easy interpretation.
 Although this package does not focus on plotting, it does provide some
 basic plotting structures for tow-yo VPR data (`vpr_plot_contour`).
 
-![](vignettes/conPlot_cal_dens.png) Figure 3. An example of
-visualization of VPR data showing calculated concentration of Calanus
-along the VPR tow-yo path, over density contours.
+![](vignettes/conPlot_cal_dens.png)
+
+Figure 3. An example of visualization of VPR data showing calculated
+concentration of Calanus along the VPR tow-yo path, over density
+contours.

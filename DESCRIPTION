@@ -4,7 +4,7 @@ Title: Processing and Visualization of Visual Plankton Recorder Data
 Version: 0.1.0
 Author: Emily Chisholm, Kevin Sorochan, Catherine Johnson
 Maintainer: Emily Chisholm <vprrcontact@gmail.com>
-Description: An oceanographic data processing package for analyzing and visualizing Visual 
+Description: An oceanographic data processing package for analyzing and visualizing Video 
     Plankton Recorder data. Works in concert with Visual Plankton (MATLAB) software 
     developed at WHOI. This package was developed at Bedford Institute of Oceanography.
     Functions are designed to process Visual Plankton output and create organized and 
