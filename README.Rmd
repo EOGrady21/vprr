@@ -54,7 +54,7 @@ The first element of processing VPR data is to classify the images output. This 
 Figure 2. A screenshot from vprr manual reclassification. VPR images are displayed in the RStudio Viewer, prompts are displayed in the RStudio console. Users are asked in VP classifications are correct, if not, they are asked to select the proper classification from a pre set list of categories.
 
 
-Once images have been properly classified, all data sources are combined in order to analyze data and calculate relevant environmental metrics such as plankton concentration. Data from CTD files (`vpr_ctd_read`) and image classification (`vpr_autoid_read`) can be read in and combined into easy to work with data frames. vprr combines VPR CTD, and VPR image classifications into depth bins before calculating concentration (`vpr_roi_concentration`). 
+Once images have been properly classified, all data sources are combined in order to analyze data and calculate relevant environmental metrics such as plankton concentration. Data from CTD files (`vpr_ctd_read`) and image classification (`vpr_autoid_read`) can be read in and combined into easy-to-use data frames. vprr combines VPR CTD, and VPR image classifications into depth bins before calculating concentration (`vpr_roi_concentration`). 
 
 After data is processed, it can be visualized for easy interpretation. Although this package does not focus on plotting, it does provide some basic plotting structures for tow-yo VPR data (`vpr_plot_contour`).
 

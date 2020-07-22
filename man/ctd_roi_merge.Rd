@@ -19,7 +19,7 @@ A dataframe with 28 variables
      \item{altitude_NA}{Altitude data from the VPR CTD}
      \item{day}{Day on which VPR data was collected (from AutoDeck)}
      \item{hour}{Hour during which VPR data was collected (from AutoDeck)}
-     \item{station}{Station idnetifier provided during processing}
+     \item{station}{Station identifier provided during processing}
      \item{sigmaT}{Density caluclated from temperature, pressure and salinity data}
      \item{depth}{Depth in metres caluclated form pressure}
      \item{roi}{ROI identification number}

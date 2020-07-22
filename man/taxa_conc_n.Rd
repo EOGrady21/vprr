@@ -15,7 +15,7 @@ A dataframe with 21 variables
     \item{max_time_s}{The maximum time in seconds of the bin}
     \item{time_diff_s}{The difference between minimum and maximum time in a bin, in seconds}
     \item{n_roi_bin}{The number of ROI observations in a bin}
-    \item{conc_m3}{The concentration of ROIs in a bin, caluclated based on image volume and number of frames per bin}
+    \item{conc_m3}{The concentration of ROIs in a bin, calculated based on image volume and number of frames per bin}
     \item{temperature}{Temperature measured from the VPR CTD in celsius (averaged within the bin)}
     \item{salinity}{Salinity measured from the VPR CTD (averaged within the bin)}
     \item{density}{sigma T density calculated from temperature, salinity and pressure (averaged within the bin)}
@@ -26,7 +26,7 @@ A dataframe with 21 variables
   \item{avg_hr}{The mean time in which bin data was collected, in hours}
   \item{n_frames}{The number of frames captured within a bin}
   \item{vol_sampled_bin_m3}{The volume of the bin sampled in metres cubed}
-  \item{toyo}{Identifier of the tow-yo section which bin is a part of, either ascending or desceding, appended by a number}
+  \item{toyo}{Identifier of the tow-yo section which bin is a part of, either ascending or descending, appended by a number}
   \item{max_cast_depth}{The maximum depth of the entire VPR cast}
   \item{taxa}{The category in which ROIs in bin have been classified by Visual Plankton}
   \item{station}{Station identifier provided during processing}
@@ -36,7 +36,7 @@ A dataframe with 21 variables
 taxa_conc_n
 }
 \description{
-A 'binned' datframe from sample VPR data, including concentrations
+A 'binned' dataframe from sample VPR data, including concentrations
 of each category, where each data point represents a 5 metre bin of
  averaged VPR data. Produced using \code{\link{vpr_roi_concentration}}
 }

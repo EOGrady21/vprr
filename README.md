@@ -67,7 +67,7 @@ Once images have been properly classified, all data sources are combined
 in order to analyze data and calculate relevant environmental metrics
 such as plankton concentration. Data from CTD files (`vpr_ctd_read`) and
 image classification (`vpr_autoid_read`) can be read in and combined
-into easy to work with data frames. vprr combines VPR CTD, and VPR image
+into easy-to-use data frames. vprr combines VPR CTD, and VPR image
 classifications into depth bins before calculating concentration
 (`vpr_roi_concentration`).
 

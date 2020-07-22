@@ -26,7 +26,7 @@ processed using \code{\link{vpr_ctdroisize_merge}}
   (uncalibrated)}
   \item{turbidity_mv}{Turbidity measured by the VPR CTD in
   millivolts (uncalibrated)}
-  \item{roi}{Unique ROI identfication number - 10
+  \item{roi}{Unique ROI identification number - 10
   digits, 8 digit millisecond time stamp and two unique digits to denote
   multiple ROIs within a millisecond}
   \item{taxa}{Category in which ROI has
