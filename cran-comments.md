@@ -22,8 +22,21 @@ the user. That's why wrapping examples in \dontrun{} adds the comment
 Does not seem necessary.
 Please unwrap the examples if they are executable in < 5 sec, or replace
 \dontrun{} with \donttest{}.
+          * There are 3 examples which use \dontrun{} due to their external file requirements, the examples show only how a user would call a list of files in and read them but the files are not provided within the package (to keep package size to a minimum)
+      
 
-
+* You write information messages to the console that cannot be easily
+suppressed.
+        * print() and cat() commands have been changed to message() or warning() where possible. Some functions use cat() because they do not actually print messages to the console but they create diagnostic text files for the user during complex procedures. Other functions are interactive and require user input.
+        
+        
+* Please make sure that you do not change the user's options, par or
+working directory.
+        * The only instance of par being changed has been edited to include a reverting to the user's original par on exit.
+        
+        
+* Is this email adress a mailing list?
+        * No this email is not a mailing list, we used a generic 'vprrcontact' because this is a collaborative project with multiple people needing access.
 
 
 
