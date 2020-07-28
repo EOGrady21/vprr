@@ -38,13 +38,14 @@ Full paths to each file should be specified
 \examples{
 \dontrun{
 station_of_interest <- 'test'
+dayhour <- c('d222.h03', 'd222.h04')
 
 #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
 opticalSetting <- "S2"
 imageVolume <- 83663 #mm^3
 
 auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
-auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 
 #'   # Path to aid for each taxa
 aid_path <- paste0(auto_id_path, '/aid/')

@@ -2,6 +2,31 @@
 title: "cran-comments"
 output: html_document
 ---
+07/28/2020
+Notes from second submission:
+
+* If there are references describing the methods in your package, please
+add these in the description field of your DESCRIPTION file in the form
+authors (year) doi:...
+        *  As of now there is no published work to reference in the description. When a publication becomes available (likely before the next version of the package), I will update. 
+
+* Please rather use the Authors@R field and declare Maintainer, Authors
+and Contributors with their appropriate roles with person() calls.
+        * Adjusted, thanks!
+        
+
+* \dontrun{} should only be used if the example really cannot be executed
+(e.g. because of missing additional software, missing API keys, ...) by
+the user. That's why wrapping examples in \dontrun{} adds the comment
+("# Not run:") as a warning for the user.
+Does not seem necessary.
+Please unwrap the examples if they are executable in < 5 sec, or replace
+\dontrun{} with \donttest{}.
+
+
+
+
+
 07/17/2020
 From first submission:
 

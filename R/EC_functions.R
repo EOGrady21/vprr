@@ -374,7 +374,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 #' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
 #' station_of_interest, binSize, imageVolume)
-#' }
+#' #}
 #'@export
 #'
 #'
@@ -710,13 +710,14 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #' @examples
 #' \dontrun{
 #' station_of_interest <- 'test'
+#' dayhour <- c('d222.h03', 'd222.h04')
 #'
 #' #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
 #' opticalSetting <- "S2"
 #' imageVolume <- 83663 #mm^3
 #'
 #' auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
-#' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
+#' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 #'
 #' #'   # Path to aid for each taxa
 #' aid_path <- paste0(auto_id_path, '/aid/')
@@ -1132,7 +1133,7 @@ if (rev == TRUE){
     # informs user where bins were removed due to NAs
     # note if a bin is 'NA' typically because there is no valid data in that depth range,
     # if you have a lot of NA bins, think about increasing your binSize
-    print(paste('Removed bins at', depth[idx_rm]))
+    message(paste('Removed bins at', depth[idx_rm]))
 
     lp <- length(depth)
     depth <- depth[-idx_rm]
@@ -1952,6 +1953,9 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 #'
 vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+
   # avoid CRAN notes
   . <- NA
   data <- x
@@ -2702,7 +2706,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
   #for example to check the accuracy of an automatic ID scheme)
   tt <- grep(files, pattern = 'misclassified')
   if (length(tt) > 0 ){
-    print(paste('Warning, misclassified files found for ', taxa_of_interest))
+    warning(paste('misclassified files found for ', taxa_of_interest))
     ans <- readline('Would you like to include these files? (y/n)
                     *NOTE, looking at misclassified images will show you images that were removed from you taxa of interest
                     during reclassification, this may be useful to get an idea of the accuracy of your automatic
@@ -2716,8 +2720,8 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
     }
   }
 
-  print(paste('>>>>>', files, 'found for', taxa_of_interest, ' in ', day_hour, '!'))
-  print('>>>>> Copying images now!')
+  message(paste('>>>>>', files, 'found for', taxa_of_interest, ' in ', day_hour, '!'))
+  message('>>>>> Copying images now!')
 
 
 
@@ -2748,7 +2752,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
 
       print(paste(iii, '/', length(new_roi_path),' completed!'))
     }
-print(paste('Images saved to ', roi_folder))
+message(paste('Images saved to ', roi_folder))
   }
 
 
@@ -2816,7 +2820,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   for (i in 1:length(roi_files)){
     roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
     if (length(roi_file_list[[i]]) >= 1){
-      print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
+      message(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
     }else{
       warning('No file found in directory (', roiFolder, ')  matching ', roi_files[i])
     }
