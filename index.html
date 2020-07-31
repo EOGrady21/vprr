@@ -97,8 +97,8 @@
 <div id="details" class="section level2">
 <h2 class="hasAnchor">
 <a href="#details" class="anchor"></a>Details</h2>
-<p>vprr is designed to be used after processing VPR data with Visual Plankton (VP), a Matlab image classification software. Although not dependent on any specific elements of VP, the data processing is designed around VP file formats and directory structures.</p>
-<p>Visual Plankton code can be found: On GC code (for internal DFO users), within the dfo-mar-odis group, and ‘visual plankton’ project. For permission to view the project on GC code, contact <a href="mailto:DataServicesDonnees@dfo-mpo.gc.ca" class="email">DataServicesDonnees@dfo-mpo.gc.ca</a>.</p>
+<p>vprr is designed to be used after processing VPR data with Visual Plankton (VP), a Matlab image classification software. Although not dependent on any specific elements of VP, the data processing is designed around VP file formats and directory structures. Visual Plankton code can be found: On GC code (for internal DFO users), within the dfo-mar-odis group, and ‘visual plankton’ project. For permission to view the project on GC code, contact <a href="mailto:DataServicesDonnees@dfo-mpo.gc.ca" class="email">DataServicesDonnees@dfo-mpo.gc.ca</a>.</p>
+<p>All the technical details of vprr can we found in the package vignette, available through Rstudio or at <a href="https://echisholm21.github.io/vprr/" class="uri">https://echisholm21.github.io/vprr/</a> (under Articles).</p>
 <p><img src="articles/vp_flowchart.png"> Figure 1. VPR data processing flow chart. Blue boxes represent software, green and yellow boxes represent data sets, where yellow is visual data and green is text format data. This package represents ‘Processing and Visualization (R)’.</p>
 <p>The first element of processing VPR data is to classify the images output. This can be done in VP, using machine learning techniques and then checked or manually edited in vprr. vprr uses a GUI function <code>vpr_manual_classification</code> to allow a user to review and change image classifications.</p>
 <p><img src="articles/clf_check_3.png"></p>
