@@ -374,7 +374,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 #' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
 #' station_of_interest, binSize, imageVolume)
-#' #}
+#' }
 #'@export
 #'
 #'
@@ -1074,7 +1074,7 @@ vpr_trrois_size <- function(directory, taxa, opticalSetting){
 #'
 bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
-
+# browser()
   cast_id <-unique(data$cast_id)
 
 
