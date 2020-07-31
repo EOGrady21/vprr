@@ -32,3 +32,5 @@ Suggests:
     testthat,
     akima
 VignetteBuilder: knitr
+BuildVignettes: true
+Roxygen: list(markdown = TRUE)
