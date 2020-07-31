@@ -10,3 +10,4 @@ cran-comments.Rmd
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^\.github$
