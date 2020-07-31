@@ -4,6 +4,6 @@
 ^README\.Rmd$
 ^\.travis\.yml$
 cran-comments.Rmd
-^doc$
 ^Meta$
 ^CRAN-RELEASE$
+^doc$
