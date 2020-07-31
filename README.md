@@ -47,10 +47,12 @@ All the technical details of vprr can we found in the package vignette,
 available through Rstudio or at <https://echisholm21.github.io/vprr/>
 (under Articles).
 
-![](vignettes/vp_flowchart.png) Figure 1. VPR data processing flow
-chart. Blue boxes represent software, green and yellow boxes represent
-data sets, where yellow is visual data and green is text format data.
-This package represents ‘Processing and Visualization (R)’.
+![](vignettes/vp_flowchart.png)
+
+Figure 1. VPR data processing flow chart. Blue boxes represent software,
+green and yellow boxes represent data sets, where yellow is visual data
+and green is text format data. This package represents ‘Processing and
+Visualization (R)’.
 
 The first element of processing VPR data is to classify the images
 output. This can be done in VP, using machine learning techniques and
