@@ -10,3 +10,4 @@ cran-comments.Rmd
 ^docs$
 ^pkgdown$
 ^\.github$
+^doc$
