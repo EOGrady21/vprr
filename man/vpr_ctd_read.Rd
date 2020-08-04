@@ -31,12 +31,14 @@ based on the specific instrument and should be updated/confirmed before processi
 from a new VPR.
 }
 \examples{
-\dontrun{
+
 station_of_interest <- 'test'
-ctd_files <- list() # list ctd files
+
+ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat",
+package = "vprr", mustWork = TRUE)
 
 ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
-}
+
 }
 \author{
 E. Chisholm & K. Sorochan

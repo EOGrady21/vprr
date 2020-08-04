@@ -567,12 +567,14 @@ vpr_oce_create <- function(data){
 #' @param col_list Optional list of CTD data column names
 #'
 #' @examples
-#' \dontrun{
+#'
 #' station_of_interest <- 'test'
-#' ctd_files <- list() # list ctd files
+#'
+#' ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat",
+#' package = "vprr", mustWork = TRUE)
 #'
 #' ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
-#' }
+#'
 #' @export
 
 vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
@@ -708,7 +710,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'@note Full paths to each file should be specified
 #'
 #' @examples
-#' \dontrun{
+#'
 #' station_of_interest <- 'test'
 #' dayhour <- c('d222.h03', 'd222.h04')
 #'
@@ -716,7 +718,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #' opticalSetting <- "S2"
 #' imageVolume <- 83663 #mm^3
 #'
-#' auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+#' auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
 #' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 #'
 #' #'   # Path to aid for each taxa
@@ -759,7 +761,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'     opticalSetting = opticalSetting,
 #'     warn = FALSE
 #'  )
-#'}
+#'
 #' @export
 vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 

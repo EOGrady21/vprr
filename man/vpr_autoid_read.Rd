@@ -36,7 +36,7 @@ Only outputs either ROI string information OR measurement data but both file typ
 Full paths to each file should be specified
 }
 \examples{
-\dontrun{
+
 station_of_interest <- 'test'
 dayhour <- c('d222.h03', 'd222.h04')
 
@@ -44,7 +44,7 @@ dayhour <- c('d222.h03', 'd222.h04')
 opticalSetting <- "S2"
 imageVolume <- 83663 #mm^3
 
-auto_id_folder <- 'inst/extdata/COR2019002/autoid/'
+auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
 auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 
 #'   # Path to aid for each taxa
@@ -87,7 +87,7 @@ roimeas_dat_combine <-
     opticalSetting = opticalSetting,
     warn = FALSE
  )
-}
+
 }
 \author{
 E. Chisholm & K. Sorochan
