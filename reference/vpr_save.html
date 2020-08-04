@@ -149,19 +149,19 @@ generic metadata requirements.</p></td>
     <p>an oce CTD object with all VPR data as well as metadata</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>This function will pass a VPR data frame object to an `oce` object.
-  Using an `oce` object as the default export format for VPR data allows for
-  metadata and data to be kept in the same, space efficient file, and avoid
-  redundancy in the data frame. The function check for data parameters that
-  may actually be metadata parameters (rows which have the same value
-  repeated for every observation). These parameters will automatically be
-  copied into the metadata slot of the `oce` object. The function will also
-  prompt for a variety of required metadata fields. Depending on specific
-  research / archiving requirements, these metadata parameters could be
-  updated by providing the argument `metadata`.</p>
+    <p>This function will pass a VPR data frame object to an <code>oce</code> object.
+Using an <code>oce</code> object as the default export format for VPR data allows for
+metadata and data to be kept in the same, space efficient file, and avoid
+redundancy in the data frame. The function check for data parameters that
+may actually be metadata parameters (rows which have the same value
+repeated for every observation). These parameters will automatically be
+copied into the metadata slot of the <code>oce</code> object. The function will also
+prompt for a variety of required metadata fields. Depending on specific
+research / archiving requirements, these metadata parameters could be
+updated by providing the argument <code>metadata</code>.</p>
 <p>Default metadata parameters include 'deploymentType', 'waterDepth',
-  'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
-  'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.</p>
+'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
+'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='st'>"taxa_conc_n"</span>)

@@ -162,7 +162,18 @@
 
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"></pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='st'>'ctd_roi_merge'</span>)
+<span class='no'>ctd_roi_merge</span>$<span class='no'>avg_hr</span> <span class='kw'>&lt;-</span> <span class='no'>ctd_roi_merge</span>$<span class='no'>time_ms</span> /<span class='fl'>3.6e+06</span>
+
+<span class='no'>taxas_list</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>'Calanus'</span>, <span class='st'>'krill'</span>)
+<span class='no'>binSize</span> <span class='kw'>&lt;-</span> <span class='fl'>5</span>
+<span class='no'>station_of_interest</span> <span class='kw'>&lt;-</span> <span class='st'>'test'</span>
+<span class='no'>imageVolume</span> <span class='kw'>&lt;-</span> <span class='fl'>83663</span>
+
+<span class='no'>taxa_conc_n</span> <span class='kw'>&lt;-</span> <span class='fu'>vpr_roi_concentration</span>(<span class='no'>ctd_roi_merge</span>, <span class='no'>taxas_list</span>,
+<span class='no'>station_of_interest</span>, <span class='no'>binSize</span>, <span class='no'>imageVolume</span>)</div><div class='output co'>#&gt; <span class='message'>Removed bins at 7.5Removed bins at 12.5Removed bins at 17.5Removed bins at 22.5Removed bins at 27.5Removed bins at 32.5Removed bins at 37.5Removed bins at 42.5Removed bins at 47.5</span></div><div class='output co'>#&gt; <span class='message'>Removed bins at 10.5</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Cast descending_3 is too small to calculate information for bins of size 5</span></div><div class='output co'>#&gt; <span class='message'>Removed bins at 7.5Removed bins at 12.5Removed bins at 17.5Removed bins at 22.5Removed bins at 27.5Removed bins at 32.5Removed bins at 37.5Removed bins at 42.5Removed bins at 47.5</span></div><div class='output co'>#&gt; <span class='message'>Removed bins at 10.5</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Cast descending_3 is too small to calculate information for bins of size 5</span></div><div class='input'>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
