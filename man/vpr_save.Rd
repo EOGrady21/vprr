@@ -20,20 +20,20 @@ an oce CTD object with all VPR data as well as metadata
 Save VPR data as an \link[oce]{as.oce} object
 }
 \details{
-This function will pass a VPR data frame object to an `oce` object.
-  Using an `oce` object as the default export format for VPR data allows for
-  metadata and data to be kept in the same, space efficient file, and avoid
-  redundancy in the data frame. The function check for data parameters that
-  may actually be metadata parameters (rows which have the same value
-  repeated for every observation). These parameters will automatically be
-  copied into the metadata slot of the `oce` object. The function will also
-  prompt for a variety of required metadata fields. Depending on specific
-  research / archiving requirements, these metadata parameters could be
-  updated by providing the argument `metadata`.
+This function will pass a VPR data frame object to an \code{oce} object.
+Using an \code{oce} object as the default export format for VPR data allows for
+metadata and data to be kept in the same, space efficient file, and avoid
+redundancy in the data frame. The function check for data parameters that
+may actually be metadata parameters (rows which have the same value
+repeated for every observation). These parameters will automatically be
+copied into the metadata slot of the \code{oce} object. The function will also
+prompt for a variety of required metadata fields. Depending on specific
+research / archiving requirements, these metadata parameters could be
+updated by providing the argument \code{metadata}.
 
-  Default metadata parameters include 'deploymentType', 'waterDepth',
-  'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
-  'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
+Default metadata parameters include 'deploymentType', 'waterDepth',
+'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
+'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
 }
 \examples{
 data("taxa_conc_n")

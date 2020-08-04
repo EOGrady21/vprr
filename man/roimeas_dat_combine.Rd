@@ -6,20 +6,20 @@
 \title{VPR measurement data calculated by Visual Plankton}
 \format{
 A data frame with 12 variables
-  \describe{
-    \item{roi}{Unique ROI identifier - 10 digit}
-    \item{taxa}{Category in which ROI has been classified by Visual Plankton}
-    \item{day_hour}{day and hour in which data was collected (from Autodeck)}
-    \item{Perimeter}{The perimeter of the ROI in millimeters}
-    \item{Area}{The area of the ROI in millimeters}
-    \item{width1}{Width at a first point of the ROI in millimetres (defined in more detail in VPR manual)}
-    \item{width2}{Width at a second point of the ROI in millimetres (defined in more detail in VPR manual)}
-    \item{width3}{Width at a third point of the ROI in millimetres (defined in more detail in VPR manual)}
-    \item{short_axis_length}{The length in millimeters of the ROI along the shorter axis}
-    \item{long_axis_length}{The length in millimeters of the ROI along the longer axis}
-    \item{station}{Station identifier provided in processing}
-    \item{time_ms}{Time stamp when ROI was collected in milliseconds}
-  }
+\describe{
+\item{roi}{Unique ROI identifier - 10 digit}
+\item{taxa}{Category in which ROI has been classified by Visual Plankton}
+\item{day_hour}{day and hour in which data was collected (from Autodeck)}
+\item{Perimeter}{The perimeter of the ROI in millimeters}
+\item{Area}{The area of the ROI in millimeters}
+\item{width1}{Width at a first point of the ROI in millimetres (defined in more detail in VPR manual)}
+\item{width2}{Width at a second point of the ROI in millimetres (defined in more detail in VPR manual)}
+\item{width3}{Width at a third point of the ROI in millimetres (defined in more detail in VPR manual)}
+\item{short_axis_length}{The length in millimeters of the ROI along the shorter axis}
+\item{long_axis_length}{The length in millimeters of the ROI along the longer axis}
+\item{station}{Station identifier provided in processing}
+\item{time_ms}{Time stamp when ROI was collected in milliseconds}
+}
 }
 \usage{
 roimeas_dat_combine

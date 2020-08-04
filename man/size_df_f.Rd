@@ -16,29 +16,29 @@ processed using \code{\link{vpr_ctdroisize_merge}}
 }
 \details{
 @format A dataframe with 14 variables including
- \describe{
-  \item{frame_ID}{Unique identifier for each VPR frame}
-  \item{pressure}{Pressure measured from the VPR CTD in decibars}
-  \item{temperature}{Temperature measured from the VPR CTD in celsius}
-  \item{salinity}{Salinity measured from the VPR CTD}
-  \item{sigmaT}{Density calculated from temperature, salinity and pressure}
-  \item{fluorescence_mv}{Fluorescence measured by the VPR CTD in millivolts
-  (uncalibrated)}
-  \item{turbidity_mv}{Turbidity measured by the VPR CTD in
-  millivolts (uncalibrated)}
-  \item{roi}{Unique ROI identification number - 10
-  digits, 8 digit millisecond time stamp and two unique digits to denote
-  multiple ROIs within a millisecond}
-  \item{taxa}{Category in which ROI has
-  been classified by Visual Plankton}
-  \item{day_hour}{Day and hour in which
-  data was collected, from AutoDeck processing}
-  \item{long_axis_length}{The
-  length of the longest axis of the ROI image, measured by Visual Plankton}
-  \item{station}{Station identifier provided during processing}
-  \item{time_ms}{Time stamp when ROI was collected (milliseconds)}
-  \item{roi_ID}{ROI identification number- 8 digit time stamp, without unique
-  2 digit ending}
+\describe{
+\item{frame_ID}{Unique identifier for each VPR frame}
+\item{pressure}{Pressure measured from the VPR CTD in decibars}
+\item{temperature}{Temperature measured from the VPR CTD in celsius}
+\item{salinity}{Salinity measured from the VPR CTD}
+\item{sigmaT}{Density calculated from temperature, salinity and pressure}
+\item{fluorescence_mv}{Fluorescence measured by the VPR CTD in millivolts
+(uncalibrated)}
+\item{turbidity_mv}{Turbidity measured by the VPR CTD in
+millivolts (uncalibrated)}
+\item{roi}{Unique ROI identification number - 10
+digits, 8 digit millisecond time stamp and two unique digits to denote
+multiple ROIs within a millisecond}
+\item{taxa}{Category in which ROI has
+been classified by Visual Plankton}
+\item{day_hour}{Day and hour in which
+data was collected, from AutoDeck processing}
+\item{long_axis_length}{The
+length of the longest axis of the ROI image, measured by Visual Plankton}
+\item{station}{Station identifier provided during processing}
+\item{time_ms}{Time stamp when ROI was collected (milliseconds)}
+\item{roi_ID}{ROI identification number- 8 digit time stamp, without unique
+2 digit ending}
 }
 }
 \keyword{datasets}

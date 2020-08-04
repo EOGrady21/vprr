@@ -22,7 +22,7 @@ Plot size frequency histogram
 }
 \note{
 param options are typically 'Perimeter', 'Area', 'width1','width2',
-  'width3', 'short_axis_length', 'long_axis_length'
+'width3', 'short_axis_length', 'long_axis_length'
 }
 \author{
 E. Chisholm

@@ -40,20 +40,20 @@ fine appendages)}
 Displays each image in day hour specified,
 prompts user to confirm or deny classification.
 If classification is denied, asks for a reclassification
- value based on available taxa
+value based on available taxa
 }
 \details{
 Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
-  24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
-  pixels to millimetres and calculate image size for classification
-  reference
+24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
+pixels to millimetres and calculate image size for classification
+reference
 }
 \section{Development}{
 
-  \itemize{
-      \item Add "undo" functionality to go back on a typing mistake
-      \item  Fix scaling/ size issue so images are consistently sized
-      \item show ROI number for image somewhere for reference when in doubt of classification
-      }
+\itemize{
+\item Add "undo" functionality to go back on a typing mistake
+\item  Fix scaling/ size issue so images are consistently sized
+\item show ROI number for image somewhere for reference when in doubt of classification
+}
 }
 
