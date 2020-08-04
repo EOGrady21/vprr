@@ -363,7 +363,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #'
 #' @examples
-#' \dontrun{
+#'
 #' data('ctd_roi_merge')
 #' ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
@@ -374,7 +374,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #'
 #' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
 #' station_of_interest, binSize, imageVolume)
-#' }
+#'
 #'@export
 #'
 #'
@@ -1078,6 +1078,8 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   cast_id <-unique(data$cast_id)
 
 
+
+
   cast_id <-unique(data$cast_id)
   max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
@@ -1088,6 +1090,13 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   if (rev == TRUE){
     x_breaks <- seq(from = ceiling(max_depth), to = floor(min_depth), by = - binSize) #reversed by KS
   }
+
+  # error when cast is too small
+  if(max_depth - min_depth < binSize){
+    warning(paste('Cast', cast_id, 'is too small to calculate information for bins of size', binSize))
+    data.frame(NULL)
+  }else{
+
 
   # Get variables of interest using oce bin functions
 
@@ -1172,7 +1181,7 @@ if (rev == TRUE){
              n_roi_bin, conc_m3,
              temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3,
              towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
-
+} # end else loop for size error
 }
 
 
