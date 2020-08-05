@@ -31,6 +31,6 @@ Suggests:
     rmarkdown,
     testthat,
     akima
-VignetteBuilder: rmarkdown
+VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
