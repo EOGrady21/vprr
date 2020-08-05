@@ -1010,7 +1010,10 @@ normalize_matrix <- function(mat){
 #' @export
 
 
-
+# @examples
+# \dontrun{
+#
+# }
 
 vpr_trrois_size <- function(directory, taxa, opticalSetting){
 
