@@ -8,7 +8,7 @@ Notes from second submission:
 * If there are references describing the methods in your package, please
 add these in the description field of your DESCRIPTION file in the form
 authors (year) doi:...
-        *  As of now there is no published work to reference in the description. When a publication becomes available (likely before the next version of the package), I will update. 
+        *  As of now there is no published work to reference in the description. When a publication becomes available (likely before the next version of the package), I will update.
 
 * Please rather use the Authors@R field and declare Maintainer, Authors
 and Contributors with their appropriate roles with person() calls.
