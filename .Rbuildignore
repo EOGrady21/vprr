@@ -4,7 +4,6 @@
 ^README\.Rmd$
 ^\.travis\.yml$
 cran-comments.Rmd
-^Meta$
 ^CRAN-RELEASE$
 ^_pkgdown\.yml$
 ^docs$
