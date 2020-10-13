@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Save VPR data as an <a href='https://rdrr.io/pkg/oce/man/as.oce.html'>as.oce</a> object — vpr_save • vprr</title>
+<title>Save VPR data as an as.oce object — vpr_save • vprr</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Save VPR data as an <a href='https://rdrr.io/pkg/oce/man/as.oce.html'>as.oce</a> object — vpr_save" />
+<meta property="og:title" content="Save VPR data as an as.oce object — vpr_save" />
 <meta property="og:description" content="Save VPR data as an as.oce object" />
 
 
@@ -118,16 +118,16 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Save VPR data as an <a href='https://rdrr.io/pkg/oce/man/as.oce.html'>as.oce</a> object</h1>
+    <h1>Save VPR data as an <a href='https://dankelley.github.io/oce/reference/as.oce.html'>as.oce</a> object</h1>
     
     <div class="hidden name"><code>vpr_save.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Save VPR data as an <a href='https://rdrr.io/pkg/oce/man/as.oce.html'>as.oce</a> object</p>
+    <p>Save VPR data as an <a href='https://dankelley.github.io/oce/reference/as.oce.html'>as.oce</a> object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>vpr_save</span>(<span class='no'>data</span>, <span class='no'>metadata</span>)</pre>
+    <pre class="usage"><span class='fu'>vpr_save</span><span class='op'>(</span><span class='va'>data</span>, <span class='va'>metadata</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -164,16 +164,17 @@ updated by providing the argument <code>metadata</code>.</p>
 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='st'>"taxa_conc_n"</span>)
-<span class='no'>metadata</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>'deploymentType'</span> <span class='kw'>=</span> <span class='st'>'towyo'</span>, <span class='st'>'waterDepth'</span> <span class='kw'>=</span>
-<span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>max</a></span>(<span class='no'>ctd_roi_merge</span>$<span class='no'>pressure</span>), <span class='st'>'serialNumber'</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='st'>'latitude'</span> <span class='kw'>=</span> <span class='fl'>47</span>,
-<span class='st'>'longitude'</span> <span class='kw'>=</span> -<span class='fl'>65</span>, <span class='st'>'castDate'</span> <span class='kw'>=</span> <span class='st'>'2019-08-11'</span>, <span class='st'>'castStartTime'</span><span class='kw'>=</span> <span class='st'>'00:00'</span>,
-<span class='st'>'castEndTime'</span> <span class='kw'>=</span> <span class='st'>'01:00'</span>, <span class='st'>'processedBy'</span> <span class='kw'>=</span> <span class='st'>'E. Chisholm'</span>, <span class='st'>'opticalSetting'</span> <span class='kw'>=</span>
-<span class='st'>'S2'</span>, <span class='st'>'imageVolume'</span> <span class='kw'>=</span> <span class='fl'>83663</span>, <span class='st'>'comment'</span> <span class='kw'>=</span> <span class='st'>'test data'</span>)
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"taxa_conc_n"</span><span class='op'>)</span>
+<span class='va'>metadata</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>'deploymentType'</span> <span class='op'>=</span> <span class='st'>'towyo'</span>, <span class='st'>'waterDepth'</span> <span class='op'>=</span>
+<span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>max</a></span><span class='op'>(</span><span class='va'>ctd_roi_merge</span><span class='op'>$</span><span class='va'>pressure</span><span class='op'>)</span>, <span class='st'>'serialNumber'</span> <span class='op'>=</span> <span class='cn'>NA</span>, <span class='st'>'latitude'</span> <span class='op'>=</span> <span class='fl'>47</span>,
+<span class='st'>'longitude'</span> <span class='op'>=</span> <span class='op'>-</span><span class='fl'>65</span>, <span class='st'>'castDate'</span> <span class='op'>=</span> <span class='st'>'2019-08-11'</span>, <span class='st'>'castStartTime'</span><span class='op'>=</span> <span class='st'>'00:00'</span>,
+<span class='st'>'castEndTime'</span> <span class='op'>=</span> <span class='st'>'01:00'</span>, <span class='st'>'processedBy'</span> <span class='op'>=</span> <span class='st'>'E. Chisholm'</span>, <span class='st'>'opticalSetting'</span> <span class='op'>=</span>
+<span class='st'>'S2'</span>, <span class='st'>'imageVolume'</span> <span class='op'>=</span> <span class='fl'>83663</span>, <span class='st'>'comment'</span> <span class='op'>=</span> <span class='st'>'test data'</span><span class='op'>)</span>
 
-<span class='no'>oce_dat</span> <span class='kw'>&lt;-</span> <span class='fu'>vpr_save</span>(<span class='no'>taxa_conc_n</span>, <span class='no'>metadata</span>)</div><div class='output co'>#&gt; [1] "Metadata parameter found in Data object!  max_cast_depth value of 60.1845368897147 moved to metadata slot. "
+<span class='va'>oce_dat</span> <span class='op'>&lt;-</span> <span class='fu'>vpr_save</span><span class='op'>(</span><span class='va'>taxa_conc_n</span>, <span class='va'>metadata</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "Metadata parameter found in Data object!  max_cast_depth value of 60.1845368897147 moved to metadata slot. "
 #&gt; [1] "Metadata parameter found in Data object!  taxa value of Calanus moved to metadata slot. "
-#&gt; [1] "Metadata parameter found in Data object!  station value of test moved to metadata slot. "</div><div class='input'># save(oce_dat, file = vpr_save.RData') # save data
+#&gt; [1] "Metadata parameter found in Data object!  station value of test moved to metadata slot. "</div><div class='input'><span class='co'># save(oce_dat, file = vpr_save.RData') # save data</span>
 
 </div></pre>
   </div>
@@ -191,7 +192,7 @@ updated by providing the argument <code>metadata</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

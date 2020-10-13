@@ -127,13 +127,13 @@
     <p>This is an internal step required to bin data</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ctd_cast</span>(
-  <span class='no'>data</span>,
-  <span class='kw'>cast_direction</span> <span class='kw'>=</span> <span class='st'>"ascending"</span>,
-  <span class='no'>data_type</span>,
-  <span class='kw'>cutoff</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
-  <span class='kw'>breaks</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)</pre>
+    <pre class="usage"><span class='fu'>ctd_cast</span><span class='op'>(</span>
+  <span class='va'>data</span>,
+  cast_direction <span class='op'>=</span> <span class='st'>"ascending"</span>,
+  <span class='va'>data_type</span>,
+  cutoff <span class='op'>=</span> <span class='fl'>0.1</span>,
+  breaks <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -152,11 +152,11 @@
     </tr>
     <tr>
       <th>cutoff</th>
-      <td><p>Argument passed to <a href='https://rdrr.io/pkg/oce/man/ctdFindProfiles.html'>ctdFindProfiles</a></p></td>
+      <td><p>Argument passed to <a href='https://dankelley.github.io/oce/reference/ctdFindProfiles.html'>ctdFindProfiles</a></p></td>
     </tr>
     <tr>
       <th>breaks</th>
-      <td><p>Argument passed to <a href='https://rdrr.io/pkg/oce/man/ctdFindProfiles.html'>ctdFindProfiles</a></p></td>
+      <td><p>Argument passed to <a href='https://dankelley.github.io/oce/reference/ctdFindProfiles.html'>ctdFindProfiles</a></p></td>
     </tr>
     </table>
 
@@ -167,6 +167,9 @@
 
     <p><code>ctdFindProfiles</code> arguments for <code>minLength</code> and <code>cutOff</code> were updated to
 prevent losing data (EC 2019/07/23)</p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>K Sorochan, E Chisholm, R Klaver</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -183,7 +186,7 @@ prevent losing data (EC 2019/07/23)</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

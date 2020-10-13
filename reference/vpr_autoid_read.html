@@ -127,14 +127,14 @@
     <p>Read aid text files containing ROI string information or measurement data and output as a dataframe</p>
     </div>
 
-    <pre class="usage"><span class='fu'>vpr_autoid_read</span>(
-  <span class='no'>file_list_aid</span>,
-  <span class='no'>file_list_aidmeas</span>,
-  <span class='no'>export</span>,
-  <span class='no'>station_of_interest</span>,
-  <span class='no'>opticalSetting</span>,
-  <span class='kw'>warn</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>vpr_autoid_read</span><span class='op'>(</span>
+  <span class='va'>file_list_aid</span>,
+  <span class='va'>file_list_aidmeas</span>,
+  <span class='va'>export</span>,
+  <span class='va'>station_of_interest</span>,
+  <span class='va'>opticalSetting</span>,
+  warn <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -171,59 +171,64 @@
     <h2 class="hasAnchor" id="note"><a class="anchor" href="#note"></a>Note</h2>
 
     <p>Full paths to each file should be specified</p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>E. Chisholm &amp; K. Sorochan</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-<span class='no'>station_of_interest</span> <span class='kw'>&lt;-</span> <span class='st'>'test'</span>
-<span class='no'>dayhour</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>'d222.h03'</span>, <span class='st'>'d222.h04'</span>)
+<span class='va'>station_of_interest</span> <span class='op'>&lt;-</span> <span class='st'>'test'</span>
+<span class='va'>dayhour</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>'d222.h03'</span>, <span class='st'>'d222.h04'</span><span class='op'>)</span>
 
 <span class='co'>#' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)</span>
-<span class='no'>opticalSetting</span> <span class='kw'>&lt;-</span> <span class='st'>"S2"</span>
-<span class='no'>imageVolume</span> <span class='kw'>&lt;-</span> <span class='fl'>83663</span> <span class='co'>#mm^3</span>
+<span class='va'>opticalSetting</span> <span class='op'>&lt;-</span> <span class='st'>"S2"</span>
+<span class='va'>imageVolume</span> <span class='op'>&lt;-</span> <span class='fl'>83663</span> <span class='co'>#mm^3</span>
 
-<span class='no'>auto_id_folder</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>'extdata/COR2019002/autoid/'</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>'vprr'</span>, <span class='kw'>mustWork</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
-<span class='no'>auto_id_path</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>auto_id_folder</span>, <span class='st'>"/"</span>), <span class='kw'>full.names</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='va'>auto_id_folder</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span><span class='op'>(</span><span class='st'>'extdata/COR2019002/autoid/'</span>, package <span class='op'>=</span> <span class='st'>'vprr'</span>, mustWork <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+<span class='va'>auto_id_path</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='va'>auto_id_folder</span>, <span class='st'>"/"</span><span class='op'>)</span>, full.names <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
 
 <span class='co'>#'   # Path to aid for each taxa</span>
-<span class='no'>aid_path</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>auto_id_path</span>, <span class='st'>'/aid/'</span>)
+<span class='va'>aid_path</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='va'>auto_id_path</span>, <span class='st'>'/aid/'</span><span class='op'>)</span>
 <span class='co'># Path to mea for each taxa</span>
-<span class='no'>aidmea_path</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>auto_id_path</span>, <span class='st'>'/aidmea/'</span>)
+<span class='va'>aidmea_path</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='va'>auto_id_path</span>, <span class='st'>'/aidmea/'</span><span class='op'>)</span>
 
 <span class='co'># AUTO ID FILES</span>
-<span class='no'>aid_file_list</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>()
-<span class='no'>aidmea_file_list</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>()
-<span class='kw'>for</span> (<span class='no'>i</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span>(<span class='no'>dayhour</span>)) {
-  <span class='no'>aid_file_list</span><span class='kw'>[[</span><span class='no'>i</span>]] <span class='kw'>&lt;-</span>
-    <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span>(<span class='no'>aid_path</span>, <span class='kw'>pattern</span> <span class='kw'>=</span> <span class='no'>dayhour</span><span class='kw'>[[</span><span class='no'>i</span>]], <span class='kw'>full.names</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='va'>aid_file_list</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='va'>aidmea_file_list</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='kw'>for</span> <span class='op'>(</span><span class='va'>i</span> <span class='kw'>in</span> <span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>dayhour</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>{</span>
+  <span class='va'>aid_file_list</span><span class='op'>[[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>]</span> <span class='op'>&lt;-</span>
+    <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span><span class='op'>(</span><span class='va'>aid_path</span>, pattern <span class='op'>=</span> <span class='va'>dayhour</span><span class='op'>[[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>]</span>, full.names <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
   <span class='co'># SIZE DATA FILES</span>
-  <span class='no'>aidmea_file_list</span><span class='kw'>[[</span><span class='no'>i</span>]] <span class='kw'>&lt;-</span>
-    <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span>(<span class='no'>aidmea_path</span>, <span class='kw'>pattern</span> <span class='kw'>=</span> <span class='no'>dayhour</span><span class='kw'>[[</span><span class='no'>i</span>]], <span class='kw'>full.names</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
-}
+  <span class='va'>aidmea_file_list</span><span class='op'>[[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>]</span> <span class='op'>&lt;-</span>
+    <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span><span class='op'>(</span><span class='va'>aidmea_path</span>, pattern <span class='op'>=</span> <span class='va'>dayhour</span><span class='op'>[[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>]</span>, full.names <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+<span class='op'>}</span>
 
-<span class='no'>aid_file_list_all</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/unlist.html'>unlist</a></span>(<span class='no'>aid_file_list</span>)
-<span class='no'>aidmea_file_list_all</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/unlist.html'>unlist</a></span>(<span class='no'>aidmea_file_list</span>)
+<span class='va'>aid_file_list_all</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/unlist.html'>unlist</a></span><span class='op'>(</span><span class='va'>aid_file_list</span><span class='op'>)</span>
+<span class='va'>aidmea_file_list_all</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/unlist.html'>unlist</a></span><span class='op'>(</span><span class='va'>aidmea_file_list</span><span class='op'>)</span>
 
  <span class='co'># ROIs</span>
-<span class='no'>roi_dat_combine</span> <span class='kw'>&lt;-</span>
-  <span class='fu'>vpr_autoid_read</span>(
-    <span class='kw'>file_list_aid</span> <span class='kw'>=</span> <span class='no'>aid_file_list_all</span>,
-    <span class='kw'>file_list_aidmeas</span> <span class='kw'>=</span> <span class='no'>aidmea_file_list_all</span>,
-    <span class='kw'>export</span> <span class='kw'>=</span> <span class='st'>'aid'</span>,
-    <span class='kw'>station_of_interest</span> <span class='kw'>=</span> <span class='no'>station_of_interest</span>,
-    <span class='kw'>opticalSetting</span> <span class='kw'>=</span> <span class='no'>opticalSetting</span>,
-    <span class='kw'>warn</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-  )
+<span class='va'>roi_dat_combine</span> <span class='op'>&lt;-</span>
+  <span class='fu'>vpr_autoid_read</span><span class='op'>(</span>
+    file_list_aid <span class='op'>=</span> <span class='va'>aid_file_list_all</span>,
+    file_list_aidmeas <span class='op'>=</span> <span class='va'>aidmea_file_list_all</span>,
+    export <span class='op'>=</span> <span class='st'>'aid'</span>,
+    station_of_interest <span class='op'>=</span> <span class='va'>station_of_interest</span>,
+    opticalSetting <span class='op'>=</span> <span class='va'>opticalSetting</span>,
+    warn <span class='op'>=</span> <span class='cn'>FALSE</span>
+  <span class='op'>)</span>
 
 <span class='co'># MEASUREMENTS</span>
-<span class='no'>roimeas_dat_combine</span> <span class='kw'>&lt;-</span>
-  <span class='fu'>vpr_autoid_read</span>(
-    <span class='kw'>file_list_aid</span> <span class='kw'>=</span> <span class='no'>aid_file_list_all</span>,
-    <span class='kw'>file_list_aidmeas</span> <span class='kw'>=</span> <span class='no'>aidmea_file_list_all</span>,
-    <span class='kw'>export</span> <span class='kw'>=</span> <span class='st'>'aidmeas'</span>,
-    <span class='kw'>station_of_interest</span> <span class='kw'>=</span> <span class='no'>station_of_interest</span>,
-    <span class='kw'>opticalSetting</span> <span class='kw'>=</span> <span class='no'>opticalSetting</span>,
-    <span class='kw'>warn</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
- )</div></pre>
+<span class='va'>roimeas_dat_combine</span> <span class='op'>&lt;-</span>
+  <span class='fu'>vpr_autoid_read</span><span class='op'>(</span>
+    file_list_aid <span class='op'>=</span> <span class='va'>aid_file_list_all</span>,
+    file_list_aidmeas <span class='op'>=</span> <span class='va'>aidmea_file_list_all</span>,
+    export <span class='op'>=</span> <span class='st'>'aidmeas'</span>,
+    station_of_interest <span class='op'>=</span> <span class='va'>station_of_interest</span>,
+    opticalSetting <span class='op'>=</span> <span class='va'>opticalSetting</span>,
+    warn <span class='op'>=</span> <span class='cn'>FALSE</span>
+ <span class='op'>)</span>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -239,7 +244,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

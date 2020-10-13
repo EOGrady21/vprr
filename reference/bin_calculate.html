@@ -127,7 +127,7 @@
     <p>Bins CTD data for an individual cast to avoid depth averaging across tow-yo's</p>
     </div>
 
-    <pre class="usage"><span class='fu'>bin_calculate</span>(<span class='no'>data</span>, <span class='kw'>binSize</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='no'>imageVolume</span>, <span class='kw'>rev</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>bin_calculate</span><span class='op'>(</span><span class='va'>data</span>, binSize <span class='op'>=</span> <span class='fl'>1</span>, <span class='va'>imageVolume</span>, rev <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -165,7 +165,10 @@ Used internally ( <code><a href='bin_cast.html'>bin_cast</a></code> ) after <cod
     <h2 class="hasAnchor" id="note"><a class="anchor" href="#note"></a>Note</h2>
 
     <p>binSize should be carefully considered for best results</p>
-<p>Depth is used for calculations! Please ensure depth is included in data frame using <a href='https://rdrr.io/pkg/oce/man/swDepth.html'>swDepth</a></p>
+<p>Depth is used for calculations! Please ensure depth is included in data frame using <a href='https://dankelley.github.io/oce/reference/swDepth.html'>swDepth</a></p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>E. Chisholm, K. Sorochan</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -182,7 +185,7 @@ Used internally ( <code><a href='bin_cast.html'>bin_cast</a></code> ) after <cod
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

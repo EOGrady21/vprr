@@ -127,7 +127,7 @@
     <p>Acts as a wrapper for <code><a href='ctd_df_cols.html'>ctd_df_cols</a></code></p>
     </div>
 
-    <pre class="usage"><span class='fu'>vpr_ctd_read</span>(<span class='no'>ctd_files</span>, <span class='no'>station_of_interest</span>, <span class='no'>day</span>, <span class='no'>hour</span>, <span class='no'>col_list</span>)</pre>
+    <pre class="usage"><span class='fu'>vpr_ctd_read</span><span class='op'>(</span><span class='va'>ctd_files</span>, <span class='va'>station_of_interest</span>, <span class='va'>day</span>, <span class='va'>hour</span>, <span class='va'>col_list</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -163,15 +163,19 @@ If there are multiple hours of CTD data, combines them into single dataframe.</p
 order of CTD data columns. The names and values in these columns can change
 based on the specific instrument and should be updated/confirmed before processing data
 from a new VPR.</p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>E. Chisholm &amp; K. Sorochan</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-<span class='no'>station_of_interest</span> <span class='kw'>&lt;-</span> <span class='st'>'test'</span>
+<span class='va'>station_of_interest</span> <span class='op'>&lt;-</span> <span class='st'>'test'</span>
 
-<span class='no'>ctd_files</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"extdata/COR2019002/rois/vpr5/d222"</span>, <span class='st'>"h03ctd.dat"</span>,
-<span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"vprr"</span>, <span class='kw'>mustWork</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='va'>ctd_files</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span><span class='op'>(</span><span class='st'>"extdata/COR2019002/rois/vpr5/d222"</span>, <span class='st'>"h03ctd.dat"</span>,
+package <span class='op'>=</span> <span class='st'>"vprr"</span>, mustWork <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
 
-<span class='no'>ctd_dat_combine</span> <span class='kw'>&lt;-</span> <span class='fu'>vpr_ctd_read</span>(<span class='no'>ctd_files</span>, <span class='no'>station_of_interest</span>)</div><div class='output co'>#&gt; <span class='warning'>Warning: CTD data columns named based on 2019 defaults!</span></div><div class='input'>
+<span class='va'>ctd_dat_combine</span> <span class='op'>&lt;-</span> <span class='fu'>vpr_ctd_read</span><span class='op'>(</span><span class='va'>ctd_files</span>, <span class='va'>station_of_interest</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='warning'>Warning: CTD data columns named based on 2019 defaults!</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -188,7 +192,7 @@ from a new VPR.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
