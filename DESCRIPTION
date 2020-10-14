@@ -6,7 +6,7 @@ Authors@R: c(person("Emily Chisholm",  role = c("aut", "cre","cph"), email = "vp
 Maintainer: Emily Chisholm <vprrcontact@gmail.com>
 Description: An oceanographic data processing package for analyzing and visualizing Video 
     Plankton Recorder data. Works in concert with Visual Plankton (MATLAB) software 
-    developed at WHOI. This package was developed at Bedford Institute of Oceanography.
+    developed at 'WHOI'. This package was developed at 'Bedford Institute of Oceanography'.
     Functions are designed to process Visual Plankton output and create organized and 
     easily portable data products.
 License: GPL (>= 2)
