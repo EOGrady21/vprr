@@ -326,7 +326,7 @@ for (i in folder_names) {
 
     setwd(dir_roi)
 
-    roi_path_str <- read.table(ii, stringsAsFactors = F)
+    roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
 
     #Create a new folder for autoid rois
     roi_folder <- paste(basepath, i, "\\", ii, "_ROIS", sep = "")
@@ -613,7 +613,7 @@ if(length(ctd_files) == 0){
                                day = day_id,
                                hour = hour_id,
                                station = station_id,
-                               stringsAsFactors = F)
+                               stringsAsFactors = FALSE)
   }
 
 
@@ -781,7 +781,7 @@ if( export == 'aidmeas'){
   dat <- list()
   for(i in 1:length(file_list_aid)) {
 
-    data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = F, col.names = col_names)
+    data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
 
     data_tmp$roi <- unlist(vpr_roi(data_tmp$roi))
 
@@ -809,7 +809,7 @@ if( export == 'aidmeas'){
   col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
   for(i in 1:length(file_list_aidmeas)) {
 
-    data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = F, col.names = col_names)
+    data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
 
 
 if(!is.na(opticalSetting)){
@@ -941,7 +941,7 @@ px_to_mm <- function(x, opticalSetting) {
 #'Outputs ctd dataframe with variables time_ms, conductivity, temperature,
 #'pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
 #'turbidity_mv, altitude_NA
-#' @author K. Sorochan, R. Klaver, E. Chisholm
+#' @author K. Sorochan, E. Chisholm
 #'
 #'
 #'
@@ -1029,8 +1029,8 @@ vpr_trrois_size <- function(directory, taxa, opticalSetting){
     #roi_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('hid.v0.',t))
 
     #Get info
-    #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = F)
-    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+    #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = FALSE)
+    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
 
     eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
 
@@ -1192,7 +1192,7 @@ if (rev == TRUE){
 #' This is an internal step required to bin data
 #'
 #'
-#' @author  K Sorochan, E Chisholm, R Klaver
+#' @author  K Sorochan, E Chisholm
 #'
 #' @param data an \code{oce} ctd object
 #' @param cast_direction 'ascending' or 'descending' depending on desired section
@@ -1249,7 +1249,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
     getDf <- function(x) {
 
-      data.frame(x@data, stringsAsFactors = F)
+      data.frame(x@data, stringsAsFactors = FALSE)
 
     }
 
@@ -1318,7 +1318,7 @@ vpr_ctd_files <- function(castdir, cruise, day_hour) {
   # folder <- grep(vpr_cast_folders, pattern = paste0('AD_', vprnum,'.VPR.', cruise,'*'), value = T) #ADDED BY KS, AD PATTERN IS NOT CONSISTENT?
 
   # not subset by tow number
-  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = T) # removed leading period before VPR to fit file naming scheme in COR2019002
+  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
 
   if (length(folder) == 0){stop("No CTD files found!")}
   folder_path <- paste0(castdir, folder)
@@ -1746,8 +1746,8 @@ vpr_autoid_check <- function(basepath, cruise){
 
       # check that aid and aid mea files are same length
       # find files
-      sizefiles <- list.files(paste(taxa_folders[i],'aidmea',sep='\\'), full.names = T)
-      roifiles <- list.files(paste(taxa_folders[i],'aid',sep='\\'), full.names=T)
+      sizefiles <- list.files(paste(taxa_folders[i],'aidmea',sep='\\'), full.names = TRUE)
+      roifiles <- list.files(paste(taxa_folders[i],'aid',sep='\\'), full.names=TRUE)
 
       if(length(sizefiles) != length(roifiles)){
         cat('Mismatched number of size and roi files! \n')
@@ -1818,8 +1818,8 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
   for (i in 1:length(taxafolder)) {
     # print(paste( 'i = ',i))
     #find files
-    sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
-    roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+    sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = TRUE)
+    roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=TRUE)
 
     #remove dummy files for vpr_manual_classification
     #check for dummy files
@@ -1864,8 +1864,8 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         if (class(mtry) != "try-error") {
           # print('try error == FALSE')
           #Get info
-          roi_ID <- read.table(roifile, stringsAsFactors = F)
-          auto_measure_px <- read.table(sizefile, stringsAsFactors = F, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+          roi_ID <- read.table(roifile, stringsAsFactors = FALSE)
+          auto_measure_px <- read.table(sizefile, stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
 
         } else {
           # print(paste('cannot open roi file from ', taxafolder[i]))
@@ -1952,7 +1952,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 #' This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
 #' \strong{!!WARNING:} this function uses hard coded plot attributes
 #'
-#' @author R. Klaver & K. Sorochan
+#' @author K. Sorochan
 #'
 #' @param x a data frame with columns 'taxa', 'long_axis_length'
 #' @param number_of_classes numeric value passed to nclass argument in hist()
@@ -2266,7 +2266,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
 
 
 
-vp_plot_matrix <- function(cm, classes, type, addLabels = T, threshold = NULL){
+vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL){
   #' Plots normalized confusion matrix
   #'
   #' @author E. Chisholm
@@ -2328,7 +2328,7 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = T, threshold = NULL){
 
   #accuracy labels along diagonal
 
-  if (addLabels == T){
+  if (addLabels == TRUE){
     #find diagonal values
     acc <- confusion$Freq[confusion$Var1 == confusion$Var2]
     #for each taxa
@@ -2412,7 +2412,7 @@ vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL)
 }
 
 
-vp_plot_unkn <- function(cm, classes, threshold = 0, summary = T, sample_size = NULL){
+vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size = NULL){
 
   #' Function to visualize losses to unknown category due to disagreement in Dual classifier
   #'
@@ -2741,7 +2741,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
 
 
     #reads in roi strings
-    roi_path_str <- read.table(paste0(base_dir, '/', day_hour, '/', ii), stringsAsFactors = F)
+    roi_path_str <- read.table(paste0(base_dir, '/', day_hour, '/', ii), stringsAsFactors = FALSE)
 
     #sub out for new basepath where rois are located
     #note this is an extra step because I moved the "data" folder from my C drive
@@ -3033,7 +3033,7 @@ vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
 
       setwd(dir_roi)
 
-      roi_path_str <- read.table(ii, stringsAsFactors = F)
+      roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
 
       path_parts <- stringr::str_split(auto_id_folder, pattern = '/')
 
