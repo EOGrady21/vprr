@@ -4,7 +4,7 @@
 \alias{vp_plot_unkn}
 \title{Function to visualize losses to unknown category due to disagreement in Dual classifier}
 \usage{
-vp_plot_unkn(cm, classes, threshold = 0, summary = T, sample_size = NULL)
+vp_plot_unkn(cm, classes, threshold = 0, summary = TRUE, sample_size = NULL)
 }
 \arguments{
 \item{cm}{dual unknown confusion matrix from VP}

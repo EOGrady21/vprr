@@ -2,6 +2,17 @@
 title: "cran-comments"
 output: html_document
 ---
+23/10/2020
+Notes from third submission:
+
+
+
+* Please write TRUE and FALSE instead of T and F. (Please don't use "T" or "F" as vector names.) e.g.: man/vp_plot_matrix.Rd, man/vp_plot_unkn.Rd
+    * completed
+* Please always add all authors, contributors and copyright holders in the Authors@R field with the appropriate roles. e.g.: R Klaver
+    * R. Klaver was removed as his contribution to functions was not significant
+
+
 07/28/2020
 Notes from second submission:
 

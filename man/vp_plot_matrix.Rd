@@ -4,7 +4,7 @@
 \alias{vp_plot_matrix}
 \title{Plots normalized confusion matrix}
 \usage{
-vp_plot_matrix(cm, classes, type, addLabels = T, threshold = NULL)
+vp_plot_matrix(cm, classes, type, addLabels = TRUE, threshold = NULL)
 }
 \arguments{
 \item{cm}{Confusion matrix (numeric)}

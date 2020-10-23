@@ -26,5 +26,5 @@ pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
 turbidity_mv, altitude_NA
 }
 \author{
-K. Sorochan, R. Klaver, E. Chisholm
+K. Sorochan, E. Chisholm
 }

@@ -34,5 +34,5 @@ This is an internal step required to bin data
 prevent losing data (EC 2019/07/23)
 }
 \author{
-K Sorochan, E Chisholm, R Klaver
+K Sorochan, E Chisholm
 }

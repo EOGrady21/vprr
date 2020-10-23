@@ -18,5 +18,5 @@ This uses the \code{\link{hist}} plot function in base R to give a histogram of 
 \strong{!!WARNING:} this function uses hard coded plot attributes
 }
 \author{
-R. Klaver & K. Sorochan
+K. Sorochan
 }
