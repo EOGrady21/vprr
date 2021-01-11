@@ -19,6 +19,9 @@ Removes any empty aid files after manual reclassification, checks for tow
 numbers and other metadata to match. Performs check to ensure measurement and
 ROI files are the same length
 }
+\details{
+WARNING: This function will delete empty aid and aidmeas files, permanently changing your directory. Consider making a back up copy before running this function.
+}
 \author{
 E Chisholm
 }
