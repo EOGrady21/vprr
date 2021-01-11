@@ -1602,6 +1602,8 @@ insertRow <- function(existingDF, newrow, r) {
 #' numbers and other metadata to match. Performs check to ensure measurement and
 #' ROI files are the same length
 #'
+#' WARNING: This function will delete empty aid and aidmeas files, permanently changing your directory. Consider making a back up copy before running this function.
+#'
 #' @author E Chisholm
 #'
 #' @param basepath basepath to autoid folder eg. C:/data/CRUISENAME/autoid/
