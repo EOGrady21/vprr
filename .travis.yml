@@ -1,6 +1,8 @@
 language: r
 addons:
   apt:
-    packages: libmagick++-dev
+    packages:
+    - libmagick++-dev
+    - libgit2-dev
 notifications:
   slack: biozooplanktonlab:lOhK5bfxMxUVKqFFQZIlr8yD
