@@ -23,7 +23,7 @@ raw2 <- readLines(ctd_files[2])
 
 # CTD file read in
 test_that("CTD files are read in accurately",{
-  expect_warning(vpr_ctd_read(ctd_files, station_of_interest), 'CTD data columns named based on 2019 defaults!') # produces warning about column names
+  expect_warning(vpr_ctd_read(ctd_files, station_of_interest), 'CTD data columns named based on defaults!') # produces warning about column names
   expect_error(vpr_ctd_read(no_ctd_files, station_of_interest)) # error when no files given
   expect_silent(ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest, col_list = col_list )) # no warnings when col_list is specififed
 
