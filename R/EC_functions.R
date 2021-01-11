@@ -954,7 +954,7 @@ ctd_df_cols <- function(x, col_list) {
   if(missing(col_list)){
     col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
       "turbidity_ref", "turbidity_mv", "altitude_NA")
-    warning('CTD data columns named based on 2019 defaults!')
+    warning('CTD data columns named based on defaults!')
   }
 
 

@@ -93,6 +93,14 @@ dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
 # DEPTH BIN SIZE FOR AVERAGING
 binSize <- 3
 
+# CATEGORY OF INTEREST (WHICH CATEGORIES WILL BE PROCESSED AND VISUALIZED)
+category_of_interest <-
+  c(
+    'krill',
+    'Calanus',
+    'chaetognaths',
+  )
+
 #### SAVE ####
 # SAVE ALL FILE PATHS AND SETTINGS AS PROJECT ENVIRONMENT
 
@@ -100,8 +108,10 @@ save.image(file = paste0(cruise,'_env.RData'))
 ```
 
 An example of the station names csv file looks like this:
-```
-read.csv('station_names_COR2019002.csv')
+```{r, eval = TRUE}
+csv <- read.csv('station_names_COR2019002.csv')
+
+head(csv)
 
 ```
 
@@ -247,7 +257,7 @@ library(vprr)
 #### FILE PATHS & SETTINGS --------------------------------------------------------------------------------------------------------------------
 # loads processing environment specific to user
 
-load('IML2018051_env.RData')
+load('COR2019002_env.RData')
 ```
 
 
@@ -277,7 +287,7 @@ for (j in 1:length(all_stations_of_interest)){
   #   Set optical settings  & Image Volume   #
   #   !Should be updated with each mission!   #
   #==========================================#
-  if(cruise == "IML2018051") {
+  if(cruise == "COR2019002") {
     
     #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
     opticalSetting <- "S2"
@@ -418,7 +428,7 @@ Average plankton concentration and environmental variables (e.g., temperature, s
   
   # bin size data
   
-  size_df_f <- vpr_ctdroisize_merge(data, measdata = roimeas_dat_combine, taxa_of_interest = category_of_interest)
+  size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest)
   
   size_df_b <- vpr_size_bin(size_df_f, bin_mea = 3)
   
