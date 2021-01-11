@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -72,8 +72,7 @@
 
       
 
-      </header><script src="VPR_processing_files/accessible-code-block-0.0.1/empty-anchor.js"></script><link href="VPR_processing_files/anchor-sections-1.0/anchor-sections.css" rel="stylesheet">
-<script src="VPR_processing_files/anchor-sections-1.0/anchor-sections.js"></script><div class="row">
+      </header><script src="VPR_processing_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>VPR_processing</h1>
@@ -87,8 +86,8 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">vprr</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">vprr</span><span class="op">)</span></code></pre></div>
 <div id="section-1-background" class="section level1">
 <h1 class="hasAnchor">
 <a href="#section-1-background" class="anchor"></a>Section 1: Background</h1>
@@ -148,13 +147,30 @@ dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
 # DEPTH BIN SIZE FOR AVERAGING
 binSize &lt;- 3
 
+# CATEGORY OF INTEREST (WHICH CATEGORIES WILL BE PROCESSED AND VISUALIZED)
+category_of_interest &lt;-
+  c(
+    'krill',
+    'Calanus',
+    'chaetognaths',
+  )
+
 #### SAVE ####
 # SAVE ALL FILE PATHS AND SETTINGS AS PROJECT ENVIRONMENT
 
 save.image(file = paste0(cruise,'_env.RData'))</code></pre>
 <p>An example of the station names csv file looks like this:</p>
-<pre><code><a href="https://rdrr.io/r/utils/read.table.html">read.csv('station_names_COR2019002.csv')
-</a></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">csv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">'station_names_COR2019002.csv'</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">csv</span><span class="op">)</span>
+<span class="co">#&gt;   day hour station day_hour</span>
+<span class="co">#&gt; 1 220   19      W5 d220.h19</span>
+<span class="co">#&gt; 2 221    0      W6 d221.h00</span>
+<span class="co">#&gt; 3 221    1      W6 d221.h01</span>
+<span class="co">#&gt; 4 221    3      W7 d221.h03</span>
+<span class="co">#&gt; 5 221    4      W7 d221.h04</span>
+<span class="co">#&gt; 6 221   22     W12 d221.h22</span></code></pre></div>
 <p>Once this environment is set, it can be loaded into any processing session by using</p>
 <pre><code><a href="https://rdrr.io/r/base/load.html">load('COR2019002_env.RData') # where COR2019002 is mission name</a></code></pre>
 <p>If sharing processing code with colleagues on version control, keeping the environment variables separate (outside of the git project) will allow collaboration while avoiding inconsistencies in file paths or folder names.</p>
@@ -287,13 +303,13 @@ vpr_autoid_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt�
 <h1 class="hasAnchor">
 <a href="#section-5-data-processing" class="anchor"></a>Section 5: Data Processing</h1>
 <p>This is the main chunk of coding required to generate data products. This step does not require image Copying (Section 3) or manual re-classification (Section 4) steps. The following is a walk-through of processing data from a DFO field mission (i.e. mission COR2019002) in the southern GSL (Gulf of St. Lawrence) in 2019 First, all libraries should be loaded and the processing environment, described in Section 2.4 should be loaded.</p>
-<pre><code>##### PROCESSING  --------------------------------------------------------------------------------------------------------------------
+<pre><code><a href="https://rdrr.io/r/base/library.html">##### PROCESSING  --------------------------------------------------------------------------------------------------------------------
 library(vprr)
 
 #### FILE PATHS &amp; SETTINGS --------------------------------------------------------------------------------------------------------------------
 # loads processing environment specific to user
 
-load('IML2018051_env.RData')</code></pre>
+load('COR2019002_env.RData')</a></code></pre>
 <p>This section allows a user to process all stations of a particular mission in a loop. This can be modified or removed based on personal preference</p>
 <pre><code>##### STATION LOOP ----------------------------------------------------------------------------------------------------------------------------
 
@@ -312,7 +328,7 @@ for (j in 1:length(all_stations_of_interest)){
   #   Set optical settings  &amp; Image Volume   #
   #   !Should be updated with each mission!   #
   #==========================================#
-  if(cruise == "IML2018051") {
+  if(cruise == "COR2019002") {
     
     #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
     opticalSetting &lt;- "S2"
@@ -425,7 +441,7 @@ for (j in 1:length(all_stations_of_interest)){
   
   # bin size data
   
-  size_df_f &lt;- vpr_ctdroisize_merge(data, measdata = roimeas_dat_combine, taxa_of_interest = category_of_interest)
+  size_df_f &lt;- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest)
   
   size_df_b &lt;- vpr_size_bin(size_df_f, bin_mea = 3)
   </code></pre>
@@ -460,7 +476,7 @@ for (j in 1:length(all_stations_of_interest)){
 <h1 class="hasAnchor">
 <a href="#section-6-plotting" class="anchor"></a>Section 6: Plotting</h1>
 <p>Although not primarily a plotting package, vprr can produce contour plots, profile plots and temperature-salinity (TS) plots from VPR data sets. A few example plots are provided in the following code. The first step to plotting is properly loading in the processed VPR data objects developed in processing. The environment, described in Section 2.4 should also be loaded. The individual data files are found by distinct names (e.g., “stationData”). The directory structure may be different depending on the savedir where data files were saved during processing. Note that the following plotting examples are tailored for tow-yo pattern VPR deployments.</p>
-<pre><code>##### FILE PATH &amp; SETTINGS -----------------------------------------------------------------------------------------------------------------------
+<pre><code><a href="https://rdrr.io/r/base/library.html">##### FILE PATH &amp; SETTINGS -----------------------------------------------------------------------------------------------------------------------
 
 library(vprr)
 
@@ -471,7 +487,7 @@ load('COR2019002_env.RData')
 fn_all_st &lt;- list.files(paste0(cruise, "_data_files/"), pattern = "stationData", full.names = T)
 fn_all_meas &lt;- list.files(paste0(cruise, "_data_files/"), pattern = "meas", full.names = T)
 fn_all_conc &lt;- list.files(paste0("data_product/", cruise, "/"), pattern = "data_binned", full.names = T)
-fn_all_bin &lt;- list.files(paste0(cruise,"_data_files/"), pattern = 'bin_dat', full.names = T)</code></pre>
+fn_all_bin &lt;- list.files(paste0(cruise,"_data_files/"), pattern = 'bin_dat', full.names = T)</a></code></pre>
 <p>Once files are loaded, plots for all stations in a mission can be generated using a loop, in order to efficiently generate comparable plots. The example below uses a loop to run through a list of stations described by a csv file. This loop also isolates two specific classification categories to plot (eg. “Calanus” and “krill”).</p>
 <pre><code>####START STATION LOOP ---------------------------------------------------------------------------------------------------------------------------
 
