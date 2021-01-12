@@ -2595,6 +2595,10 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 #' @export
 
 vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot, plot_conc){
+  # check that depth is present
+  if(!'depth' %in% names(taxa_conc_n)){
+    stop("These plots require a 'depth' variable!")
+  }
 
   # avoid CRAN notes
   temperature <- depth <- salinity <- fluorescence <- density <- conc_m3 <- pressure <- NA
@@ -2650,9 +2654,9 @@ if(is.null(taxa_to_plot)){
 }else{
 # facet wrap plot all taxa, if only one taxa, comment out facet wrap
 pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
-  geom_point(aes(x = pressure, y = conc_m3/1000)) + #conversion of m3 to L using default density
-  stat_summary_bin(aes(x = pressure, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
-  scale_x_reverse(name = 'Pressure [db]') +
+  geom_point(aes(x = depth, y = conc_m3/1000)) + #conversion of m3 to L using default density
+  stat_summary_bin(aes(x = depth, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
+  scale_x_reverse(name = 'Depth [m]') +
   scale_y_continuous(name = expression('ROI L'^'-1')) +
   # ggtitle('Concentrations') +
   facet_wrap(~taxa, nrow = 1, ncol = length(unique(taxa_conc_n$taxa)), scales = 'free_x')+
