@@ -49,6 +49,8 @@ vpr_manual_classification <-
     #'       \item  Fix scaling/ size issue so images are consistently sized
     #'       \item show ROI number for image somewhere for reference when in doubt of classification
     #'       }
+    #'
+    #'@export
 
 # avoid CRAN notes
     hr <- NA
