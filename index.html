@@ -23,6 +23,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -35,18 +37,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
@@ -78,29 +74,29 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="vprr" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#vprr" class="anchor"></a>vprr</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="vprr">vprr<a class="anchor" aria-label="anchor" href="#vprr"></a>
+</h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
 <p>The goal of vprr is to process Video Plankton Recorder (VPR) data in R. This package allows for manual classification of plankton images, calculation of important ecological metrics such as concentration of plankton, data visualization, and data output with self-contained metadata.</p>
 <p>Detailed information about vprr and its use can be found in the VPR_processing vignette.</p>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the released version of vprr from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>You can install the released version of vprr from <a href="https://CRAN.R-project.org" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"vprr"</span><span class="op">)</span></code></pre></div>
-<p>And the development version from <a href="https://github.com/">GitHub</a> with:</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"vprr"</span><span class="op">)</span></code></pre></div>
+<p>And the development version from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"Echisholm21/vprr"</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="details" class="section level2">
-<h2 class="hasAnchor">
-<a href="#details" class="anchor"></a>Details</h2>
+<div class="section level2">
+<h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a>
+</h2>
 <p>vprr is designed to be used after processing VPR data with Visual Plankton (VP), a Matlab image classification software. Although not dependent on any specific elements of VP, the data processing is designed around VP file formats and directory structures. Visual Plankton code can be found: On GC code (for internal DFO users), within the dfo-mar-odis group, and ‘visual plankton’ project. For permission to view the project on GC code, contact <a href="mailto:DataServicesDonnees@dfo-mpo.gc.ca" class="email">DataServicesDonnees@dfo-mpo.gc.ca</a>.</p>
-<p>All the technical details of vprr can we found in the package vignette, available through Rstudio or at <a href="https://echisholm21.github.io/vprr/" class="uri">https://echisholm21.github.io/vprr/</a> (under Articles).</p>
+<p>All the technical details of vprr can we found in the package vignette, available through Rstudio or at <a href="https://echisholm21.github.io/vprr/" class="external-link uri">https://echisholm21.github.io/vprr/</a> (under Articles).</p>
 <p><img src="articles/vp_flowchart.png"></p>
 <p>Figure 1. VPR data processing flow chart. Blue boxes represent software, green and yellow boxes represent data sets, where yellow is visual data and green is text format data. This package represents ‘Processing and Visualization (R)’.</p>
 <p>The first element of processing VPR data is to classify the images output. This can be done in VP, using machine learning techniques and then checked or manually edited in vprr. vprr uses a GUI function <code>vpr_manual_classification</code> to allow a user to review and change image classifications.</p>
@@ -116,20 +112,29 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=vprr">https://​cloud.r-project.org/​package=vprr</a>
-</li>
+<li><a href="https://cloud.r-project.org/package=vprr" class="external-link">View on CRAN</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>GPL (&gt;= 2)</li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing vprr</a></li>
+</ul>
+</div>
+
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Emily Chisholm <br><small class="roles"> Author, maintainer, copyright holder </small>  </li>
 <li>Kevin Sorochan Dev <br><small class="roles"> Author </small>  </li>
@@ -137,16 +142,20 @@
 </ul>
 </div>
 
+
+
   </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+  <p></p>
+<p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -154,6 +163,8 @@
 
   
 
+
+  
 
   </body>
 </html>
