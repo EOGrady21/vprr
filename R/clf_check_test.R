@@ -275,13 +275,15 @@ vpr_manual_classification <-
   }
 
 
-vpr_autoid_create <- function(reclassify, misclassified, basepath) {
+vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
   #'
   #'@param reclassify list of reclassify files (output from vpr_manual_classification())
   #'@param misclassified list misclassify files (output from vpr_manual_classification())
   #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
+  #'@param day day identifier for relevant aid & aidmeas files
+  #'@param hour  hour identifier for relevant aid & aidmeas files
   #'
   #'
   #' ### examples
@@ -386,6 +388,14 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
 
       aid_old_gen <- unlist(vpr_roi(aid_list_old))
 
+
+      # KS big fix: issue #24
+      if(length(mis_roi) == 0) {
+
+        aid_new <- aid_list_old
+
+      } else {
+
       sub_mis_roi <- mis_roi_df %>%
         dplyr::filter(., day_hour == unique(mis_roi_df$day_hour))
       #%>%
@@ -397,6 +407,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
 
       # new list with misclassified rois removed
       aid_new <- aid_list_old[-ind]
+      }
 
       cat(
         paste(
@@ -440,7 +451,12 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
 
       aidMea_old <- unique(aidMea_old) # KS fix for bug duplicates
 
-      aidMea_new <- aidMea_old[-ind,]
+      # KS bug fix: Issue #24
+      if(length(mis_roi) == 0) {
+
+        aidMea_new <- aidMea_old
+
+      } else { aidMea_new <- aidMea_old[-ind,] }
 
       cat(
         paste(
@@ -480,12 +496,13 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath) {
       # pull one reclassify file at a time
       recl_roi <- readLines(reclassify_taxa)
       # get day.hour info
-      day_hour_re <-
-        substr(sub(recl_roi, pattern = '.*d', replacement = 'd'), 1, 8)
-      day_hour_re <-
-        gsub(pattern = "\\\\",
-             replacement = '.',
-             x = day_hour_re)
+      day_hour_re <- paste(day, hour, sep = ".") # arguments now given to function no need to find them in file names
+      # day_hour_re <-
+      #   substr(sub(recl_roi, pattern = '.*d', replacement = 'd'), 1, 8)
+      # day_hour_re <-
+      #   gsub(pattern = "\\\\",
+      #        replacement = '.',
+      #        x = day_hour_re)
 
       # get generic roi string
       recl_roi_gen <- unlist(vpr_roi(recl_roi))
