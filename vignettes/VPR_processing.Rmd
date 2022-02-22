@@ -395,10 +395,14 @@ Before final export of data products, the following variables are added to the d
   ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
   
   # add avg hr and sigma T data and depth
- data <- ctd_roi_merge %>%
+    data <- ctd_roi_merge %>%
     dplyr::mutate(., avg_hr = time_ms / 3.6e+06) 
  
     data <- vpr_ctd_ymd(data, year)
+    
+  # ensure that data is sorted by time to avoid processing errors
+    data <- data %>%
+    dplyr::arrange(., time_ms)
   
   cat('Initial processing complete! \n')
   cat('\n')
