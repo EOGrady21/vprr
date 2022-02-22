@@ -43,7 +43,7 @@ the dfo-mar-odis group, and ‘visual plankton’ project. For permission to
 view the project on GC code, contact
 <DataServicesDonnees@dfo-mpo.gc.ca>.
 
-All the technical details of vprr can we found in the package vignette,
+All the technical details of vprr can be found in the package vignette,
 available through Rstudio or at <https://echisholm21.github.io/vprr/>
 (under Articles).
 
@@ -55,30 +55,31 @@ and green is text format data. This package represents ‘Processing and
 Visualization (R)’.
 
 The first element of processing VPR data is to classify the images
-output. This can be done in VP, using machine learning techniques and
-then checked or manually edited in vprr. vprr uses a GUI function
-`vpr_manual_classification` to allow a user to review and change image
-classifications.
+collected. This can be done in VP (Visual Plankton - Matlab), using
+machine learning techniques and then checked and manually edited in
+vprr. vprr uses a GUI, called through `vpr_manual_classification()` to
+allow a user to review and change image classifications.
 
 ![](vignettes/clf_check_3.png)
 
-Figure 2. A screenshot from vprr manual reclassification. VPR images are
-displayed in the RStudio Viewer, prompts are displayed in the RStudio
-console. Users are asked in VP classifications are correct, if not, they
-are asked to select the proper classification from a pre set list of
-categories.
+Figure 2. A screenshot from the vprr manual reclassification process.
+VPR images are displayed in the RStudio Viewer (right), prompts are
+displayed in the RStudio console (left). Users are asked if VP
+classifications are correct, if not, they are asked to select the proper
+classification from a pre-set list of categories.
 
-Once images have been properly classified, all data sources are combined
-in order to analyze data and calculate relevant environmental metrics
-such as plankton concentration. Data from CTD files (`vpr_ctd_read`) and
-image classification (`vpr_autoid_read`) can be read in and combined
-into easy-to-use data frames. vprr combines VPR CTD, and VPR image
-classifications into depth bins before calculating concentration
-(`vpr_roi_concentration`).
+Once images have been properly classified, all data sources are
+combined, in order to analyze data and calculate relevant environmental
+metrics such as plankton concentration. Data from CTD files
+(`vpr_ctd_read()`) and image classification (`vpr_autoid_read()`) can be
+read in and combined into easy-to-use data frames. vprr can combine VPR
+CTD, and VPR image classifications into depth bins, and calculate
+concentration (`vpr_roi_concentration()`).
 
 After data is processed, it can be visualized for easy interpretation.
-Although this package does not focus on plotting, it does provide some
-basic plotting structures for tow-yo VPR data (`vpr_plot_contour`).
+Although this package does not focus on visualization, it does provide
+some basic plotting functions for tow-yo VPR data
+(`vpr_plot_contour()`).
 
 ![](vignettes/conPlot_cal_dens.png)
 
