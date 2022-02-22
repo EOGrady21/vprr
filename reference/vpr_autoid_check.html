@@ -61,7 +61,7 @@ ROI files are the same length</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_autoid_check</span><span class="op">(</span><span class="va">basepath</span>, <span class="va">cruise</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_autoid_check</span><span class="op">(</span><span class="va">basepath</span>, <span class="va">cruise</span>, <span class="va">del</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -70,6 +70,8 @@ ROI files are the same length</p>
 <dd><p>basepath to autoid folder eg. C:/data/CRUISENAME/autoid/</p></dd>
 <dt>cruise</dt>
 <dd><p>name of cruise which is being checked</p></dd>
+<dt>del</dt>
+<dd><p>Logical value, if <code>TRUE</code>, empty files will be deleted (see warning), if <code>FALSE</code>, files WILL NOT be deleted (they will be listed in output)</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
