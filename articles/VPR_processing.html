@@ -405,10 +405,14 @@ for (j in 1:length(all_stations_of_interest)){
 <pre><code><span class="co">##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------</span>
   
   <span class="co"># add avg hr and sigma T data and depth</span>
- <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span> <span class="op">%&gt;%</span>
+    <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span> <span class="op">%&gt;%</span>
     <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, avg_hr <span class="op">=</span> <span class="va">time_ms</span> <span class="op">/</span> <span class="fl">3.6e+06</span><span class="op">)</span> 
  
     <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_ctd_ymd.html">vpr_ctd_ymd</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">year</span><span class="op">)</span>
+    
+  <span class="co"># ensure that data is sorted by time to avoid processing errors</span>
+    <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op">%&gt;%</span>
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">.</span>, <span class="va">time_ms</span><span class="op">)</span>
   
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'Initial processing complete! \n'</span><span class="op">)</span>
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'\n'</span><span class="op">)</span>
