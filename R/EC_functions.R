@@ -1608,6 +1608,7 @@ insertRow <- function(existingDF, newrow, r) {
 #'
 #' @param basepath basepath to autoid folder eg. C:/data/CRUISENAME/autoid/
 #' @param cruise name of cruise which is being checked
+#' @param del Logical value, if `TRUE`, empty files will be deleted (see warning), if `FALSE`, files WILL NOT be deleted (they will be listed in output)
 #'
 #' @return text file (saved in working directory) named CRUISENAME_aid_file_check.txt
 #'
@@ -1615,8 +1616,9 @@ insertRow <- function(existingDF, newrow, r) {
 #' @export
 #'
 #'
-vpr_autoid_check <- function(basepath, cruise){
+vpr_autoid_check <- function(basepath, cruise, del){
 
+  on.exit(closeAllConnections()) # make sure text file gets closed
 
 
   taxa_folders <- list.files(basepath, full.names = TRUE)
@@ -1648,6 +1650,7 @@ vpr_autoid_check <- function(basepath, cruise){
     }
     cat('Empty file check complete for', taxa_folders[i], '\n')
 
+    if (del == TRUE){
     # automated deleteion of empty files
 
     empty_aids <- aid_fns[empty_ind == TRUE]
@@ -1680,6 +1683,7 @@ vpr_autoid_check <- function(basepath, cruise){
       }
     }
 
+    }
     # remove any empty files from data frame before running next check
 
     aid_fns <- aid_fns[empty_ind == FALSE]
