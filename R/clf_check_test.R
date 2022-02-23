@@ -298,7 +298,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   #'@export
 
   # avoid CRAN notes
-  . <- day <- hour <- NA
+  # . <- day <- hour <- NA
   taxaNames <- list.files(basepath)
 
   # find aid txt files
@@ -350,6 +350,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       # if there is no misclassified information
 
       print(paste('Blank misclassified file found for', taxa, '!'))
+      # browser()
       day_n <- vpr_day(misclassified[i])
       hr_n <- vpr_hour(misclassified[i])
       day_hour <- paste0('d', day, '.h', hour)
@@ -366,6 +367,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 
     # possibility that original data file does not exist
     if (length(aid_list_old_fn) == 0) {
+
       # make blank dummy data file to insert reclassified info into
       # needs file path (aidFolder)
       aid_list_old_fn <-
@@ -407,7 +409,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 
       # new list with misclassified rois removed
       aid_new <- aid_list_old[-ind]
-      }
+
 
       cat(
         paste(
@@ -422,6 +424,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
           '\n'
         )
       )
+      }
     }
 
     # FIX MEAS FILE TO MATCH
@@ -456,8 +459,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 
         aidMea_new <- aidMea_old
 
-      } else { aidMea_new <- aidMea_old[-ind,] }
-
+      } else { aidMea_new <- aidMea_old[-ind,]
       cat(
         paste(
           '>>>>',
@@ -471,6 +473,9 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
           '\n'
         )
       )
+      }
+
+
       DUMMY = FALSE
     }
     # add reclassified rois
