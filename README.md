@@ -29,7 +29,7 @@ And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Echisholm21/vprr")
+devtools::install_github("EOGrady21/vprr")
 ```
 
 ## Details
