@@ -44,7 +44,7 @@ view the project on GC code, contact
 <DataServicesDonnees@dfo-mpo.gc.ca>.
 
 All the technical details of vprr can be found in the package vignette,
-available through Rstudio or at <https://echisholm21.github.io/vprr/>
+available through Rstudio or at <https://eogrady21.github.io/vprr/>
 (under Articles).
 
 ![](vignettes/vp_flowchart.png)

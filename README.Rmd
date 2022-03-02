@@ -41,7 +41,7 @@ devtools::install_github("Echisholm21/vprr")
 
 vprr is designed to be used after processing VPR data with Visual Plankton (VP), a Matlab image classification software. Although not dependent on any specific elements of VP, the data processing is designed around VP file formats and directory structures. Visual Plankton code can be found: On GC code (for internal DFO users), within the dfo-mar-odis group, and 'visual plankton' project. For permission to view the project on GC code, contact DataServicesDonnees@dfo-mpo.gc.ca. 
 
-All the technical details of vprr can be found in the package vignette, available through Rstudio or at https://echisholm21.github.io/vprr/ (under Articles).
+All the technical details of vprr can be found in the package vignette, available through Rstudio or at https://eogrady21.github.io/vprr/ (under Articles).
 
 ![ ](vignettes/vp_flowchart.png)
 

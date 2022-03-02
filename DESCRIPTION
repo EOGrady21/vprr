@@ -2,8 +2,8 @@ Package: vprr
 Type: Package
 Title: Processing and Visualization of Visual Plankton Recorder Data
 Version: 0.1.0
-Authors@R: c(person("Emily Chisholm",  role = c("aut", "cre","cph"), email = "vprrcontact@gmail.com"), person("Kevin Sorochan", "Dev", role = "aut"), person("Catherine Johnson", "Contributer", role = "aut"))
-Maintainer: Emily Chisholm <vprrcontact@gmail.com>
+Authors@R: c(person("Emily O'Grady",  role = c("aut", "cre","cph"), email = "vprrcontact@gmail.com"), person("Kevin Sorochan", "Dev", role = "aut"), person("Catherine Johnson", "Contributer", role = "aut"))
+Maintainer: Emily O'Grady <vprrcontact@gmail.com>
 Description: An oceanographic data processing package for analyzing and visualizing Video 
     Plankton Recorder data. Works in concert with Visual Plankton (MATLAB) software 
     developed at 'WHOI'. This package was developed at 'Bedford Institute of Oceanography'.

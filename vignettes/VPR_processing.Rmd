@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEngine{knitr::knitr}
   \usepackage[utf8]{inputenc}
 
-author: "Emily Chisholm (https://orcid.org/0000-0002-1072-5879), Kevin Sorochan, Catherine Johnson"
+author: "Emily O'Grady (https://orcid.org/0000-0002-1072-5879), Kevin Sorochan, Catherine Johnson"
 
 ---
 
