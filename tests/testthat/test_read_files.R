@@ -1,6 +1,6 @@
 context("read files")
-
-library(vprr)
+library(testthat)
+# library(vprr)
 
 # required metadata and data
 

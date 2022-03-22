@@ -298,7 +298,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   #'@export
 
   # avoid CRAN notes
-  # . <- day <- hour <- NA
+  . <- day <- hour <- NA
   taxaNames <- list.files(basepath)
 
   # find aid txt files

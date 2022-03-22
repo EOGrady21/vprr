@@ -1,5 +1,5 @@
 context('Binning and calculations')
-
+library(testthat)
 library(vprr)
 
 data("ctd_roi_merge")

@@ -1,5 +1,5 @@
 context("merge data frames")
-
+library(testthat)
 library(vprr)
 
 data('ctd_dat_combine')

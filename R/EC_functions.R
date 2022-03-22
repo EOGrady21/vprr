@@ -13,6 +13,10 @@
 #' @rawNamespace import(metR, except = coriolis)
 #'
 NULL
+
+
+options(dplyr.summarise.inform = FALSE)
+
 #### PROCESSING FUNCTIONS ####
 
 
@@ -841,7 +845,7 @@ if(!is.na(opticalSetting)){
     roi_df <- dat_combine_aid %>%
       dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
       dplyr::group_by(., taxa, roi) %>%
-      dplyr::summarise(., n_roi = n()) %>%
+      dplyr::summarise(., n_roi = dplyr::n(), .groups = NULL) %>%
       tidyr::spread(., taxa, n_roi) %>%
       dplyr::mutate(., time_ms = as.numeric(roi))
 
