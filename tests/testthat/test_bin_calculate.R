@@ -1,6 +1,6 @@
 context('Binning and calculations')
 library(testthat)
-library(vprr)
+# library(vprr)
 
 data("ctd_roi_merge")
 data("roimeas_dat_combine")
