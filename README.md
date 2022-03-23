@@ -4,7 +4,6 @@
 # vprr
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 The goal of vprr is to process Video Plankton Recorder (VPR) data in R.
@@ -14,7 +13,7 @@ plankton, data visualization, and data output with self-contained
 metadata.
 
 Detailed information about vprr and its use can be found in the
-VPR\_processing vignette.
+VPR_processing vignette.
 
 ## Installation
 
@@ -47,7 +46,7 @@ All the technical details of vprr can be found in the package vignette,
 available through Rstudio or at <https://eogrady21.github.io/vprr/>
 (under Articles).
 
-![Figure 1](vignettes/vp_flowchart.PNG)
+![](vignettes/vp_flowchart.PNG)
 
 Figure 1. VPR data processing flow chart. Blue boxes represent software,
 green and yellow boxes represent data sets, where yellow is visual data
