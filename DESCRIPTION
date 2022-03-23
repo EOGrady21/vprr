@@ -24,7 +24,8 @@ Imports: ggplot2,
     stringr,
     metR,
     gridExtra,
-    lubridate
+    lubridate,
+    usethis
 Suggests: 
     knitr,
     rmarkdown,
