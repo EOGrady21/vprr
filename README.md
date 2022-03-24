@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# vprr <a href='eogrady21.github.io/vprr/'><img src='man/figures/vprr_hex.png' align="right" height="139" /></a>
+# vprr <a href='https://eogrady21.github.io/vprr/'><img src='man/figures/vprr_hex.png' align="right" height="139" /></a>
 
 
 <!-- badges: start -->
