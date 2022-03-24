@@ -1,7 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# vprr
+# vprr <a href='https://dplyr.tidyverse.org'><img src='man/figures/vprr_hex.png' align="right" height="139" /></a>
+
 
 <!-- badges: start -->
 <!-- badges: end -->
