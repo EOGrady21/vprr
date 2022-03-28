@@ -2515,13 +2515,13 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
 
 #contour plot with interpolation
 
-vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1){
+vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1, cmo){
 
   #' Interpolated contour plot of particular variable
   #'
   #' Creates interpolated contour plot, can be used as a background for ROI or tow yo information
   #'
-  #' @author E. Chisholm
+  #' @author E. Chisholm & Kevin Sorochan
   #'
   #' @param data data frame needs to include avg_hr, depth, and variable of
   #'   choice (var)
@@ -2532,6 +2532,7 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #'   slightly different method (oce is least error prone)
   #' @param labels logical value indicating whether or not to plot contour labels
   #' @param bw bin width defining interval at which contours are labelled
+  #' @param cmo name of a `cmocean` plotting theme, see `?cmocean` for more information
   #'
   #' @export
 
@@ -2560,25 +2561,67 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #zero time values
   df$x <- df$x - min(df$x)
 
+  if(missing(cmo)){
+    # default to gray
+    cmo <- 'gray'
+    # set default col scheme based on variable name
+    if(var %in% c('temperature', 'conc_m3')){
+      cmo <- cmocean::cmocean('thermal')
+    }
+    if(var == 'salinity') {
+      cmo <- cmocean::cmocean('haline')
+    }
+    if(var == 'density') {
+      cmo <- cmocean::cmocean('dense')
+    }
+    if(var == 'fluorescence') {
+      cmo <- cmocean::cmocean('algae')
+    }
+    if(var == 'turbidity') {
+      cmo <- cmocean::cmocean('turbid')
+    }}
+
+  theme_col <- cmocean::cmocean(cmo)
+  cmo_data <- theme_col(100)
+
+
   if(labels == TRUE){
+    # updated plotting from KS
     p <- ggplot(df) +
       geom_tile(aes(x = x, y = y, fill = z)) +
       labs(fill = var) +
-      scale_y_reverse(name = 'Depth [m]') +
-      scale_x_continuous(name = 'Time [h]') +
+      scale_y_reverse(name = "Depth [m]") +
+      scale_x_continuous(name = "Time [h]") +
       theme_classic() +
-      geom_contour(aes(x = x, y = y, z= z), col = 'black') +
-      geom_text_contour(aes(x = x, y = y, z= z),binwidth = bw, col = 'white', check_overlap = TRUE, size = 8)+ #CONTOUR LABELS
-      scale_fill_continuous(na.value = 'white')
+      geom_contour(aes(x = x, y = y, z = z), col = "black") +
+      geom_text_contour(aes(x = x, y = y, z = z), binwidth = bw,
+                        col = "white", check_overlap = TRUE, size = 8) +
+      scale_fill_gradientn(colours = cmo_data, na.value = 'gray')
+    # p <- ggplot(df) +
+    #   geom_tile(aes(x = x, y = y, fill = z)) +
+    #   labs(fill = var) +
+    #   scale_y_reverse(name = 'Depth [m]') +
+    #   scale_x_continuous(name = 'Time [h]') +
+    #   theme_classic() +
+    #   geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+    #   geom_text_contour(aes(x = x, y = y, z= z),binwidth = bw, col = 'white', check_overlap = TRUE, size = 8)+ #CONTOUR LABELS
+    #   scale_fill_continuous(na.value = 'white')
   }else{
+    #  updated plotting from KS
     p <- ggplot(df) +
       geom_tile(aes(x = x, y = y, fill = z)) +
-      labs(fill = var) +
-      scale_y_reverse(name = 'Depth [m]') +
-      scale_x_continuous(name = 'Time [h]') +
-      theme_classic() +
-      geom_contour(aes(x = x, y = y, z= z), col = 'black') +
-      scale_fill_continuous(na.value = 'white')
+      labs(fill = var) + scale_y_reverse(name = "Depth [m]") +
+      scale_x_continuous(name = "Time [h]") + theme_classic() +
+      geom_contour(aes(x = x, y = y, z = z), col = "black") +
+      scale_fill_gradientn(colours = cmo_data, na.value = "gray")
+    # p <- ggplot(df) +
+    #   geom_tile(aes(x = x, y = y, fill = z)) +
+    #   labs(fill = var) +
+    #   scale_y_reverse(name = 'Depth [m]') +
+    #   scale_x_continuous(name = 'Time [h]') +
+    #   theme_classic() +
+    #   geom_contour(aes(x = x, y = y, z= z), col = 'black') +
+    #   scale_fill_continuous(na.value = 'white')
   }
   return(p)
 }

@@ -25,7 +25,8 @@ Imports: ggplot2,
     metR,
     gridExtra,
     lubridate,
-    usethis
+    usethis,
+    cmocean
 Suggests: 
     knitr,
     rmarkdown,
