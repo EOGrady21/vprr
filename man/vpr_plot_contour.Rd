@@ -10,7 +10,8 @@ vpr_plot_contour(
   dup = "mean",
   method = "interp",
   labels = TRUE,
-  bw = 1
+  bw = 1,
+  cmo
 )
 }
 \arguments{
@@ -28,10 +29,12 @@ slightly different method (oce is least error prone)}
 \item{labels}{logical value indicating whether or not to plot contour labels}
 
 \item{bw}{bin width defining interval at which contours are labelled}
+
+\item{cmo}{name of a \code{cmocean} plotting theme, see \code{?cmocean} for more information}
 }
 \description{
 Creates interpolated contour plot, can be used as a background for ROI or tow yo information
 }
 \author{
-E. Chisholm
+E. Chisholm & Kevin Sorochan
 }
