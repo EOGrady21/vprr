@@ -2542,6 +2542,8 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #interpolate
   #use interp package rather than akima to avoid breaking R
   #ref: https://www.user2017.brussels/uploads/bivand_gebhardt_user17_a0.pdf
+  # browser()
+
   if(method == 'akima'){
     interpdf <- akima::interp(x = data$avg_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
@@ -2563,27 +2565,28 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 
   if(missing(cmo)){
     # default to gray
-    cmo <- 'gray'
+    cmof <- cmocean::cmocean('gray')
     # set default col scheme based on variable name
     if(var %in% c('temperature', 'conc_m3')){
-      cmo <- cmocean::cmocean('thermal')
+      cmof <- cmocean::cmocean('thermal')
     }
     if(var == 'salinity') {
-      cmo <- cmocean::cmocean('haline')
+      cmof <- cmocean::cmocean('haline')
     }
     if(var == 'density') {
-      cmo <- cmocean::cmocean('dense')
+      cmof <- cmocean::cmocean('dense')
     }
     if(var == 'fluorescence') {
-      cmo <- cmocean::cmocean('algae')
+      cmof <- cmocean::cmocean('algae')
     }
     if(var == 'turbidity') {
-      cmo <- cmocean::cmocean('turbid')
-    }}
+      cmof <- cmocean::cmocean('turbid')
+    }} else{
+      cmof <- cmocean::cmocean(cmo)
+    }
 
-  theme_col <- cmocean::cmocean(cmo)
-  cmo_data <- theme_col(100)
-
+  # theme_col <- cmocean::cmocean(cmo)
+  cmo_data <- cmof(100)
 
   if(labels == TRUE){
     # updated plotting from KS
