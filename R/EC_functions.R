@@ -515,7 +515,7 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #Remove infinite concentrations (why do these occur again?)
   vpr_depth_bin <- vpr_depth_bin %>%
-    dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>%
+   # dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>% # this is potentially creating issues where time is not aligned in plots
     dplyr::filter(., is.finite(conc_m3))
 
   return(vpr_depth_bin)
