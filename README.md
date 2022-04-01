@@ -5,6 +5,8 @@
 
 
 <!-- badges: start -->
+![R](https://github.com/eogrady21/vprr/actions/workflows/r.yml/badge.svg)
+[![CodeFactor](https://www.codefactor.io/repository/github/eogrady21/vprr/badge/main)](https://www.codefactor.io/repository/github/eogrady21/vprr/overview/main)
 <!-- badges: end -->
 
 The goal of vprr is to process Video Plankton Recorder (VPR) data in R.
