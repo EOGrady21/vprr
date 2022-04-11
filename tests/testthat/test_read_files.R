@@ -81,7 +81,7 @@ test_that("VPR autoid files are read in accurately", {
 
   taxa_names <- names(roi_dat_combine)[-c(1,13)]
   t_names_exp <- list()
-  for(i in 1:length(aid_files)){
+  for(i in seq_len(length(aid_files))){
     t_names_exp[[i]] <- vpr_category(aid_files[[i]])
   }
   t_names_exp <- unique(unlist(t_names_exp))
@@ -144,7 +144,7 @@ test_that("VPR autoid files are read in accurately", {
 
   # check match to aid files
   num_dat_img <- list()
-  for(i in 1:length(taxa_names)){
+  for(i in seq_len(length(taxa_names))){
     num_dat_img[[i]] <- sum(roi_dat_combine[[taxa_names[[i]]]])
   }
 

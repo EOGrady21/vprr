@@ -75,7 +75,7 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   # AUTO ID FILES
   aid_file_list <- list()
   aidmea_file_list <- list()
-  for (i in 1:length(dayhour)) {
+  for (i in seq_len(length(dayhour))) {
     aid_file_list[[i]] <-
       list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
     # SIZE DATA FILES

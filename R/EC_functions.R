@@ -15,7 +15,7 @@
 NULL
 
 
-options(dplyr.summarise.inform = FALSE)
+options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 
 #### PROCESSING FUNCTIONS ####
 
@@ -66,7 +66,7 @@ vpr_save <- function(data, metadata){
 
   # check for metadata in dataframe
   rem_list <- list()
-  for(i in 1:length(oce_data@data)){
+  for(i in seq_len(length(oce_data@data))){
     if(length(unique(oce_data@data[[i]])) == 1){
       print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of' , unique(oce_data@data[[i]]), 'moved to metadata slot. '))
       # add as metadtaa parameter
@@ -328,7 +328,8 @@ for (i in folder_names) {
 
   for(ii in txt_roi) {
 
-    setwd(dir_roi)
+    # setwd(dir_roi)
+    withr::with_dir(dir_roi, code = {
 
     roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
 
@@ -338,7 +339,7 @@ for (i in folder_names) {
     shell(command1)
 
     #Copy rois to this directory
-    for (iii in 1:nrow(roi_path_str)) {
+    for (iii in seq_len(nrow(roi_path_str))) {
 
       dir_tmp <- as.character(roi_path_str[iii,1])
       command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
@@ -347,6 +348,7 @@ for (i in folder_names) {
       print(paste(iii, '/', nrow(roi_path_str),' completed!'))
     }
 
+    })
   }
 
   print(paste(i, 'completed!'))
@@ -394,7 +396,7 @@ vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize
 
   # calculate concentrations
   conc_dat <- list()
-  for ( ii in 1:length(valid_taxa)){
+  for ( ii in seq_len(length(valid_taxa))){
     conc_dat[[ii]] <- concentration_category(data, valid_taxa[ii], binSize, imageVolume) %>%
       dplyr::mutate(., taxa = valid_taxa[ii])
   }
@@ -590,7 +592,7 @@ if(length(ctd_files) == 0){
   stop('No CTD files provided!')
 }
   ctd_dat <- list()
-  for (i in 1:length(ctd_files)){
+  for (i in seq_len(length(ctd_files))){
 
     if(missing(day)){
     day_id <- unlist(vpr_day(ctd_files[i]))
@@ -781,9 +783,9 @@ if( export == 'aidmeas'){
 }
 # aid
 
-  col_names <- c("roi")
+  col_names <- "roi"
   dat <- list()
-  for(i in 1:length(file_list_aid)) {
+  for(i in seq_len(length(file_list_aid))) {
 
     data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
 
@@ -811,7 +813,7 @@ if( export == 'aidmeas'){
 
   dat <- list()
   col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
-  for(i in 1:length(file_list_aidmeas)) {
+  for(i in seq_len(length(file_list_aidmeas))) {
 
     data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
 
@@ -967,7 +969,7 @@ ctd_df_cols <- function(x, col_list) {
   time <- as.numeric(gsub("[^[:digit:]]", "", time))
 
 
-  data2 <- cbind(time, data[,-c(1)])
+  data2 <- cbind(time, data[,-1])
   colnames(data2) <- col_list
   data2 <- data2[!duplicated(data2), ]
   data2
@@ -990,8 +992,8 @@ normalize_matrix <- function(mat){
 
 
   nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
-  for(i in 1:length(nm[,1])){
-    for (j in 1:length(nm[1,])){
+  for(i in seq_len(length(nm[,1]))){ # 1:length(nm[,1])
+    for (j in seq_len(length(nm[1,]))){ # 1:length(nm[1,])
       nm[i,j] <- mat[i,j]/colSums(mat)[j]
     }
   }
@@ -1228,7 +1230,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 
   # append data with 'cast_id' to be able to identify/ combine data frames
-  for(i in 1:length(cast)) {
+  for(i in seq_len(length(cast))) {
 
     data <- cast[[i]]
 
@@ -1413,7 +1415,7 @@ vpr_category <- function(x) {
     'cnidarians'
   )
 
-  for(i in 1:length(taxa_ids)) {
+  for(i in seq_len(length(taxa_ids))) {
 
     taxa_id <- taxa_ids[i]
 
@@ -1511,7 +1513,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #' @export
 
   #prints a data summary report, part of VP easyPlot
-  if(!missing(fn)){sink(fn)}
+  if(!missing(fn)){sink(fn)} # TODO: update to use withr conventions
 
   cat('                  Data Summary Report \n')
   cat('Report processed:', as.character(Sys.time()), '\n')
@@ -1627,7 +1629,8 @@ vpr_autoid_check <- function(basepath, cruise, del){
 
   taxa_folders <- list.files(basepath, full.names = TRUE)
 
-  sink(paste0(cruise,'_aid_file_check.txt'))
+  withr::with_output_sink(paste0(cruise,'_aid_file_check.txt'), code = {
+  # sink(paste0(cruise,'_aid_file_check.txt'))
   # loop through each taxa
 
   for (i in 1:length(taxa_folders)){
@@ -1639,7 +1642,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
     #### EMPTY FILE CHECK
     # check for empty files
     empty_ind <- list()
-    for (ii in 1:length(aid_fns)){
+    for (ii in seq_len(length(aid_fns))){
       fn <- readLines(aid_fns[ii])
       if(length(fn) == 0){
         cat('\n')
@@ -1669,7 +1672,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
     empty_files <- c(empty_aids, empty_aidmeas)
 
     if (length(empty_files) != 0){ # only if empty files exist
-      for (ii in 1:length(empty_files)){
+      for (ii in seq_len(length(empty_files))){
 
         check <- readLines(empty_files[ii])
 
@@ -1698,14 +1701,14 @@ vpr_autoid_check <- function(basepath, cruise, del){
 
 
       # read each aid file
-      for (ii in 1:length(aid_fns)){
+      for (ii in seq_len(length(aid_fns))){
         fn <- readLines(aid_fns[ii])
         # check vpr tow number
 
         v_loc <- stringr::str_locate(fn, 'vpr')
 
         vpr_num <- list()
-        for (iii in 1:length(v_loc[,1])){
+        for (iii in seq_len(length(v_loc[,1]))){
           fn_str <- fn[iii]
           fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
           vpr_num[iii] <- fn_str_split[[1]][5]
@@ -1732,7 +1735,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
           cat('\n')
           # put strings back together and save file
 
-          for(iii in 1:length(fn)){
+          for(iii in seq_len(length(fn))){
             fn_str <- fn[iii]
             fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
             fn_str_split[[1]][5] <- final_vpr
@@ -1763,7 +1766,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
         cat('Mismatched number of size and roi files! \n')
       }
 
-      for (ii in 1:length(sizefiles)){
+      for (ii in seq_len(length(sizefiles))){
         s_fn <- readLines(sizefiles[[ii]])
         r_fn <- readLines(roifiles[[ii]])
         if (length(s_fn > 0)){
@@ -1794,7 +1797,8 @@ vpr_autoid_check <- function(basepath, cruise, del){
   }
 
 
-  sink()
+  # sink()
+  }) # end sink output
 
 }
 
@@ -1825,7 +1829,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 
   auto_measure_mm_alltaxa_ls <- list()
   # browser()
-  for (i in 1:length(taxafolder)) {
+  for (i in seq_len(length(taxafolder))) {
     # print(paste( 'i = ',i))
     #find files
     sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = TRUE)
@@ -1862,7 +1866,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
       auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
 
 
-      for(j in 1:length(sizefiles)) {
+      for(j in seq_len(length(sizefiles))) {
         #print(paste('j = ', j))
         sizefile <- sizefiles[j]
         roifile <- roifiles[j]
@@ -1974,17 +1978,18 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 #'
 vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
+  #oldpar <- par(no.readonly = TRUE)
+  #on.exit(par(oldpar))
 
   # avoid CRAN notes
   . <- NA
   data <- x
   taxa <- unique(data$taxa)
 
-  for(i in 1:length(taxa)) {
+  for(i in seq_len(length(taxa))) {
 
-    par(mfrow = c(1,2))
+    # par(mfrow = c(1,2))
+    withr::with_par(mfrow = c(1,2), code = {
 
     taxa_id <- taxa[i]
 
@@ -2000,8 +2005,9 @@ vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
       plot.new()
 
     }
-
+    })
   }
+
 
 }
 
@@ -2342,7 +2348,7 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL
     #find diagonal values
     acc <- confusion$Freq[confusion$Var1 == confusion$Var2]
     #for each taxa
-    for (i in 1:length(unique(confusion$Var1))){
+    for (i in seq_len(length(unique(confusion$Var1)))){
       #add text label
       p <- p + annotate('text', x = i, y = i, #position on diagonal
                         #label with frequency as percent rounded to 2 digits
@@ -2356,7 +2362,7 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL
   #threshold labels
 
   if ( !is.null(threshold)){
-    for (i in 1:length(confusion$Var1)){
+    for (i in seq_len(length(confusion$Var1))){
       #if frequency is above threshold
       if (confusion$Freq[i] > threshold ){
         #find x and y locations to plot
@@ -2472,7 +2478,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
 
   threshold<- 0
   #labels
-  for (i in 1:length(confusion$Var1)){
+  for (i in seq_len(length(confusion$Var1))){
     #if frequency is above threshold
     if (confusion$Freq[i] > threshold ){
       #find x and y locations to plot
@@ -2722,9 +2728,9 @@ pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
 }
 
 if(plot_conc == TRUE){
-p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = c(2), nrow = 1, ncol = 3)
+p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = 2, nrow = 1, ncol = 3)
 }else{
-  p <- grid.arrange(p_TS, p_FD, widths = c(1, 1), heights = c(2), nrow = 1, ncol = 2)
+  p <- grid.arrange(p_TS, p_FD, widths = c(1, 1), heights = 2, nrow = 1, ncol = 2)
 
 }
 return(p)
@@ -2815,7 +2821,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
     shell(command1)
 
     #Copy rois to this directory
-    for (iii in 1:length(new_roi_path)) {
+    for (iii in seq_len(length(new_roi_path))) {
 
       dir_tmp <- as.character(new_roi_path[iii])
       command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
@@ -2887,8 +2893,8 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #search for ROI files based on data
   roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
   roi_file_list <- list()
-  options(warn = 1)
-  for (i in 1:length(roi_files)){
+  #options(warn = 1)
+  for (i in seq_len(length(roi_files))){
     roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
     if (length(roi_file_list[[i]]) >= 1){
       message(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
@@ -2901,8 +2907,8 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
     return(roi_file_list)
   }
   if (format == 'image'){
-    for(i in 1:length(roi_file_list)){
-      for(ii in 1:length(roi_file_list[[i]])){
+    for(i in seq_len(length(roi_file_list))){
+      for(ii in seq_len(length(roi_file_list[[i]]))){
         data_roi <- data_filtered %>%
           dplyr::filter(., roi == roi[i])
         meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
@@ -2988,8 +2994,8 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #search for ROI files based on data
   roi_files <- paste0('roi.', sprintf('%08d', data_filtered$roi), '*')
   roi_file_list <- list()
-  options(warn = 1)
-  for (i in 1:length(roi_files)){
+  # options(warn = 1) # is this needed?
+  for (i in seq_len(length(roi_files))){
     roi_file_list[[i]] <- list.files(roiFolder, pattern = roi_files[i], recursive = TRUE, full.names = TRUE)
     if (length(roi_file_list[[i]]) >= 1){
       print(paste('Found', length(roi_file_list[[i]]),' files for ',roi_files[i] ))
@@ -3002,8 +3008,8 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
     return(roi_file_list)
   }
   if (format == 'image'){
-    for(i in 1:length(roi_file_list)){
-      for(ii in 1:length(roi_file_list[[i]])){
+    for(i in seq_len(length(roi_file_list))){
+      for(ii in seq_len(length(roi_file_list[[i]]))){
         data_roi <- data_filtered %>%
           dplyr::filter(., roi == roi[i])
         meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
@@ -3091,7 +3097,8 @@ vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
 
     for(ii in txt_roi) {
 
-      setwd(dir_roi)
+      # setwd(dir_roi)
+      withr::with_dir(dir_roi, code = {
 
       roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
 
@@ -3124,8 +3131,9 @@ vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
 
         print(paste(iii, '/', length(new_roi_path),' completed!'))
       }
+      }) # close dir
+      }
 
-    }
 
     print(paste(i, 'completed!'))
   }
@@ -3172,7 +3180,7 @@ vpr_img_check <- function(folder_dir, basepath){
 
 stfolders <- list.files(folder_dir, full.names = TRUE)
 
-for (i in 1:length(stfolders)){ #for each day/hour loop
+for (i in seq_len(length(stfolders))){ #for each day/hour loop
 
   krill_ver <- list.files(stfolders[i])
 

@@ -93,7 +93,7 @@ vpr_manual_classification <-
     reclassified <- vector("list", length(allTaxa))
     names(reclassified) <- allTaxa
 
-    for (i in 1:length(taxaFolders)) {
+    for (i in seq_len(length(taxaFolders))) {
       misclassified <- vector()
 
       print(paste('TAXA START : ', taxaFolders[i]))
@@ -154,7 +154,7 @@ vpr_manual_classification <-
             pxtomm <- 1 / mm_px
           }
 
-          for (ii in 1:length(rois)) {
+          for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
             img <- magick::image_read(rois[ii], strip = FALSE) %>%
               magick::image_scale(scale) %>%
@@ -234,39 +234,50 @@ vpr_manual_classification <-
           }
 
           # Write information to file
-          sink(
-            file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
-            append = T
-          )
-          cat(misclassified, sep = '\n')
-          sink()
+          # sink(
+          #   file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+          #   append = T
+          # )
+          withr::with_output_sink(paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+                                  append = TRUE,
+                                  code = {
+                                    cat(misclassified, sep = '\n')
+                                  })
+          #sink()
 
         }# skip = TRUE loop (taxa)
       }# skip = TRUE loop (dayhr)
 
       if (SKIP == TRUE) {
         # creates blank misclassified file if taxa of interest is not present in specified hour (so images reclassified as this taxa will be moved)
-        sink(
-          file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
-          append = TRUE
-        )
-        sink()
+        # sink(
+        #   file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+        #   append = TRUE
+        # )
+        # sink()
+        withr::with_output_sink(paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+                                append = TRUE,
+                                code = {
+                                  cat('\n')
+                                })
       }
     }
 
     # Write reclassified files for each taxa
-    for (i in 1:length(reclassified)) {
+    for (i in seq_len(length(reclassified))) {
       taxa_id <- names(reclassified[i])
       recl_tmp <- reclassified[[i]]
 
       # Make a reclassify file only for taxa that need to be reclassified
       if (length(recl_tmp != 0)) {
-        sink(
-          file = paste0(day_hour, '/reclassify_', taxa_id, '.txt'),
-          append = TRUE
-        )
-        cat(recl_tmp, sep = '\n')
-        sink()
+        # sink(
+        #   file = paste0(day_hour, '/reclassify_', taxa_id, '.txt'),
+        #   append = TRUE
+        # )
+        withr::with_output_sink(paste0(day_hour, '/reclassify_', taxa_id, '.txt'), append = TRUE, code = {
+          cat(recl_tmp, sep = '\n')
+        })
+        # sink()
 
       }
 
@@ -304,7 +315,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   # find aid txt files
   taxaFolders <- list.files(basepath, full.names = TRUE)
   # remove misclassified ROIS
-  for (i in 1:length(misclassified)) {
+  for (i in seq_len(length(misclassified))) {
     # TODO: generalize solution, remove hardcoding
     taxa <- vpr_category(misclassified[i])
 
@@ -372,9 +383,11 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       # needs file path (aidFolder)
       aid_list_old_fn <-
         paste0(aidFolder, '/dummy_svmaid.', day_hour)
-      sink(aid_list_old_fn)
-      cat('\n')
-      sink()
+      #sink(aid_list_old_fn)
+      withr::with_output_sink(aid_list_old_fn, code = {
+        cat('\n')
+      })
+      #sink()
       print(paste('DUMMY FILE CREATED FOR', taxa, ' : ', aid_list_old_fn))
 
       DUMMY = TRUE
@@ -441,9 +454,11 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       # needs file path
       aidMeaFile <-
         paste0(aidMeaFolder, "/dummy_svmaid.mea.", day_hour)
-      sink(aidMeaFile)
-      cat('\n')
-      sink()
+      # sink(aidMeaFile)
+      withr::with_output_sink(aidMeaFile, code = {
+        cat('\n')
+      })
+      # sink()
 
       print(paste('DUMMY FILE CREATED FOR MEAS OF', taxa, ' : ', aidMeaFile))
 
@@ -570,14 +585,14 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 
       #get all taxa aid and aidmea files for day/hour of interest
       aid_fn_list <- list()
-    for(l in 1:length(taxaFolders)){
+    for(l in seq_len(length(taxaFolders))){
 
       all_aids <- list.files(file.path(taxaFolders[[l]], 'aid'), full.names = TRUE)
       aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour, value = TRUE)
     }
 
       aidm_fn_list <- list()
-      for(l in 1:length(taxaFolders)){
+      for(l in seq_len(length(taxaFolders))){
 
         all_aidms <- list.files(file.path(taxaFolders[[l]], 'aidmea'), full.names = TRUE)
         aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour, value = TRUE)
@@ -746,7 +761,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 #'
 #'
 vpr_category_create <- function(taxa, basepath) {
-  for (i in 1:length(taxa)) {
+  for (i in seq_len(length(taxa))) {
     # create new taxa folder
     newtaxapath <- file.path(basepath, taxa[[i]])
     dir.create(newtaxapath)
