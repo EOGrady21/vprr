@@ -1633,7 +1633,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
   # sink(paste0(cruise,'_aid_file_check.txt'))
   # loop through each taxa
 
-  for (i in 1:length(taxa_folders)){
+  for (i in seq_len(length(taxa_folders))){
     path <- taxa_folders[i]
 
     # get all files (aid )
@@ -3123,7 +3123,7 @@ vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
       shell(command1)
 
       #Copy rois to this directory
-      for (iii in 1:length(new_roi_path)) {
+      for (iii in seq_len(length(new_roi_path))) {
 
         dir_tmp <- as.character(new_roi_path[iii])
         command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
