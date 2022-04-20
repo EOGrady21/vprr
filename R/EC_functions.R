@@ -20,6 +20,36 @@ options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 #### PROCESSING FUNCTIONS ####
 
 
+#' Read prediction output from a CNN model
+#'
+#' @param filename model prediction output file (.txt) from `vpr_transferlearn::save_output()`
+#'
+#' @return a dataframe
+#' @export
+#'
+#'
+vpr_cnn_read <- function(filename){
+  # do some checks on the file
+  # check for .txt file
+  # check that data index exists
+
+  all_lines <- readLines(filename)
+  dat_index <- grep(all_lines, pattern = 'DATA ----')
+  dat_tb <- read.table(filename, header = TRUE, sep = ',', skip = dat_index)
+
+  dat <- list()
+  dat$metadata <- as.list(all_lines[seq_len(dat_index -1)])
+  dat$data <- dat_tb
+
+  md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,1]
+  md_values <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,2]
+
+  dat$metadata <- md_values
+  names(dat$metadata) <- md_names
+
+  return(dat)
+}
+
 #' Save VPR data as an \link[oce]{as.oce} object
 #'
 #' @details This function will pass a VPR data frame object to an `oce` object.
