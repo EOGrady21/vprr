@@ -28,7 +28,7 @@ options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 #' @export
 #'
 #'
-vpr_cnn_read <- function(filename){
+vpr_pred_read <- function(filename){
   # do some checks on the file
   # check for .txt file
   # check that data index exists
