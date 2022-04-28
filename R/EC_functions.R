@@ -801,6 +801,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #' @export
 vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
 
+  # set-up for only processing aid data
+  if(missing(file_list_aidmeas)){export <- 'aid'}
   # avoid CRAN notes
   . <- roi <- taxa <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
 if( export == 'aidmeas'){
@@ -838,9 +840,26 @@ if( export == 'aidmeas'){
   #browser()
   remove(dat, data_tmp, day, hour)
 
+  # format
+  dat_combine_aid$id <- row.names(dat_combine_aid)
+
+
+  # Get tabulated rois per time by taxa
+  roi_df <- dat_combine_aid %>%
+    dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
+    dplyr::group_by(., taxa, roi) %>%
+    dplyr::summarise(., n_roi = dplyr::n(), .groups = NULL) %>%
+    tidyr::spread(., taxa, n_roi) %>%
+    dplyr::mutate(., time_ms = as.numeric(roi))
+
+  roi_dat <- data.frame(roi_df)
+  roi_dat[is.na(roi_dat)] <- 0
+
+
+
 # aidmeas
-
-
+# TODO: update code so it can run without measurement input
+if(export == 'aidmeas'){
   dat <- list()
   col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
   for(i in seq_len(length(file_list_aidmeas))) {
@@ -866,36 +885,21 @@ if(!is.na(opticalSetting)){
   dat_combine_aidmeas <- do.call(rbind, dat)
 
   # remove(dat, data_tmp, day, hour)
-
-
-# format
-  dat_combine_aid$id <- row.names(dat_combine_aid)
   dat_combine_aidmeas$id <- row.names(dat_combine_aidmeas)
 
+  # Get roi measurement data frame
+  dat_combine_selected <- dat_combine_aidmeas %>%
+    dplyr::select(., taxa, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
 
-    # Get tabulated rois per time by taxa
-    roi_df <- dat_combine_aid %>%
-      dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
-      dplyr::group_by(., taxa, roi) %>%
-      dplyr::summarise(., n_roi = dplyr::n(), .groups = NULL) %>%
-      tidyr::spread(., taxa, n_roi) %>%
-      dplyr::mutate(., time_ms = as.numeric(roi))
+  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('taxa', 'day_hour', 'id') ) %>%
+    dplyr::select(., - id) %>%
+    dplyr::mutate(., station = station_of_interest) %>%
+    dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+    dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
 
-    roi_dat <- data.frame(roi_df)
-    roi_dat[is.na(roi_dat)] <- 0
-
-
+} # end aidmeas section
 
 
-    # Get roi measurement data frame
-    dat_combine_selected <- dat_combine_aidmeas %>%
-      dplyr::select(., taxa, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
-
-    roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('taxa', 'day_hour', 'id') ) %>%
-      dplyr::select(., - id) %>%
-      dplyr::mutate(., station = station_of_interest) %>%
-      dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
-      dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
 
   #  browser()
 # export
