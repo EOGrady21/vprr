@@ -56,9 +56,9 @@ vpr_manual_classification <-
     hr <- NA
 
     day_hour <- paste0('d', day, '.h', hr)
-
-    dir.create(path = day_hour, showWarnings = FALSE)
-    existingFiles <- list.files(day_hour, full.names = TRUE)
+    dirpath <- file.path("manual_reclassification_record",day_hour)
+    dir.create(path = dirpath, showWarnings = FALSE, recursive = TRUE)
+    existingFiles <- list.files(dirpath, full.names = TRUE)
     ans <-
       menu(
         c('Yes', 'No'),
@@ -238,7 +238,7 @@ vpr_manual_classification <-
           #   file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
           #   append = T
           # )
-          withr::with_output_sink(paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+          withr::with_output_sink(paste0(dirpath, '/misclassified_', taxaNames[i], '.txt'),
                                   append = TRUE,
                                   code = {
                                     cat(misclassified, sep = '\n')
@@ -255,7 +255,7 @@ vpr_manual_classification <-
         #   append = TRUE
         # )
         # sink()
-        withr::with_output_sink(paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+        withr::with_output_sink(paste0(dirpath, '/misclassified_', taxaNames[i], '.txt'),
                                 append = TRUE,
                                 code = {
                                   cat('\n')
@@ -274,7 +274,7 @@ vpr_manual_classification <-
         #   file = paste0(day_hour, '/reclassify_', taxa_id, '.txt'),
         #   append = TRUE
         # )
-        withr::with_output_sink(paste0(day_hour, '/reclassify_', taxa_id, '.txt'), append = TRUE, code = {
+        withr::with_output_sink(paste0(dirpath, '/reclassify_', taxa_id, '.txt'), append = TRUE, code = {
           cat(recl_tmp, sep = '\n')
         })
         # sink()
