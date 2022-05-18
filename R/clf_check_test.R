@@ -317,6 +317,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   # remove misclassified ROIS
   for (i in seq_len(length(misclassified))) {
     # TODO: generalize solution, remove hardcoding
+    # TODO make sure this works with new directory structure
     taxa <- vpr_category(misclassified[i])
 
    # if (taxa == 'ctenophores'){ browser()}
@@ -680,13 +681,13 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       }
     }# end reclassified loop
     # save files
-
-    dir.create(taxa[[1]], showWarnings = FALSE)
+    dirpath <- file.path('new_autoid', taxa[[1]])
+    dir.create(dirpath, showWarnings = FALSE, recursive = TRUE)
 
 
 
     aidMea_final_nm <- paste0('new_aid.mea.', unique(day_hour))
-    aidMea_final_fn <- file.path(taxa, 'aidmea', aidMea_final_nm)
+    aidMea_final_fn <- file.path(dirpath, 'aidmea', aidMea_final_nm)
     dir.create(file.path(taxa, 'aidmea'),
                showWarnings = FALSE,
                recursive = TRUE)
@@ -701,8 +702,8 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
     # note output could be better formatted to match line width in original files
 
     aid_final_nm <- paste0('new_aid.', unique(day_hour))
-    aid_final_fn <- file.path(taxa, 'aid', aid_final_nm)
-    dir.create(file.path(taxa, 'aid'),
+    aid_final_fn <- file.path(dirpath, 'aid', aid_final_nm)
+    dir.create(file.path(dirpath, 'aid'),
                showWarnings = FALSE,
                recursive = TRUE)
     write.table(
