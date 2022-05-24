@@ -29,7 +29,7 @@ Calculates concentrations for each named taxa in dataframe
 \examples{
 
 data('ctd_roi_merge')
-ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 
 taxas_list <- c('Calanus', 'krill')
 binSize <- 5

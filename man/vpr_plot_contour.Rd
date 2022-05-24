@@ -15,7 +15,7 @@ vpr_plot_contour(
 )
 }
 \arguments{
-\item{data}{data frame needs to include avg_hr, depth, and variable of
+\item{data}{data frame needs to include time_hr, depth, and variable of
 choice (var)}
 
 \item{var}{variable in dataframe which will be interpolated and plotted}

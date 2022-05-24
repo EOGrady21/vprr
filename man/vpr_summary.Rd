@@ -8,7 +8,7 @@ vpr_summary(all_dat, fn, tow = tow, day = day, hour = hour)
 }
 \arguments{
 \item{all_dat}{data frame containing VPR and CTD data including time_ms,
-avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
+time_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
 turbidity_mv, sigmaT}
 
 \item{fn}{file name to save data summary, if not provided, summary will print to console}

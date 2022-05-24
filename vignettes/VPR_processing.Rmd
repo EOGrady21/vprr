@@ -516,7 +516,7 @@ images. The function used is `vprr::vpr_ctdroi_merge()`.
       cat('\n')
 
 Before final export of data products, the following variables are added
-to the data frame: time in hours `avg_hr` is calculated, and a time
+to the data frame: time in hours `time_hr` is calculated, and a time
 stamp (`ymdhms`) with POSIXct signature in Y-M-D h:m:s format is added
 using the function `vpr_ctd_ymd`.
 
@@ -524,7 +524,7 @@ using the function `vpr_ctd_ymd`.
       
       # add avg hr and sigma T data and depth
         data <- ctd_roi_merge %>%
-        dplyr::mutate(., avg_hr = time_ms / 3.6e+06) 
+        dplyr::mutate(., time_hr = time_ms / 3.6e+06) 
      
         data <- vpr_ctd_ymd(data, year)
         
@@ -700,8 +700,8 @@ the `var` argument in `vprr::vpr_plot_contour()`.
       # Density (sigmaT)
       png('conPlot_taxa_dens.png', width = width, height = height)
       p <- vpr_plot_contour(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
-      p <- p + geom_line(data = data, aes(x = avg_hr - min(avg_hr), y = pressure), col = 'snow4', inherit.aes = FALSE) +
-        geom_point(data = taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], aes(x = avg_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
+      p <- p + geom_line(data = data, aes(x = time_hr - min(time_hr), y = pressure), col = 'snow4', inherit.aes = FALSE) +
+        geom_point(data = taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], aes(x = time_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
         ggtitle(station_name ) +
         labs(size = expression("Concentration /m" ^3), fill = 'Density')+
         scale_size_continuous(range = c(0, 10)) +

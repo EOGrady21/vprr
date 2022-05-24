@@ -9,7 +9,7 @@ vpr_img_depth(data, min.depth, max.depth, roiFolder, format = "list")
 \arguments{
 \item{data}{data frame containing CTD and ROI data from
 \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
-sigmaT and avg_hr}
+sigmaT and time_hr}
 
 \item{min.depth}{minimum depth of ROIs you are interested in looking at}
 

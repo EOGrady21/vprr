@@ -140,7 +140,7 @@ if(missing(metadata)){
 #' Add Year/ month/ day hour:minute:second information
 #'
 #' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
-#' Will also add 'avg_hr' parameter if not already present.
+#' Will also add 'time_hr' parameter if not already present.
 #'
 #' @param data VPR data frame from \code{\link{vpr_ctdroi_merge}}
 #' @param year Year of data collection
@@ -160,10 +160,10 @@ vpr_ctd_ymd <- function(data, year, offset){
   # avoid CRAN notes
   . <- time_ms <- NA
 
-  d <- grep(names(data), pattern = 'avg_hr')
+  d <- grep(names(data), pattern = 'time_hr')
   if(length(d) == 0){
     data <- data %>%
-      dplyr::mutate(., avg_hr = time_ms / 3.6e+06)
+      dplyr::mutate(., time_hr = time_ms / 3.6e+06)
   }
 
 
@@ -270,7 +270,7 @@ vpr_size_bin <- function(data_all, bin_mea){
 #' data("roimeas_dat_combine")
 #' category_of_interest = 'Calanus'
 #'
-#'ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+#'ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
 #' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
 #'  taxa_of_interest = category_of_interest)
@@ -401,7 +401,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' @examples
 #'
 #' data('ctd_roi_merge')
-#' ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+#' ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
 #' taxas_list <- c('Calanus', 'krill')
 #' binSize <- 5
@@ -483,7 +483,7 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
       'day',
       'hour',
       'station',
-      'avg_hr',
+      'time_hr',
       'roi',
       'depth'
     )
@@ -530,7 +530,7 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
 #'
 bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
-. <- avg_hr <- conc_m3 <- NA
+. <- time_hr <- conc_m3 <- NA
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
@@ -547,7 +547,7 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #Remove infinite concentrations (why do these occur again?)
   vpr_depth_bin <- vpr_depth_bin %>%
-   # dplyr::mutate(., avg_hr = avg_hr - min(avg_hr)) %>% # this is potentially creating issues where time is not aligned in plots
+   # dplyr::mutate(., time_hr = time_hr - min(time_hr)) %>% # this is potentially creating issues where time is not aligned in plots
     dplyr::filter(., is.finite(conc_m3))
 
   return(vpr_depth_bin)
@@ -572,7 +572,7 @@ vpr_oce_create <- function(data){
 
   # create oce objects
   ctd_roi_oce <- oce::as.ctd(data)
-  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'avg_hr') # TODO edit to avoid hard coding variable names
+  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'time_hr') # TODO edit to avoid hard coding variable names
   for ( o in otherVars){
     eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
   }
@@ -1152,7 +1152,8 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
   fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
   turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
-  avg_hr <- oce::binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result
+  time_ms <- oce::binApply1D(p, data$time, xbreaks = x_breaks, mean)$result
+  time_hr <- oce::binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
 if (rev == TRUE){
 
   depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
@@ -1221,7 +1222,8 @@ if (rev == TRUE){
   # Output
   data.frame(depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s,
              n_roi_bin, conc_m3,
-             temperature, salinity, density, fluorescence, turbidity, avg_hr, n_frames, vol_sampled_bin_m3,
+             temperature, salinity, density, fluorescence, turbidity,
+             time_hr, n_frames, vol_sampled_bin_m3, time_ms,
              towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
 } # end else loop for size error
 }
@@ -1536,7 +1538,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #'
   #' @author E Chisholm
   #' @param all_dat data frame containing VPR and CTD data including time_ms,
-  #'   avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
+  #'   time_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
   #'   turbidity_mv, sigmaT
   #' @param fn file name to save data summary, if not provided, summary will print to console
   #' @param tow VPR tow number
@@ -1557,7 +1559,7 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   cat(' >>>>  Time \n')
   cat('Data points: ', length(all_dat$time_ms),'\n')
   cat('Range: ', min(all_dat$time_ms),' - ', max(all_dat$time_ms), ' (ms) \n')
-  cat('Range: ', min(all_dat$avg_hr),' - ', max(all_dat$avg_hr), ' (hr) \n')
+  cat('Range: ', min(all_dat$time_hr),' - ', max(all_dat$time_hr), ' (hr) \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Conductivity \n')
@@ -2563,7 +2565,7 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #'
   #' @author E. Chisholm & Kevin Sorochan
   #'
-  #' @param data data frame needs to include avg_hr, depth, and variable of
+  #' @param data data frame needs to include time_hr, depth, and variable of
   #'   choice (var)
   #' @param var variable in dataframe which will be interpolated and plotted
   #' @param dup if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')
@@ -2585,13 +2587,13 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   # browser()
 
   if(method == 'akima'){
-    interpdf <- akima::interp(x = data$avg_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
+    interpdf <- akima::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
   if(method == 'interp'){
-    interpdf <- interp::interp(x = data$avg_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
+    interpdf <- interp::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
   if(method == 'oce'){
-    interpdf_oce <- oce::interpBarnes(x = data$avg_hr, y = data$depth, z = data[[var]] )
+    interpdf_oce <- oce::interpBarnes(x = data$time_hr, y = data$depth, z = data[[var]] )
     interpdf <- NULL
     interpdf$x <- interpdf_oce$xg
     interpdf$y <- interpdf_oce$yg
@@ -2885,7 +2887,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #'
   #' @param data data frame containing CTD and ROI data from
   #'   \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
-  #'   sigmaT and avg_hr
+  #'   sigmaT and time_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
   #' @param roiFolder directory that ROIs are within (can be very general eg.
@@ -2945,7 +2947,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
       for(ii in seq_len(length(roi_file_list[[i]]))){
         data_roi <- data_filtered %>%
           dplyr::filter(., roi == roi[i])
-        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        meta_str <- paste0('time (hr): ', data_roi$time_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
         pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
           #print metadata on image
           #image_annotate(text = roi_files[i], color = 'white', size = 10) %>%
@@ -2955,7 +2957,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
         print(pp)
         #print metadata
         #cat(paste0(roi_files[i], '\n'))
-        #cat( paste0('time (hr): ', data_roi$avg_hr, '\n temperature: ', data_roi$temperature, '\n pressure: ', data_roi$pressure, '\n salinity: ', data_roi$salinity, '\n'))
+        #cat( paste0('time (hr): ', data_roi$time_hr, '\n temperature: ', data_roi$temperature, '\n pressure: ', data_roi$pressure, '\n salinity: ', data_roi$salinity, '\n'))
 
       }
     }
@@ -2980,7 +2982,7 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #'
   #' @param data data frame containing CTD and ROI data from
   #'   \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
-  #'   sigmaT and avg_hr
+  #'   sigmaT and time_hr
   #' @param min.depth minimum depth of ROIs you are interested in looking at
   #' @param max.depth maximum depth of ROIs you are interested in exploring
   #' @param roiFolder directory that ROIs are within (can be very general eg.
@@ -3046,14 +3048,14 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
       for(ii in seq_len(length(roi_file_list[[i]]))){
         data_roi <- data_filtered %>%
           dplyr::filter(., roi == roi[i])
-        meta_str <- paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
+        meta_str <- paste0('time (hr): ', data_roi$time_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n')
         pp <-  magick::image_read(roi_file_list[[i]][ii]) %>%
           magick::image_scale(geometry = 'x300')
 
         print(pp)
         #print metadata
         cat(paste0(roi_files[i], '\n'))
-        cat( paste0('time (hr): ', data_roi$avg_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n'))
+        cat( paste0('time (hr): ', data_roi$time_hr[1], '\n temperature: ', data_roi$temperature[1], '\n pressure: ', data_roi$pressure[1], '\n salinity: ', data_roi$salinity[1], '\n'))
 
       }
     }

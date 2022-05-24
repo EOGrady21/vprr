@@ -16,7 +16,7 @@ vpr_img_category(
 \arguments{
 \item{data}{data frame containing CTD and ROI data from
 \code{\link{vpr_ctdroi_merge}}, which also contains calculated variables
-sigmaT and avg_hr}
+sigmaT and time_hr}
 
 \item{min.depth}{minimum depth of ROIs you are interested in looking at}
 

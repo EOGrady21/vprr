@@ -25,7 +25,7 @@ data("ctd_roi_merge")
 data("roimeas_dat_combine")
 category_of_interest = 'Calanus'
 
-ctd_roi_merge$avg_hr <- ctd_roi_merge$time_ms /3.6e+06
+ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 
 size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
  taxa_of_interest = category_of_interest)
