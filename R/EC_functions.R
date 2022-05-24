@@ -1142,8 +1142,8 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
   # Get variables of interest using oce bin functions
 
-  min_time_s <- oce::binApply1D(p, data$time/1000, xbreaks = x_breaks, min)$result
-  max_time_s <- oce::binApply1D(p, data$time/1000, xbreaks = x_breaks, max)$result
+  min_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, min)$result
+  max_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, max)$result
   min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
   max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
   n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
@@ -1152,8 +1152,8 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
   fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
   turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
-  time_ms <- oce::binApply1D(p, data$time, xbreaks = x_breaks, mean)$result
-  time_hr <- oce::binApply1D(p, data$time/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
+  time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
+  time_hr <- oce::binApply1D(p, data$time_ms/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
 if (rev == TRUE){
 
   depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
