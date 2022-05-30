@@ -731,7 +731,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'
 #'Read aid text files containing ROI string information or measurement data and output as a dataframe
 #'
-#'Only outputs either ROI string information OR measurement data but both file types must be provided
+#'Only outputs either ROI string information OR measurement data
 #'
 #'
 #' @author E. Chisholm & K. Sorochan
