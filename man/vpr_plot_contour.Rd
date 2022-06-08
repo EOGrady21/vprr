@@ -22,9 +22,8 @@ choice (var)}
 
 \item{dup}{if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')}
 
-\item{method}{Specifies interpolation method, options are 'akima', 'interp'
-or 'oce', akima and interp produce identical interpolations, oce uses
-slightly different method (oce is least error prone)}
+\item{method}{Specifies interpolation method, options are 'interp' or
+'oce', oce uses slightly different method (oce is least error prone)}
 
 \item{labels}{logical value indicating whether or not to plot contour labels}
 
