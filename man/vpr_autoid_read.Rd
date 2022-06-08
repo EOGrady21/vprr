@@ -30,7 +30,7 @@ vpr_autoid_read(
 Read aid text files containing ROI string information or measurement data and output as a dataframe
 }
 \details{
-Only outputs either ROI string information OR measurement data but both file types must be provided
+Only outputs either ROI string information OR measurement data
 }
 \note{
 Full paths to each file should be specified
