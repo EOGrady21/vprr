@@ -2594,8 +2594,12 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   # if(method == 'akima'){
   #   interpdf <- akima::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   # }
+
   if(method == 'interp'){
-    interpdf <- interp::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
+
+    interpdf <- try(interp::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  ))
+    if(inherits(interpdf, 'try-error'))
+      stop("Interpolation failed, try method = 'oce'")
   }
   if(method == 'oce'){
     interpdf_oce <- oce::interpBarnes(x = data$time_hr, y = data$depth, z = data[[var]] )
