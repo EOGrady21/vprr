@@ -32,7 +32,6 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
-    akima,
     markdown
 VignetteBuilder: knitr
 BuildVignettes: true

@@ -2552,7 +2552,12 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
 
 }
 
-
+interp2xyz <- function(al, data.frame = FALSE) {
+  stopifnot(is.list(al), identical(names(al), c("x","y","z")))
+  xy <- expand.grid(x = al[["x"]], y = al[["y"]], KEEP.OUT.ATTRS=FALSE)
+  cbind(if(!data.frame) data.matrix(xy) else xy,
+        z = as.vector(al[["z"]]))
+}
 
 
 #contour plot with interpolation
@@ -2569,9 +2574,8 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #'   choice (var)
   #' @param var variable in dataframe which will be interpolated and plotted
   #' @param dup if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')
-  #' @param method Specifies interpolation method, options are 'akima', 'interp'
-  #'   or 'oce', akima and interp produce identical interpolations, oce uses
-  #'   slightly different method (oce is least error prone)
+  #' @param method Specifies interpolation method, options are 'interp' or
+  #'   'oce', oce uses slightly different method (oce is least error prone)
   #' @param labels logical value indicating whether or not to plot contour labels
   #' @param bw bin width defining interval at which contours are labelled
   #' @param cmo name of a `cmocean` plotting theme, see `?cmocean` for more information
@@ -2586,9 +2590,10 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #ref: https://www.user2017.brussels/uploads/bivand_gebhardt_user17_a0.pdf
   # browser()
 
-  if(method == 'akima'){
-    interpdf <- akima::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
-  }
+  # akima method deprecated 2022 - due to licensing issues
+  # if(method == 'akima'){
+  #   interpdf <- akima::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
+  # }
   if(method == 'interp'){
     interpdf <- interp::interp(x = data$time_hr, y = data$depth, z = data[[var]], duplicate = dup ,linear = TRUE  )
   }
@@ -2600,7 +2605,7 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
     interpdf$z <- interpdf_oce$zg
   }
   #convert to dataframe
-  df <- akima::interp2xyz(interpdf, data.frame = TRUE)
+  df <- interp2xyz(interpdf, data.frame = TRUE)
 
   #zero time values
   df$x <- df$x - min(df$x)
