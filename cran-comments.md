@@ -15,12 +15,6 @@ checking installed package size ... NOTE
       
        * The external data in this package has been cut down to a bare minimum but due to the nature of the data being processed by this package (images and video), the data is inherantly large and difficult to reduce any further
 
- checking top-level files ... NOTE
-  Non-standard files/directories found at top level:
-    'CODE_OF_CONDUCT.md' 'CONTRIBUTING.md' 'SECURITY.md'
-    
-    * These are standard template files required by my organization (Government of Canada). If there is a better way to integrate them into the package please let me know
-    
     
 
 23/10/2020
