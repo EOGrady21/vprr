@@ -12,7 +12,6 @@ vpr_manual_classification <-
            hour,
            basepath,
            taxa_of_interest,
-           pred_results,
            gr = TRUE,
            scale = 'x300',
            opticalSetting = 'S2',
@@ -29,7 +28,6 @@ vpr_manual_classification <-
     #' @param hour hour of interest in autoid
     #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
     #' @param taxa_of_interest list of taxa folders you wish you sort through
-    #' @param pred_results an object generated from `vpr_pred_read()` with results from R based machine learning, if provided the methods for this function are modified to accept this format
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
     #' @param opticalSetting specifies optical setting of VPR, defining image frame
@@ -54,12 +52,6 @@ vpr_manual_classification <-
     #'
     #'@export
 
-    if(!missing(pred_results)){
-      mode <- 2
-    } else {
-      mode <- 1
-    }
-
 
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
@@ -81,29 +73,18 @@ vpr_manual_classification <-
               paste('CAUTION, FILES FOR', day_hour, 'ARE BEING APPENDED!!'))
     }
 
-    if( mode == 1){ # vp method
     taxaFolders_og <- list.files(basepath, full.names = TRUE)
     taxaNames <- list.files(basepath)
     allTaxa <- list.files(basepath)
 
-
-    } else{
-      # keras method
-      cind <- grep(names(pred_results$metadata), pattern = 'categories')
-      taxaNames <- pred_results$metadata[cind]
-      allTaxa <- taxaNames # TODO fix this so random dup
-      # taxaFolders_og <- list.files(basepath, full.names = TRUE) # need to copy images first
-
-    }
     taxaFolders <- taxaFolders_og[taxaNames %in% taxa_of_interest]
     taxaNames <- taxaNames[taxaNames %in% taxa_of_interest]
     if (length(taxaFolders) == 0) {
       stop('No taxa folders match taxa of interest!
                                      Caution of capitalization!')
     }
-    #
-    #
-    # t_f <- dir.exists(taxaFolders)
+
+    t_f <- dir.exists(taxaFolders)
 
     # Make an empty list for reclassficiations with named elements for each taxa
     reclassified <- vector("list", length(allTaxa))
@@ -132,7 +113,7 @@ vpr_manual_classification <-
         } else{
           SKIP = FALSE
 
-          if(mode == 1){
+
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
@@ -141,20 +122,7 @@ vpr_manual_classification <-
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
-          } else{
-            # keras mode
-            # clean up pred_results so only top category in table
-            # TODO make sure tidyverse is imported to this func
-            pred_top <- pred_results %>%
-              mutate(img_id = seq(1:length(pred_results$data[[1]]))) %>% #TOD fix me
-              gather(pred_lbl, y, allTaxa)%>%
-              group_by(img_id) %>%
-              filter(y == max(y)) %>%
-              arrange(img_id) %>%
-              rename(probability = y)
 
-            #TODO get list of roi files for reading in
-          }
 
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
@@ -318,7 +286,7 @@ vpr_manual_classification <-
   }
 
 
-vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
+vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
   #'
@@ -327,6 +295,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
   #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
   #'@param day day identifier for relevant aid & aidmeas files
   #'@param hour  hour identifier for relevant aid & aidmeas files
+  #'@param mea logical indicating whether or not there are accompanying measurement files to be created
   #'
   #'
   #' ### examples
@@ -471,9 +440,11 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
         )
       )
       }
+      DUMMY <- FALSE
     }
 
     # FIX MEAS FILE TO MATCH
+    if(mea == TRUE){
     aidMeaFolder <-
       list.files(taxaFolder, pattern = '^aidmea$', full.names = TRUE)
     aidMeaFile <-
@@ -526,13 +497,14 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
 
       DUMMY = FALSE
     }
+    }
     # add reclassified rois
     # to specific taxa
     recl <- grep(reclassify, pattern = taxa)
     if (length(recl) == 0) {
       print(paste('No', taxa, 'to be reclassified'))
       # final files only have rois removed
-      aidMea_final <- aidMea_new
+      if(mea == TRUE){aidMea_final <- aidMea_new}
       aid_final <- aid_new
       if (DUMMY == TRUE) {
         warning(print(
@@ -623,13 +595,14 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       all_aids <- list.files(file.path(taxaFolders[[l]], 'aid'), full.names = TRUE)
       aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour, value = TRUE)
     }
-
+if(mea == TRUE){
       aidm_fn_list <- list()
       for(l in seq_len(length(taxaFolders))){
 
         all_aidms <- list.files(file.path(taxaFolders[[l]], 'aidmea'), full.names = TRUE)
         aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour, value = TRUE)
       }
+
 
       # MEASUREMENTS
 # browser()
@@ -712,12 +685,13 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
         warning("Measurements and ROI numbers in reclassification do not match!!!")
       }
     }# end reclassified loop
+    }
     # save files
     dirpath <- file.path('new_autoid', taxa[[1]])
     dir.create(dirpath, showWarnings = FALSE, recursive = TRUE)
 
 
-
+if(mea == TRUE){
     aidMea_final_nm <- paste0('new_aid.mea.', unique(day_hour))
     aidMea_final_fn <- file.path(dirpath, 'aidmea', aidMea_final_nm)
     dir.create(file.path(taxa, 'aidmea'),
@@ -731,6 +705,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour) {
       col.names = FALSE,
       row.names = FALSE
     )
+}
     # note output could be better formatted to match line width in original files
 
     aid_final_nm <- paste0('new_aid.', unique(day_hour))

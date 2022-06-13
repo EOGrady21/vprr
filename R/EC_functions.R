@@ -340,7 +340,12 @@ vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_nam
   }
 
   day_hour <- paste0('d', day, '.h', hour)
-  type_day_hour <- paste0(classifier_type,'aid.', day_hour)
+  if(!missing(classifier_type)){
+    type_day_hour <- paste0(classifier_type,'aid.', day_hour)
+  } else{
+    warning('No classifier information provided, attempting to pull ROIs based only on day/hour, please check there is only one aid file for each category!')
+    type_day_hour <- day_hour
+  }
 
 for (i in folder_names) {
 
@@ -353,8 +358,10 @@ for (i in folder_names) {
   subtxt <- grep(txt_roi, pattern = type_day_hour, value = TRUE)
   txt_roi <- subtxt
 
-  subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
-  txt_roi <- subtxt2
+  if(!missing(classifier_name)){
+    subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
+    txt_roi <- subtxt2
+  }
 
   for(ii in txt_roi) {
 
