@@ -12,6 +12,7 @@ vpr_manual_classification <-
            hour,
            basepath,
            taxa_of_interest,
+           pred_results,
            gr = TRUE,
            scale = 'x300',
            opticalSetting = 'S2',
@@ -28,6 +29,7 @@ vpr_manual_classification <-
     #' @param hour hour of interest in autoid
     #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
     #' @param taxa_of_interest list of taxa folders you wish you sort through
+    #' @param pred_results an object generated from `vpr_pred_read()` with results from R based machine learning, if provided the methods for this function are modified to accept this format
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
     #' @param opticalSetting specifies optical setting of VPR, defining image frame
@@ -52,10 +54,14 @@ vpr_manual_classification <-
     #'
     #'@export
 
-# avoid CRAN notes
-    hr <- NA
+    if(!missing(pred_results)){
+      mode <- 2
+    } else {
+      mode <- 1
+    }
 
-    day_hour <- paste0('d', day, '.h', hr)
+
+    day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
     dir.create(path = dirpath, showWarnings = FALSE, recursive = TRUE)
     existingFiles <- list.files(dirpath, full.names = TRUE)
@@ -75,19 +81,29 @@ vpr_manual_classification <-
               paste('CAUTION, FILES FOR', day_hour, 'ARE BEING APPENDED!!'))
     }
 
+    if( mode == 1){ # vp method
     taxaFolders_og <- list.files(basepath, full.names = TRUE)
     taxaNames <- list.files(basepath)
     allTaxa <- list.files(basepath)
 
+
+    } else{
+      # keras method
+      cind <- grep(names(pred_results$metadata), pattern = 'categories')
+      taxaNames <- pred_results$metadata[cind]
+      allTaxa <- taxaNames # TODO fix this so random dup
+      # taxaFolders_og <- list.files(basepath, full.names = TRUE) # need to copy images first
+
+    }
     taxaFolders <- taxaFolders_og[taxaNames %in% taxa_of_interest]
     taxaNames <- taxaNames[taxaNames %in% taxa_of_interest]
     if (length(taxaFolders) == 0) {
       stop('No taxa folders match taxa of interest!
                                      Caution of capitalization!')
     }
-
-
-    t_f <- dir.exists(taxaFolders)
+    #
+    #
+    # t_f <- dir.exists(taxaFolders)
 
     # Make an empty list for reclassficiations with named elements for each taxa
     reclassified <- vector("list", length(allTaxa))
@@ -115,14 +131,30 @@ vpr_manual_classification <-
           SKIP = TRUE
         } else{
           SKIP = FALSE
+
+          if(mode == 1){
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
           aidFile <-
             list.files(aidFolder, pattern = day_hour, full.names = TRUE)
-          aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
+          aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
+          } else{
+            # keras mode
+            # clean up pred_results so only top category in table
+            # TODO make sure tidyverse is imported to this func
+            pred_top <- pred_results %>%
+              mutate(img_id = seq(1:length(pred_results$data[[1]]))) %>% #TOD fix me
+              gather(pred_lbl, y, allTaxa)%>%
+              group_by(img_id) %>%
+              filter(y == max(y)) %>%
+              arrange(img_id) %>%
+              rename(probability = y)
+
+            #TODO get list of roi files for reading in
+          }
 
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
