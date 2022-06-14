@@ -56,14 +56,15 @@ Support Vector Machine (SVM) image classification component, can be
 found on GC code within the dfo-mar-odis group, under the visual
 plankton project in the Matlab directory. For more information or
 permission to view the linked project on GC code, contact
-[DataServicesDonnees\@dfo-mpo.gc.ca](mailto:DataServicesDonnees@dfo-mpo.gc.ca){.email}.
+[DataServicesDonnees\@dfo-mpo.gc.ca].
 
 Visual Plankton outputs two text files ("aid" and "aidmeas" files) for
 each category of classification. Each "aid" (i.e., autoid) file contains
 file paths to individual ROIs that have been classified to the category
 of interest. The corresponding "aidmeas" file contains morphological
 data for the ROIs (e.g., long axis length, perimeter, etc.). The aid,
-aidmeas, and CTD files are the data inputs for processing using vprr.
+aidmeas, and CTD files are the data inputs for processing using vprr. 
+These files are replicated when alternate automatic image classifications are used.
 Note that the functionality of vprr is dependent on the format and
 directory structure of the data output from VP, but is not dependent on
 the use of VP itself. The primary functions of the vprr package are to
@@ -87,34 +88,22 @@ represent sub steps or routines within each step.](r_flowchart.png)
 ## Section 2.1: Processing Environment
 
 Before beginning data processing with vprr, it is recommended
-that a processing environment be created containing commonly used
-variables and
-file paths. The simplest and most reproducible way to achieve this is to
-write
-an R script where all the mission and system specific variables are
-contained,
+that a processing environment be created containing commonly used variables and
+file paths. The simplest and most reproducible way to achieve this is to write
+an R script where all the mission and system specific variables are contained,
 then save the environment as a RData file to be loaded at the start of
-any
-processing scripts. This processing environment contains reference to a
-station
-identifier csv file which should be created for each mission. This file
-links
-station names from deck sheets to the day and hour values on which
-AutoDeck
-organizes files. Day and hour values represent the Julian day (3 digit)
-and two
-digit hour (24 hour clock) when sampling was done. Note that the day and
-hour
-values will be in the time zone of the computer used to run AutoDeck.
-Ensure
-that this matches the time zone of the VPR CPU at the time of data
-collection
-to avoid a time offset between data sources.
+any processing scripts. This processing environment contains reference to a
+station identifier csv file which should be created for each mission. This file
+links station names from deck sheets to the day and hour values on which
+AutoDeck organizes files. Day and hour values represent the Julian day (3 digit)
+and two digit hour (24 hour clock) when sampling was done. Note that the day and
+hour values will be in the time zone of the computer used to run AutoDeck.
+Ensure that this matches the time zone of the VPR CPU at the time of data
+collection to avoid a time offset between data sources.
 
 Another important part of setting up the processing environment
 is ensuring the proper directory structure is in place, see Appendix 1
-for
-details on the required directory structure.
+for details on the required directory structure.
 
     # set VPR processing environment
 
@@ -192,13 +181,10 @@ folder names.
 
 ROIs are organized into folders corresponding to their assigned
 classification categories from automated image classification. The
-information
-in each aid file produced by VP is used to create a folder for each
+information in each aid file produced by VP is used to create a folder for each
 classification category containing ROIs that have been classified to
-that
-category. This step is only required if manual re-classification (see
-Section
-2.2) is intended. Further details on image copying are provided in
+that category. This step is only required if manual re-classification (see
+Section 2.2) is intended. Further details on image copying are provided in
 Section 3.
 
 ## Section 2.3: Manual re-classification (optional):
@@ -206,10 +192,8 @@ Section 3.
 Classifications from VP are manually checked, which allows for
 manual correction and addition of categories not previously used for
 classification in VP. A user-defined subset of the ROIs that have been
-copied
-in Section 2.1 is manually sorted to correct for misclassifications made
-by VP.
-Updated aid and aidmeas files are produced. Further details on manual
+copied in Section 2.1 is manually sorted to correct for misclassifications made
+by VP. Updated aid and aidmeas files are produced. Further details on manual
 re-classification are provided in Section 4.
 
 ## Section 2.4: Processing:
@@ -232,9 +216,7 @@ AutoDeck into day and hour; however, reorganizing them based on
 classification allows easier human interaction with the data and visual
 inspection of classifications by VP. Moreover, this directory structure
 is used by the next step of processing (i.e., manual re-classification).
-To
-implement this step use the
-function `vprr::vpr_autoid_copy()`
+To implement this step use the function `vprr::vpr_autoid_copy()`
 For more information on input variables, please see documentation for
 `vpr_autoid_copy()`
 
@@ -257,27 +239,17 @@ For more information on input variables, please see documentation for
 Manual re-classification of some categories after automated
 classification by VP may be required to achieve identification accuracy
 standards. In this step, ROIs are displayed on the screen one at a time
-for
-manual verification. If VP has misclassified an image or if it falls
-into a new
-user defined category (described below), the image can be re-classified.
-The
-manual re-classification process also allows for creation of new
-categories.
-This is especially useful for classification of rare categories that
-were not
-defined prior to classification in VP. For example, if VP produces a
+for manual verification. If VP has misclassified an image or if it falls
+into a new user defined category (described below), the image can be re-classified.
+The manual re-classification process also allows for creation of new
+categories. This is especially useful for classification of rare categories that
+were not defined prior to classification in VP. For example, if VP produces a
 classification group "copepods" containing species A and species B, the
-user
-can add "species A" and "species B" categories in the manual
-re-classification
-step using the
-function [`vprr::vpr_category_create`](https://eogrady21.github.io/vprr/reference/vpr_category_create.html) (see
+user can add "species A" and "species B" categories in the manual
+re-classification step using the function`vprr::vpr_category_create`(see
 example below). After completing manual re-classification for a day-hour
-set,
-new aid and aidmeas files are created for new categories, which are
-identical
-in format to original aid and aidmeas files produced by VP.
+set, new aid and aidmeas files are created for new categories, which are
+identical in format to original aid and aidmeas files produced by VP.
 
 ## Section 4.1: Preparing the environment by setting some variables
 
@@ -301,8 +273,7 @@ in format to original aid and aidmeas files produced by VP.
     appendages become more clear and gelatinous organisms like
     chaetognaths or ctenophores are easier to distinguish.
 
-<!-- -->
-
+```
     #### MANUAL RE-CLASSIFICATION
     # -------------------------------------
 
@@ -348,6 +319,7 @@ in format to original aid and aidmeas files produced by VP.
     vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
               taxa_of_interest = category_of_interest, scale = 'x300',
               opticalSetting = 'S3')
+```
 
 ## Section 4.2: Generate new aid and aidmeas files
 
@@ -372,43 +344,30 @@ directory in folders named by classification category. This step should be run a
 
 The aid and aidmeas files are both text files which are
 specifically formatted to record classification outputs for further
-processing.
-The format was originally used by Visual Plankton (VP) but can be used
+processing. The format was originally used by Visual Plankton (VP) but can be used
 independently of VP. The aid files are text records of image paths,
-where each
-individual text file represents a classification category. Each line of
-the aid
-file is the full path to an image which was classified into the
-designated
-category. Note that the traditional naming scheme of aid files does not
-include
-the category name in the file title and the category is only
-identifiable by
-the folder in which it is located. For example the 'krill'
-classification aid
-file might be named 'oct10_1svmaid.d224.h01' but be located within the
-'krill'
-autoid folder. The aidmeas files are also text files which represent a
-variety
-of different measurements taken of the object(s) within a ROI image.
-These
-measurements are taken within VP during processing of the images. Please
-see VP
-documentation for details. The columns of the aidmeas files are
+where each individual text file represents a classification category. Each line of
+the aid file is the full path to an image which was classified into the
+designated category. Note that the traditional naming scheme of aid files does not
+include the category name in the file title and the category is only
+identifiable by the folder in which it is located. For example the 'krill'
+classification aid file might be named 'oct10_1svmaid.d224.h01' but be located within the
+'krill' autoid folder. The aidmeas files are also text files which represent a
+variety of different measurements taken of the object(s) within a ROI image.
+These measurements are taken within VP during processing of the images. Please
+see VP documentation for details. The columns of the aidmeas files are
 c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length').
 Note that these measurements are in pixels and should be converted to
-distance
-measurements using the specific VPR setting (S0, S1, S2, etc). Examples
-of each
-of these files can be found below.
+distance measurements using the specific VPR setting (S0, S1, S2, etc). Examples
+of each of these files can be found below.
 
-```{r}
+```{r, eval =  TRUE}
 
-aid <- readlines(system.file("extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04"))
+aid <- read.table(file = system.file("extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04", package = 'vprr', mustWork = TRUE))
 
 head(aid)
 
-aidmeas <- readlines(system.file("extdata/COR2019002/autoid/bad_image_blurry/aidmea/sep20_2svmaid.mea.d222.h04"))
+aidmeas <- readLines(system.file("extdata/COR2019002/autoid/bad_image_blurry/aidmea/sep20_2svmaid.mea.d222.h04", package = 'vprr', mustWork = TRUE))
 
 head(aidmeas)
 ```
@@ -847,22 +806,34 @@ R. The directory structure required is described below
                 -   vprtow#
                     -   day
                         -   hour
+                        
+
 This is your project directory, where your R scripts and work products will be stored:
-    -	…
-      -	vpr_project
-      -	R 
-        -	R scripts/ workflows
-      -	new_autoid
-        -	taxa
-          -	aid
-          -	aidmea
-      -	manual_reclassification_record
-        -	day/hour
-          -	misclassified
-          -	reclassified
-      -	figures
-        -	station
-      -	station names (csv)
+
+-   …
+      -   vpr_project
+      
+      -   R 
+      
+          -   R scripts/ workflows
+        
+      -   new_autoid
+      
+          -   taxa
+        
+           -   aid
+           -   aidmea
+          
+      -   manual_reclassification_record
+      
+          -   day/hour
+        
+           -   misclassified
+            -   reclassified
+          
+      -   figures
+        
+      -   station names (csv)
 
 # Appendix 2: Glossary
 
