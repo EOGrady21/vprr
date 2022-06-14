@@ -726,7 +726,7 @@ isopycnals), and concentration bubbles for each selected classification
 group are overlaid on the plot. The basic TS bubble plot can be easily
 manipulated using ggplot2 grammar, for example the plots can be faceted
 by classification group or axis labels and sizing can be adjusted (see
-ggplot2 package for more inofrmation).
+ggplot2 package for more information).
 
     ####TS BUBBLE PLOT ----------------------------------------------------------------------------------------------------------------------------
       
