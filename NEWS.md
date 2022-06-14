@@ -1,11 +1,16 @@
 # vprr 0.2.0
-* Major package update
+### BUG FIXES AND ENHANCEMENTS
+* [ENHANCEMENT] CodeFactor suggested updates to style
+* [BUG FIX] export vpr_manual_classification (Issue #23)
+* [ENHANCEMENT] update processing method to be flexible enough to run prediction output from non-vp automated classifcation system
+* [BUG FIX] consistency in variable naming for plotting depth/pressure (Issue #22)
+
+### CHANGES
 * Removed all reference to akima package (due to licensing issue brought to attention by CRAN)
-* CodeFactor suggested updates to style
 * Migrate from Travis CI to GH Actions
 * clarify directory structure and contain any file output to organized folders
-* export vpr_manual _classification
 * edits to vignette and documentation for clarity
+* clarify time variable names and implement consistency in time processing (Issue #29)
 
 # vprr 0.1.0
 
