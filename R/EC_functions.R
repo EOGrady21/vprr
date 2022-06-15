@@ -833,7 +833,7 @@ if( export == 'aidmeas'){
 
 
 
-    data_tmp$taxa <- unlist(vpr_category(file_list_aid[i]))
+    data_tmp$taxa <- unlist(unique(vpr_category(file_list_aid[i])[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
     data_tmp$day_hour <- paste(day, hour, sep = ".")
