@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -64,12 +64,17 @@
     <h2>Arguments</h2>
     <dl><dt>data_all</dt>
 <dd><p>a VPR CTD and measurement dataframe from <code><a href="vpr_ctdroisize_merge.html">vpr_ctdroisize_merge</a></code></p></dd>
+
+
 <dt>bin_mea</dt>
 <dd><p>Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots</p>
+    
+
+<p>a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots</p>
     </div>
 
     <div id="ref-examples">
@@ -97,11 +102,11 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

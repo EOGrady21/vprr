@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -43,7 +43,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -72,7 +72,7 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>VPR_processing</h1>
-                        <h4 data-toc-skip class="author">Emily Chisholm (<a href="https://orcid.org/0000-0002-1072-5879" class="external-link uri">https://orcid.org/0000-0002-1072-5879</a>), Kevin Sorochan, Catherine Johnson</h4>
+                        <h4 data-toc-skip class="author">Emily O’Grady, Kevin Sorochan, Catherine Johnson</h4>
             
       
       
@@ -83,13 +83,13 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">vprr</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span></code></pre></div>
 <div class="section level2">
 <h2 id="section-1-background">Section 1: Background<a class="anchor" aria-label="anchor" href="#section-1-background"></a>
 </h2>
-<p>This document was produced at Bedford Institute of Oceanography (BIO) to accompany the vprr package, a processing and visualization package for data obtained from the Video Plankton Recorder (VPR) produced by SeaScan Inc. The VPR consists of a CPU, CTD, and camera system with different optical settings (i.e., magnifications). It captures underwater images and records their corresponding salinity, temperature, and depth. The vprr package functions to join environmental and plankton data derived from the CTD and camera, respectively, and calculate plankton concentration and averaged environmental variables along the path of the VPR. This document refers to processing of data from the 2008 version of the “Digital AutoVPR” model.The data processing tools in vprr should be adaptable to more recent VPR models from SeaScan Inc.</p>
-<p>The VPR outputs two raw files (.dat and .idx) for a given time period in a deployment. These files are processed together in a software provided with the VPR (i.e., Autodeck), which decompresses the images, extracts “regions of interest” (ROIs), and outputs ROI image files and a corresponding CTD data file (.dat). The ROI file names are numeric consisting of 10 digits. The first 8 digits correspond to the number of milliseconds elapsed in the day at the time the image was captured. The last two digits correspond to the ROI identifier (01-99). The ROIs and corresponding CTD data are linked by their 8 digit time stamp. After the ROIs have been extracted from the raw files they may be sorted into categories manually or by an automated classification procedure. At BIO, the images were sorted using a software called “Visual Plankton” (VP) in Matlab, which was developed specifically for the VPR. A version of VP modified by personnel at BIO, primarily to update and utilize the Support Vector Machine (SVM) image classification component, can be found on GC code within the dfo-mar-odis group, under the visual plankton project in the Matlab directory. For more information or permission to view the linked project on GC code, contact <a href="mailto:DataServicesDonnees@dfo-mpo.gc.ca" class="email">DataServicesDonnees@dfo-mpo.gc.ca</a>.</p>
-<p>Visual Plankton outputs two text files (“aid” and “aidmeas” files) for each category of classification. Each “aid” (i.e., autoid) file contains file paths to individual ROIs that have been classified to the category of interest. The corresponding “aidmeas” file contains morphological data for the ROIs (e.g., long axis length, perimeter, etc.). The aid, aidmeas, and CTD files are the data inputs for processing using vprr. Note that the functionality of vprr is dependent on the format and directory structure of the data output from VP, but is not dependent on the use of VP itself. The primary functions of the vprr package are to manually correct misclassifications made by VP, join CTD and aid or aidmeas datasets, and compute plankton concentrations. Example code for visualization of final data products are provided in this vignette.</p>
+<p>This document was produced at Bedford Institute of Oceanography (BIO) to accompany the vprr package, a processing and visualization package for data obtained from the Digital Auto Video Plankton Recorder (VPR) produced by SeaScan Inc. The VPR consists of a CPU, CTD, and camera system with different optical settings (i.e., magnifications). It captures underwater images and records their corresponding salinity, temperature, and depth. The vprr package functions to join environmental and plankton data derived from the CTD and camera, respectively, and calculate plankton concentration and averaged environmental variables along the path of the VPR. The package does not include automated image classification; however, there is an optional manual classification module, which can be used to review and correct outputs from automated image classification while providing a record of any (re)classifications.</p>
+<p>The VPR outputs two raw files (.dat and .idx) for a given time period in a deployment. These files are processed together in a software provided with the VPR (i.e., AutoDeck), which decompresses the images, extracts “regions of interest” (ROIs), and outputs ROI image files and a corresponding CTD data file (.dat). The ROI file names are numeric consisting of 10 digits. The first 8 digits correspond to the number of milliseconds elapsed in the day at the time the image was captured. The last two digits correspond to the ROI identifier (01-99). The ROIs and corresponding CTD data are linked by their 8 digit time stamp. After the ROIs have been extracted from the raw files they may be sorted into categories manually or by an automated classification procedure. In vprr, file naming conventions and directory structures are inherited from a VPR image classification and analysis software, Visual Plankton. However, the functionality of vprr is not dependent on the use of VP.</p>
+<p>The data inputs for processing in vprr consist of the following file types: aid (.txt), aidmeas (.txt), and CTD (.dat). The aid and aidmeas files are derived from separate image classification and measurement steps outside of vprr. Each “aid” (i.e., autoid) file contains file paths to individual ROIs that have been classified to the category of interest. The corresponding “aidmeas” file contains morphological data for the ROIs (e.g., long axis length, perimeter, etc.).</p>
 <div class="figure">
 <img src="vp_flowchart.PNG" alt=""><p class="caption">Figure 1. VPR data processing flow chart. Blue boxes represent software, green and yellow boxes represent data sets, where yellow is visual data and green is text format data. This document outlines the processes within ’Processing and Visualization (R).</p>
 </div>
@@ -97,16 +97,19 @@
 <div class="section level2">
 <h2 id="section-2-summary-of-vprr-data-processing-steps">Section 2: Summary of vprr data processing steps<a class="anchor" aria-label="anchor" href="#section-2-summary-of-vprr-data-processing-steps"></a>
 </h2>
-<p>The processing steps in R can be sub divided from the ’Post Processing and Visualization box in Figure 1. <img src="r_flowchart.png" alt="Figure 2. Processing steps in R using vprr. Blue boxes represent each section of processing, green ovals represent sub steps or routines within each step."></p>
+<p>The processing steps in R from the ’Post Processing and Visualization box in Figure 1 are detailed in Figure 2.</p>
+<div class="figure">
+<img src="r_flowchart.png" alt=""><p class="caption">Figure 2. Processing steps in R using vprr. Blue boxes represent each section of processing, green ovals represent sub steps or routines within each step.</p>
+</div>
 <div class="section level3">
 <h3 id="section-2-1-processing-environment">Section 2.1: Processing Environment<a class="anchor" aria-label="anchor" href="#section-2-1-processing-environment"></a>
 </h3>
-<p>Before beginning data processing with vprr, it is recommended that a processing environment be created containing commonly used variables and file paths. The simplest and most reproducible way to achieve this is to write an R script where all the mission and system specific variables are contained, then save the environment as a RData file to be loaded at the start of any processing scripts. This processing environment contains reference to a station identifier csv file which should be created for each mission. This file links station names from deck sheets to the day and hour values on which Autodeck organizes files. Day and hour values represent the Julian day (3 digit) and two digit hour (24 hour clock) when sampling was done. Note that the day and hour values will be in the time zone of the computer used to run Autodeck. Ensure that this matches the time zone of the VPR CPU at the time of data collection to avoid a time offset between data sources.</p>
+<p>Before beginning data processing with vprr, it is recommended that a processing environment be created containing commonly used variables and file paths. The simplest and most reproducible way to achieve this is to write an R script where all the mission and system specific variables are contained, then save the environment as a RData file to be loaded at the start of any processing scripts. This processing environment contains reference to a station identifier csv file which should be created for each mission. This file links station names from deck sheets to the day and hour values assigned by AutoDeck. Day and hour values represent the Julian day (3 digit) and two digit hour (24 hour clock) when sampling was done. Note that the day and hour values will be in the time zone of the computer used to run AutoDeck. Ensure that this matches the time zone of the VPR CPU at the time of data collection to avoid a time offset between data sources.</p>
 <p>Another important part of setting up the processing environment is ensuring the proper directory structure is in place, see Appendix 1 for details on the required directory structure.</p>
 <pre><code><span class="co"># set VPR processing environment</span>
 
 <span class="co"># WORKING DIRECTORY</span>
-<span class="va">wd</span> <span class="op">&lt;-</span> <span class="st">"C:/VPR_PROJECT/COR2019002/SCRIPTS"</span>
+<span class="va">wd</span> <span class="op">&lt;-</span> <span class="st">"C:/VPR_PROJECT/"</span>
 <span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="va">wd</span><span class="op">)</span>
 
 <span class="co"># MISSION</span>
@@ -116,18 +119,16 @@
 
 <span class="co"># CSV FILE WITH STATION NAMES AND CORRESPONDING DAY/HOUR INFO</span>
 <span class="va">station_names_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"station_names_"</span>, <span class="va">cruise</span>, <span class="st">".csv"</span><span class="op">)</span>
-<span class="co"># example: 'C:/VPR_PROJECT/vp_info/station_names_COR2019002.csv'</span>
 <span class="co"># note columns should be labeled : station, day, hour</span>
 
 <span class="co"># DIRECTORY FOR CTD DATA (output from AutoDeck)</span>
 <span class="va">castdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'D:/'</span>, <span class="va">cruise</span>, <span class="st">"/"</span>, <span class="va">cruise</span>, <span class="st">"_autodeck/"</span><span class="op">)</span>
-<span class="co"># example: 'D:/COR2019002/COR2019002_autodeck/'</span>
 
 
 <span class="co"># AUTOID FOLDER FOR MEASUREMENT DATA (aidmeas &amp; aid files)</span>
 <span class="va">drive</span> <span class="op">&lt;-</span> <span class="st">'C:/'</span>
 <span class="va">auto_id_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">drive</span>, <span class="st">"cruise_"</span>, <span class="va">cruise</span>, <span class="st">"/"</span>, <span class="va">autoid</span><span class="op">)</span>
-<span class="co"># example: 'E:/COR2019002/autoid' #!!NO BACKSLASH AT END OF STRING</span>
+ <span class="co">#!!NO BACKSLASH AT END OF STRING</span>
 
 <span class="co"># PATH TO AUTOID CATEGORY FOLDERS</span>
 <span class="va">auto_id_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_folder</span>, <span class="st">"/"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> 
@@ -140,10 +141,10 @@
 <span class="va">stdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">'data_product/'</span>, <span class="va">cruise</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">stdir</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-<span class="co"># DEPTH BIN SIZE FOR AVERAGING</span>
+<span class="co"># BIN SIZE FOR COMPUTING DEPTH AVERAGED PLANKTON CONCENTRATION ALONG PATH OF THE VPR</span>
 <span class="va">binSize</span> <span class="op">&lt;-</span> <span class="fl">3</span>
 
-<span class="co"># CATEGORY OF INTEREST (WHICH CATEGORIES WILL BE PROCESSED AND VISUALIZED)</span>
+<span class="co"># CATEGORY OF INTEREST (PLANKTON CATEGORIES TO BE PROCESSED AND VISUALIZED)</span>
 <span class="va">category_of_interest</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
     <span class="st">'krill'</span>,
@@ -174,23 +175,23 @@
 <div class="section level3">
 <h3 id="section-2-2-image-copying-optional">Section 2.2: Image Copying (optional):<a class="anchor" aria-label="anchor" href="#section-2-2-image-copying-optional"></a>
 </h3>
-<p>ROIs are organized into folders corresponding to their assigned classification categories from VP. The information in each aid file produced by VP is used to create a folder for each classification category containing ROIs that have been classified to that category. This step is only required if manual re-classification (see Section 2.2) is intended. Further details on image copying are provided in Section 3.</p>
+<p>ROIs are organized into folders corresponding to their assigned classification categories from automated image classification. The information in each aid file is used to create a folder of images that have been classified to that category. This step is only required if manual re-classification (see Section 2.2) is intended. Further details on image copying are provided in Section 3.</p>
 </div>
 <div class="section level3">
 <h3 id="section-2-3-manual-re-classification-optional">Section 2.3: Manual re-classification (optional):<a class="anchor" aria-label="anchor" href="#section-2-3-manual-re-classification-optional"></a>
 </h3>
-<p>Classifications from VP are manually checked, which allows for manual correction and addition of categories not previously used for classification in VP. A user-defined subset of the ROIs that have been copied in Section 2.1 is manually sorted to correct for misclassifications made by VP. Updated aid and aidmeas files are produced. Further details on manual re-classification are provided in Section 4.</p>
+<p>Classifications from VP are manually checked, which allows for manual correction and addition of categories not previously used for classification in VP. ROIs that have been copied in Section 2.1 are manually sorted to correct for misclassifications made by automated classification. Updated aid and aidmeas files are produced. Further details on manual re-classification are provided in Section 4.</p>
 </div>
 <div class="section level3">
 <h3 id="section-2-4-processing">Section 2.4: Processing:<a class="anchor" aria-label="anchor" href="#section-2-4-processing"></a>
 </h3>
-<p>Joining data outputs from Autodeck (ctd .dat files) and VP (aid and aidmeas files). The aid and aidmeas files, which may have been updated (see Section 2.3) are joined with CTD text files by the 8 digit time stamp. The data are then averaged in user-defined vertical bins to produce a time series of plankton concentrations and environmental variables. Quality controlled data products (before and after binning) are then exported in simple formats (csv, RData, oce) for plotting and analysis. Further details on data processing are provided in Section 5.</p>
+<p>Joining data outputs from Autodeck (ctd .dat files) and automatic classifications (aid files) and measurements (aidmeas files). The aid and aidmeas files, which may have been updated (see Section 2.3) are joined with CTD text files by the 8 digit time stamp. The data are then averaged in user-defined vertical bins to produce a time series of plankton concentrations and environmental variables. Quality controlled data products (before and after binning) are then exported in simple formats (csv, RData, oce) for plotting and analysis. Further details on data processing are provided in Section 5.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="section-3-image-copying">Section 3: Image Copying<a class="anchor" aria-label="anchor" href="#section-3-image-copying"></a>
 </h2>
-<p>In this step, ROIs are copied to folders that are organized based on the day and hour of data collection and classification category assigned from VP. The images are organized by Autodeck into day and hour; however, reorganizing them based on classification allows easier human interaction with the data and visual inspection of classifications by VP. Moreover, this directory structure is used by the next step of processing (i.e., manual re-classification). To implement this step use the function <code><a href="../reference/vpr_autoid_copy.html">vprr::vpr_autoid_copy()</a></code>. For more information on input variables, please see documentation for vpr_autoid_copy (<code><a href="../reference/vpr_autoid_copy.html">?vpr_autoid_copy</a></code>).</p>
+<p>In this step, ROIs are copied to folders that are organized based on the day and hour of data collection and classification category assigned from automatic classification (see Appendix 1: ‘Image Folders’). The images are organized by AutoDeck into day and hour; however, reorganizing them based on classification allows easier human interaction with the data and visual inspection of classifications. Moreover, this directory structure is used by the next step of processing (i.e., manual re-classification). To implement this step use the function <code><a href="../reference/vpr_autoid_copy.html">vprr::vpr_autoid_copy()</a></code> For more information on input variables, please see documentation for <code><a href="../reference/vpr_autoid_copy.html">vpr_autoid_copy()</a></code></p>
 <pre><code><span class="co"># create variables</span>
 <span class="co"># ---------------------</span>
 <span class="va">basepath</span> <span class="op">&lt;-</span> <span class="st">"C:\\data\\cruise_COR2019002\\autoid\\"</span> 
@@ -208,7 +209,7 @@
 <div class="section level2">
 <h2 id="section-4-manual-re-classification">Section 4: Manual Re-classification<a class="anchor" aria-label="anchor" href="#section-4-manual-re-classification"></a>
 </h2>
-<p>Manual re-classification of some categories after automated classification by VP may be required to achieve identification accuracy standards. In this step, ROIs are displayed on the screen one at a time for manual verification. If VP has misclassified an image or if it falls into a new user defined category (described below), the image can be re-classified. At the end of this process, text files which match the formats produced by VP for aid and aidmeas files are generated with the new classifications. The manual re-classification process also allows for creation of new categories. This is especially useful for classification of rare categories that were not defined prior to classification in VP. For example, if VP produces a classification group “copepods” containing species A and species B, the user can add “species A” and “species B” categories in the manual re-classification step using the function <code><a href="../reference/vpr_category_create.html">vprr::vpr_category_create</a></code> (see example below). After completing manual re-classification for a day-hour set, new aid and aidmeas files are created for new categories, which are identical in format to original aid and aidmeas files produced by VP.</p>
+<p>Manual re-classification of some categories after automated classification may be required to achieve identification accuracy standards. In this step, ROIs are displayed on the screen one at a time for manual verification. If an image has been misclassified or if it falls into a new user-defined category (described below), the image can be re-classified. This is especially useful for classification of rare categories that were not defined prior to automatic classification. After completing manual re-classification for a day-hour set, new aid and aidmeas files are created for new categories, which are identical in format to original aid and aidmeas files.</p>
 <div class="section level3">
 <h3 id="section-4-1-preparing-the-environment-by-setting-some-variables">Section 4.1: Preparing the environment by setting some variables<a class="anchor" aria-label="anchor" href="#section-4-1-preparing-the-environment-by-setting-some-variables"></a>
 </h3>
@@ -219,55 +220,54 @@
 <li>Run manual re-classification with <code><a href="../reference/vpr_manual_classification.html">vprr::vpr_manual_classification()</a></code>. This function has a few optional arguments to customize the manual re-classification experience, notably <code>gr</code> which is a logical value determining whether or not manual re-classification options appear as pop ups or in the console, as well as <code>img_bright</code>, a logical which determines whether or not the original image is appended with an extra bright version of the image. Having a bright version of the image allows the user to see the outline of the organism better, any thin appendages become more clear and gelatinous organisms like chaetognaths or ctenophores are easier to distinguish.</li>
 </ul>
 <pre><code><span class="co">#### MANUAL RE-CLASSIFICATION</span>
-<span class="co"># -------------------------------------</span>
+    <span class="co"># -------------------------------------</span>
 
-<span class="co"># Once classified images are sorted by taxa</span>
-<span class="co"># verify classification accuracy by manually </span>
-<span class="co"># looking through classified images</span>
+    <span class="co"># Once classified images are sorted by taxa</span>
+    <span class="co"># verify classification accuracy by manually </span>
+    <span class="co"># looking through classified images</span>
 
-<span class="co">#### USER INPUT REQUIRED ####     </span>
+    <span class="co">#### USER INPUT REQUIRED ####     </span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">'COR2019002_env.RData'</span><span class="op">)</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">'COR2019002_env.RData'</span><span class="op">)</span>
 
-<span class="va">day</span> <span class="op">&lt;-</span> <span class="st">'235'</span> 
-<span class="va">hr</span> <span class="op">&lt;-</span> <span class="st">'19'</span> <span class="co"># keep leading zeros, must be two characters</span>
-
-
-<span class="va">category_of_interest</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-    <span class="st">'krill'</span>,
-    <span class="st">'Calanus'</span>,
-    <span class="st">'chaetognaths'</span>,
-    <span class="st">'ctenophores'</span>,
-    <span class="st">'Other'</span>,
-    <span class="st">'larval_fish'</span>,
-    <span class="st">'marine_snow'</span>,
-    <span class="st">'small_copepod'</span>,
-    <span class="st">'other_copepods'</span>,
-    <span class="st">'larval_crab'</span>,
-    <span class="st">'amphipod'</span>,
-    <span class="st">'Metridia'</span>,
-    <span class="st">'Paraeuchaeta'</span>,
-    <span class="st">'cnidarians'</span>,
-    <span class="st">'speciesA'</span>, <span class="co"># new category</span>
-    <span class="st">'speciesB'</span> <span class="co"># new category</span>
-  <span class="op">)</span>
+    <span class="va">day</span> <span class="op">&lt;-</span> <span class="st">'235'</span> 
+    <span class="va">hr</span> <span class="op">&lt;-</span> <span class="st">'19'</span> <span class="co"># keep leading zeros, must be two characters</span>
 
 
-<span class="co"># add new category (optional)</span>
+    <span class="va">category_of_interest</span> <span class="op">&lt;-</span>
+      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
+        <span class="st">'krill'</span>,
+        <span class="st">'Calanus'</span>,
+        <span class="st">'chaetognaths'</span>,
+        <span class="st">'ctenophores'</span>,
+        <span class="st">'Other'</span>,
+        <span class="st">'larval_fish'</span>,
+        <span class="st">'marine_snow'</span>,
+        <span class="st">'small_copepod'</span>,
+        <span class="st">'other_copepods'</span>,
+        <span class="st">'larval_crab'</span>,
+        <span class="st">'amphipod'</span>,
+        <span class="st">'Metridia'</span>,
+        <span class="st">'Paraeuchaeta'</span>,
+        <span class="st">'cnidarians'</span>,
+        <span class="st">'speciesA'</span>, <span class="co"># new category</span>
+      <span class="op">)</span>
 
-<span class="fu"><a href="../reference/vpr_category_create.html">vpr_category_create</a></span><span class="op">(</span>taxa <span class="op">=</span> <span class="va">category_of_interest</span>, <span class="va">auto_id_folder</span><span class="op">)</span>
-<span class="co"># ensures there is proper folder structure for all categories of interest</span>
 
-<span class="co"># reclassify images</span>
-<span class="fu"><a href="../reference/vpr_manual_classification.html">vpr_manual_classification</a></span><span class="op">(</span>day <span class="op">=</span> <span class="va">day</span>, hour<span class="op">=</span> <span class="va">hr</span>, basepath <span class="op">=</span> <span class="va">auto_id_folder</span>,gr <span class="op">=</span> <span class="cn">FALSE</span>, 
-          taxa_of_interest <span class="op">=</span> <span class="va">category_of_interest</span>, scale <span class="op">=</span> <span class="st">'x300'</span>,
-          opticalSetting <span class="op">=</span> <span class="st">'S3'</span><span class="op">)</span></code></pre>
+    <span class="co"># add new category (optional)</span>
+
+    <span class="fu"><a href="../reference/vpr_category_create.html">vpr_category_create</a></span><span class="op">(</span>taxa <span class="op">=</span> <span class="va">category_of_interest</span>, <span class="va">auto_id_folder</span><span class="op">)</span>
+    <span class="co"># ensures there is proper folder structure for all categories of interest</span>
+
+    <span class="co"># reclassify images</span>
+    <span class="fu"><a href="../reference/vpr_manual_classification.html">vpr_manual_classification</a></span><span class="op">(</span>day <span class="op">=</span> <span class="va">day</span>, hour<span class="op">=</span> <span class="va">hr</span>, basepath <span class="op">=</span> <span class="va">auto_id_folder</span>,gr <span class="op">=</span> <span class="cn">FALSE</span>, 
+              taxa_of_interest <span class="op">=</span> <span class="va">category_of_interest</span>, scale <span class="op">=</span> <span class="st">'x300'</span>,
+              opticalSetting <span class="op">=</span> <span class="st">'S3'</span><span class="op">)</span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="section-4-2-generate-new-aid-and-aidmeas-files">Section 4.2: Generate new aid and aidmeas files<a class="anchor" aria-label="anchor" href="#section-4-2-generate-new-aid-and-aidmeas-files"></a>
 </h3>
-<p>The function <code><a href="../reference/vpr_manual_classification.html">vprr::vpr_manual_classification()</a></code> produces two files (‘misclassified’ and ‘re-classified’ text files) as a record of manual re-classification, which are found in the R project working directory in folders named by the day and hour that the data were collected. The function <code><a href="../reference/vpr_autoid_create.html">vprr::vpr_autoid_create()</a></code> takes these files and outputs new aid and aidmeas files in the R working directory in folders named by classification category. This step should be run after each hour of data is manually re-classified.</p>
+<p>The function<code><a href="../reference/vpr_manual_classification.html">vprr::vpr_manual_classification()</a></code> produces two files (‘misclassified’ and ‘re-classified’ text files) as a record of manual re-classification, which are found in the R project working directory in folders named by the day and hour that the data were collected. The function<code><a href="../reference/vpr_autoid_create.html">vprr::vpr_autoid_create()</a></code>takes these files and outputs new aid and aidmeas files in the R working directory in folders named by classification category. This step should be run after each hour of data is manually re-classified.</p>
 <pre><code><span class="co">#### REORGANIZE ROI AND ROIMEAS DATA</span>
 <span class="co"># -----------------------------------------</span>
 
@@ -279,11 +279,34 @@
 
 <span class="co"># MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES &amp; REMOVE MISCLASSIFIED ROIS</span>
 <span class="fu"><a href="../reference/vpr_autoid_create.html">vpr_autoid_create</a></span><span class="op">(</span><span class="va">reclassify</span>, <span class="va">misclassified</span>, <span class="va">auto_id_folder</span><span class="op">)</span></code></pre>
+<p>The aid and aidmeas files are both text files which are specifically formatted to record classification outputs for further processing. The format was originally used by Visual Plankton (VP) but can be used independently of VP. The aid files are text records of image paths, where each individual text file represents a classification category. Each line of the aid file is the full path to an image which was classified into the designated category. Note that the traditional naming scheme of aid files does not include the category name in the file title and the category is only identifiable by the folder in which it is located. For example the ‘krill’ classification aid file might be named ‘oct10_1svmaid.d224.h01’ but be located within the ‘krill’ autoid folder. The aidmeas files are also text files which represent a variety of different measurements taken of the object(s) within a ROI image. These measurements are taken within VP during processing of the images. Please see VP documentation for details. The columns of the aidmeas files are c(‘Perimeter’,‘Area’,‘width1’,‘width2’,‘width3’,‘short_axis_length’,‘long_axis_length’). Note that these measurements are in pixels and should be converted to distance measurements using the specific VPR setting (S0, S1, S2, etc). Examples of each of these files can be found below.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">aid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04"</span>, package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">aid</span><span class="op">)</span>
+<span class="co">#&gt;                                                                       V1</span>
+<span class="co">#&gt; 1 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521078400.tif</span>
+<span class="co">#&gt; 2 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521624700.tif</span>
+<span class="co">#&gt; 3 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521966500.tif</span>
+<span class="co">#&gt; 4 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2522439500.tif</span>
+<span class="co">#&gt; 5 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2523322300.tif</span>
+<span class="co">#&gt; 6 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2524341800.tif</span>
+
+<span class="va">aidmeas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/bad_image_blurry/aidmea/sep20_2svmaid.mea.d222.h04"</span>, package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">aidmeas</span><span class="op">)</span>
+<span class="co">#&gt; [1] "    166.37    807.00     10.44     11.40     31.95     32.64     48.20"</span>
+<span class="co">#&gt; [2] "    318.94   3737.00     29.07     36.12     32.06     50.60    113.08"</span>
+<span class="co">#&gt; [3] "    246.51   1370.00     14.32     14.32     13.60     19.66    106.03"</span>
+<span class="co">#&gt; [4] "    563.24   6062.00     38.48     72.45     36.24     85.87    166.81"</span>
+<span class="co">#&gt; [5] "    162.91    649.00      9.49      6.08     11.18     14.57     70.70"</span>
+<span class="co">#&gt; [6] "    228.94   1723.00     22.80     21.93     15.81     27.31     93.59"</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="section-4-3-file-check">Section 4.3: File check<a class="anchor" aria-label="anchor" href="#section-4-3-file-check"></a>
 </h3>
-<p>The last step of manual re-classification includes some manual file organization and final checks. These files should be manually reorganized in a new directory which will become the new <code>auto_id_folder</code> (see Appendix 1: Directory Structure). Remember that aid and aidmeas files from any categories which were not manually checked and re-classified should also be added to this new <code>auto_id_folder</code>. After the updated aid and aidmeas files have been manually reorganized they should be quality controlled using <code><a href="../reference/vpr_autoid_check.html">vprr::vpr_autoid_check()</a></code>. This function removes any empty aid files created. Empty files are created if there are no images of a specific classification group in a particular hour of VPR deployment. Empty files can cause errors in processing down the line. This function also checks that (1) aid and aidmeas files are aligned within an hour of data; (2) aid and aidmeas files include the same number of ROIs; and (3) the VPR tow number for all files is the same.</p>
+<p>The last step of manual re-classification includes some manual file organization and final checks. These files should be manually reorganized in a new directory which will become the new auto_id_folder (see Appendix 1: Directory Structure). Any aid and aidmeas files from categories which were not manually checked and re-classified should also be added to this new auto_id_folder if they are to be included in further processing (e.g., computation of concentration in user-specified depth bins). After the updated aid and aidmeas files have been manually reorganized they can be quality controlled using vprr::vpr_autoid_check(). The user could also manually check the files. The automated check function removes any empty aid files created. Empty files can cause errors in processing down the line. This function also checks that (1) aid and aidmeas files are aligned within an hour of data; (2) aid and aidmeas files include the same number of ROIs; and (3) the VPR tow number for all files is the same. If using the automated check function please be cautious, and read the documentation before implementing to be sure you understand the consequences of the check and how it will delete files.</p>
 <pre><code><span class="co">#### FILE CHECK</span>
 <span class="co"># --------------------------------</span>
 
@@ -297,10 +320,9 @@
 <div class="section level2">
 <h2 id="section-5-data-processing">Section 5: Data Processing<a class="anchor" aria-label="anchor" href="#section-5-data-processing"></a>
 </h2>
-<p>This is the main chunk of coding required to generate data products. This step does not require image copying (Section 3) or manual re-classification (Section 4) steps. The following is a walk-through of processing data from a DFO field mission (i.e. mission COR2019002) in the southern GSL (Gulf of St. Lawrence) in 2019.</p>
-<p>First, all libraries should be loaded and the processing environment, described in Section 2.4 should be loaded.</p>
+<p>This is the main chunk of coding required to generate data products. This step does not require image copying (Section 3) or manual re-classification (Section 4) steps; however, if these steps were taken the aid and aidmeas files generated from manual re-classification and integrated into the directory structure (as specified in Section 4) are used as an input. The following is a walk-through of processing data from a DFO field mission (i.e. mission COR2019002) in the southern Gulf of St. Lawrence in 2019. First, all libraries should be loaded and the processing environment, described in Section 2.4 should be loaded.</p>
 <pre><code><span class="co">##### PROCESSING  --------------------------------------------------------------------------------------------------------------------</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">vprr</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span>
 
 <span class="co">#### FILE PATHS &amp; SETTINGS --------------------------------------------------------------------------------------------------------------------</span>
 <span class="co"># loads processing environment specific to user</span>
@@ -330,7 +352,7 @@ for (j in 1:length(all_stations_of_interest)){
     <span class="va">opticalSetting</span> <span class="op">&lt;-</span> <span class="st">"S2"</span>
     <span class="va">imageVolume</span> <span class="op">&lt;-</span> <span class="fl">108155</span> <span class="co">#mm^3</span>
   <span class="op">}</span></code></pre>
-<p>CTD casts are loaded in using <code><a href="../reference/vpr_ctd_files.html">vprr::vpr_ctd_files</a></code> to find files and <code><a href="../reference/vpr_ctd_read.html">vprr::vpr_ctd_read</a></code> to read in files. During CTD data read in, a standardized seawater density variable <code>sigmaT</code> is derived using the function <code><a href="https://dankelley.github.io/oce/reference/swSigmaT.html" class="external-link">oce::swSigmaT</a></code>, and <code>depth</code> (in meters) is derived from pressure using the function <code><a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">oce::swDepth</a></code>.</p>
+<p>CTD data are loaded in using <code><a href="../reference/vpr_ctd_files.html">vprr::vpr_ctd_files</a></code> to find files and <code><a href="../reference/vpr_ctd_read.html">vprr::vpr_ctd_read</a></code> to read in files. During CTD data read in, a seawater density variable <code>sigmaT</code> is derived using the function <code><a href="https://dankelley.github.io/oce/reference/swSigmaT.html" class="external-link">oce::swSigmaT</a></code>, and <code>depth</code> (in meters) is derived from pressure using the function <code><a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">oce::swDepth</a></code>. For more information on the oce package, see dankelley/oce on GitHub.</p>
 <pre><code><span class="co">#get day and hour info from station names list</span>
   <span class="va">dayhour</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_dayhour.html">vpr_dayhour</a></span><span class="op">(</span><span class="va">station_of_interest</span>, file <span class="op">=</span> <span class="va">station_names_file</span><span class="op">)</span>
   
@@ -347,7 +369,7 @@ for (j in 1:length(all_stations_of_interest)){
   
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'CTD data read complete! \n'</span><span class="op">)</span>
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'\n'</span><span class="op">)</span></code></pre>
-<p>VPR data files are then found, within the VP directory structure.</p>
+<p>The aid and aidmea files, which reflect manual classification (if used, see Section 4), are then found</p>
 <pre><code><span class="co">##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------</span>
   
   <span class="co"># Path to aid for each taxa                               </span>
@@ -370,7 +392,7 @@ for (j in 1:length(all_stations_of_interest)){
   <span class="va">aidmea_file_list_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">aidmea_file_list</span><span class="op">)</span>
   
   <span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">remove</a></span><span class="op">(</span><span class="va">aid_file_list</span>, <span class="va">aidmea_file_list</span>, <span class="va">aid_path</span>, <span class="va">aidmea_path</span><span class="op">)</span></code></pre>
-<p>ROI and measurement data files are then read using <code><a href="../reference/vpr_autoid_read.html">vprr::vpr_autoid_read()</a></code>.</p>
+<p>aid and aidmeas files are read in using <code><a href="../reference/vpr_autoid_read.html">vprr::vpr_autoid_read()</a></code>.</p>
 <pre><code><span class="co">##### READ ROI AND MEASUREMENT DATA ------------------------------------------------------------------------------------------------------------</span>
   
   
@@ -402,12 +424,12 @@ for (j in 1:length(all_stations_of_interest)){
   
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'CTD and ROI data combined! \n'</span><span class="op">)</span>
   <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">'\n'</span><span class="op">)</span></code></pre>
-<p>Before final export of data products, the following variables are added to the data frame: time in hours <code>avg_hr</code> is calculated, and a time stamp (<code>ymdhms</code>) with POSIXct signature in Y-M-D h:m:s format is added using the function <code>vpr_ctd_ymd</code>.</p>
+<p>Before final export of data products, the following variables are added to the data frame: time in hours (time_hr) is calculated, and a time stamp (ymdhms) with POSIXct signature in Y-M-D h:m:s format is added using the function <code>vpr_ctd_ymd</code>.</p>
 <pre><code><span class="co">##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------</span>
   
-  <span class="co"># add avg hr and sigma T data and depth</span>
+  <span class="co"># add time_hr and sigma T data and depth</span>
     <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span> <span class="op">%&gt;%</span>
-    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, avg_hr <span class="op">=</span> <span class="va">time_ms</span> <span class="op">/</span> <span class="fl">3.6e+06</span><span class="op">)</span> 
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, time_hr <span class="op">=</span> <span class="va">time_ms</span> <span class="op">/</span> <span class="fl">3.6e+06</span><span class="op">)</span> 
  
     <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_ctd_ymd.html">vpr_ctd_ymd</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">year</span><span class="op">)</span>
     
@@ -420,7 +442,7 @@ for (j in 1:length(all_stations_of_interest)){
   
   <span class="co"># clean environment</span>
   <span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">remove</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">)</span></code></pre>
-<p>Average plankton concentration and environmental variables (e.g., temperature, salinity, density, etc.) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly. This can occur due to characteristics of the deployment or variability in the sampling rate, which is not necessarily constant in older versions of the VPR. Binning also reduces noise in the data. First, an <code>oce</code> CTD object is created using <code><a href="../reference/vpr_oce_create.html">vprr::vpr_oce_create()</a></code>. For more information on the oce package, see <code>dankelley/oce</code> on GitHub. Then, bin-averaging is done using <code><a href="../reference/bin_cast.html">vprr::bin_cast()</a></code>. Concentrations are calculated for each category of interest.</p>
+<p>Average plankton concentration and environmental variables (e.g., temperature, salinity, density, etc.) are then computed within a user defined depth bin. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly. This can occur due to characteristics of the deployment or variability in the sampling rate, which is not necessarily constant in older versions of the VPR. Binning also reduces noise in the data. First, an oce CTD object is created using <code><a href="../reference/vpr_oce_create.html">vprr::vpr_oce_create()</a></code>. Then, bin-averaging is done using <code><a href="../reference/bin_cast.html">vprr::bin_cast()</a></code>. Concentrations are calculated for each category of interest.</p>
 <pre><code><span class="co">##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------</span>
   
   <span class="va">ctd_roi_oce</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_oce_create.html">vpr_oce_create</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>
@@ -475,7 +497,7 @@ for (j in 1:length(all_stations_of_interest)){
 <p>Although not primarily a plotting package, vprr can produce contour plots, profile plots and temperature-salinity (TS) plots from VPR data sets. A few example plots are provided in the following code. The first step to plotting is properly loading in the processed VPR data objects created in processing. The environment, described in Section 2.4 should also be loaded. The individual data files are found by distinct names (e.g., “stationData”). The directory structure may be different depending on the <code>savedir</code> where data files were saved during processing. Note that the following plotting examples are tailored for tow-yo pattern VPR deployments.</p>
 <pre><code><span class="co">##### FILE PATH &amp; SETTINGS -----------------------------------------------------------------------------------------------------------------------</span>
 
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">vprr</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span>
 
 <span class="co"># loads all file paths and environment vars specific to User</span>
 <span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">'COR2019002_env.RData'</span><span class="op">)</span>
@@ -532,8 +554,8 @@ for (j in 1:length(all_stations_of_interest)){
 <pre><code><span class="co"># Density (sigmaT)</span>
   <span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="st">'conPlot_taxa_dens.png'</span>, width <span class="op">=</span> <span class="va">width</span>, height <span class="op">=</span> <span class="va">height</span><span class="op">)</span>
   <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_plot_contour.html">vpr_plot_contour</a></span><span class="op">(</span><span class="va">taxa_conc_n</span><span class="op">[</span><span class="va">taxa_conc_n</span><span class="op">$</span><span class="va">taxa</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">taxa_to_plot</span><span class="op">)</span>,<span class="op">]</span>, var <span class="op">=</span> <span class="st">'density'</span>, dup <span class="op">=</span> <span class="st">'strip'</span>, method <span class="op">=</span> <span class="st">'oce'</span>, bw <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>
-  <span class="va">p</span> <span class="op">&lt;-</span> <span class="va">p</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">avg_hr</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">avg_hr</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">pressure</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">'snow4'</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
-    <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">taxa_conc_n</span><span class="op">[</span><span class="va">taxa_conc_n</span><span class="op">$</span><span class="va">taxa</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">taxa_to_plot</span><span class="op">)</span>,<span class="op">]</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">avg_hr</span>, y <span class="op">=</span> <span class="va">min_pressure</span>, size <span class="op">=</span> <span class="va">conc_m3</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="va">p</span> <span class="op">&lt;-</span> <span class="va">p</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">time_hr</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">time_hr</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">pressure</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">'snow4'</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">taxa_conc_n</span><span class="op">[</span><span class="va">taxa_conc_n</span><span class="op">$</span><span class="va">taxa</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">taxa_to_plot</span><span class="op">)</span>,<span class="op">]</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">time_hr</span>, y <span class="op">=</span> <span class="va">min_pressure</span>, size <span class="op">=</span> <span class="va">conc_m3</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">+</span>
     <span class="fu">ggtitle</span><span class="op">(</span><span class="va">station_name</span> <span class="op">)</span> <span class="op">+</span>
     <span class="fu">labs</span><span class="op">(</span>size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="st">"Concentration /m"</span> <span class="op">^</span><span class="fl">3</span><span class="op">)</span>, fill <span class="op">=</span> <span class="st">'Density'</span><span class="op">)</span><span class="op">+</span>
     <span class="fu">scale_size_continuous</span><span class="op">(</span>range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
@@ -555,7 +577,7 @@ for (j in 1:length(all_stations_of_interest)){
     <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_plot_profile.html">vpr_plot_profile</a></span><span class="op">(</span><span class="va">taxa_conc_n</span>, <span class="va">taxa_to_plot</span><span class="op">)</span>
     <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>
     <span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></code></pre>
-<p>Temperature-salinity (TS) plots can be generated to visualize how plankton concentration varies across different water masses. In the example below, a TS plot is produced in ggplot (with labeled isopycnals), and concentration bubbles for each selected classification group are overlaid on the plot. The basic TS bubble plot can be easily manipulated using ggplot2 grammar, for example the plots can be faceted by classification group or axis labels and sizing can be adjusted (see ggplot2 package for more inofrmation).</p>
+<p>Temperature-salinity (TS) plots can be generated to visualize how plankton concentration varies across different water masses. In the example below, a TS plot is produced in ggplot (with labeled isopycnals), and concentration bubbles for each selected classification group are overlaid on the plot. The basic TS bubble plot can be easily manipulated using ggplot2 grammar, for example the plots can be faceted by classification group or axis labels and sizing can be adjusted (see ggplot2 package for more information).</p>
 <pre><code>####TS BUBBLE PLOT ----------------------------------------------------------------------------------------------------------------------------
   
   # plot by taxa
@@ -600,35 +622,13 @@ for (j in 1:length(all_stations_of_interest)){
 <ul>
 <li>aid</li>
 <li>aidmea</li>
-<li>image folders (Note: these folders can be moved as long as file paths within processing are updated appropriately)</li>
+<li>image folders</li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p>clpar</p></li>
-<li>
-<p>feature</p>
-<ul>
-<li>vprtow#</li>
-</ul>
-</li>
-<li><p>idsize</p></li>
 <li>
 <p>rois</p>
-<ul>
-<li>vprtow#
-<ul>
-<li>day
-<ul>
-<li>hour</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>tefeature</p>
 <ul>
 <li>vprtow#
 <ul>
@@ -662,6 +662,38 @@ for (j in 1:length(all_stations_of_interest)){
 </ul>
 </li>
 </ul>
+<p>This is your project directory, where your R scripts and work products will be stored:</p>
+<ul>
+<li>…
+<ul>
+<li><p>VPR_PROJECT</p></li>
+<li>
+<p>R</p>
+<ul>
+<li>R scripts/ workflows</li>
+</ul>
+</li>
+<li>
+<p>new_autoid</p>
+<ul>
+<li><p>taxa</p></li>
+<li><p>aid</p></li>
+<li><p>aidmea</p></li>
+</ul>
+</li>
+<li>
+<p>manual_reclassification_record</p>
+<ul>
+<li><p>day/hour</p></li>
+<li><p>misclassified</p></li>
+<li><p>reclassified</p></li>
+</ul>
+</li>
+<li><p>figures</p></li>
+<li><p>station names (csv)</p></li>
+</ul>
+</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="appendix-2-glossary">Appendix 2: Glossary<a class="anchor" aria-label="anchor" href="#appendix-2-glossary"></a>
@@ -672,12 +704,12 @@ for (j in 1:length(all_stations_of_interest)){
 <p><strong>Auto ID</strong> - The automatic classification given to an image from Visual Plankton machine learning algorithm</p>
 <p><strong>AutoID files</strong> - Includes both Aid and AidMeas files as part of Visual Plankton’s automatic classifications</p>
 <p><strong>BIO</strong> - Bedford Institute of Oceanography, a research institute in Halifax NS, Canada</p>
-<p><strong>Classification category (Taxa)</strong> - A defined group under which VPR images can be classified, often represents a taxonomic group (e.g. Krill), but can also be defined by image type (e.g. ‘bad_image_blurry’), or other (e.g. ‘marine_snow’), should be one continuous string (no spaces)</p>
+<p><strong>Classification category (Taxa)</strong> - A defined group under which VPR images can be classified, often represents a taxonomic group (e.g. Krill), but can also be defined by image type (e.g. ‘bad_image_blurry’), or other (e.g. ‘marine_snow’), should be one continuous string (no spaces)</p>
 <p><strong>CPU</strong> - Central processing unit (computer processor)</p>
 <p><strong>CTD</strong> - Conductivity, Temperature and depth sensor instrument</p>
 <p><strong>Day</strong> - Julian calendar day on which VPR data was collected (three digits)</p>
 <p><strong>Hour</strong> - Two digit hour (24 hour clock) describing time at which VPR data was collected</p>
-<p><strong>Image volume</strong> - The measured volume of water captured within a VPR image. Calculated based on optical setting and VPR standards</p>
+<p><strong>Image volume</strong> - The measured volume of water captured within a VPR image. Calculated based on optical setting and VPR standards. This is based on AutoDeck settings, it is calculated from the VPR calibration file (unique to each instrument). It will change based on AutoDeck settings and should be updated with each cruise/ processing batch. It is measured in cubic mm</p>
 <p><strong>Optical Setting</strong> - A VPR setting controlling image magnification and field of view, which can be S0, S1, S2 or S3, where S0 has the greatest magnification and smallest image volume, and S3 has the least magnification and largest image volume</p>
 <p><strong>ROI</strong> - Region of interest, images identified by autodeck within VPR frames based on settings defined in autoDeck program</p>
 <p><strong>SeaScan</strong> - Oceanographic instrument manufacturing company</p>
@@ -703,12 +735,12 @@ for (j in 1:length(all_stations_of_interest)){
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+<p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer>

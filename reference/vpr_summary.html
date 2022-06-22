@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -64,16 +64,25 @@
     <h2>Arguments</h2>
     <dl><dt>all_dat</dt>
 <dd><p>data frame containing VPR and CTD data including time_ms,
-avg_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
+time_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
 turbidity_mv, sigmaT</p></dd>
+
+
 <dt>fn</dt>
 <dd><p>file name to save data summary, if not provided, summary will print to console</p></dd>
+
+
 <dt>tow</dt>
 <dd><p>VPR tow number</p></dd>
+
+
 <dt>day</dt>
 <dd><p>julian day</p></dd>
+
+
 <dt>hour</dt>
 <dd><p>two digit hour (24 hr clock)</p></dd>
+
 </dl></div>
     <div id="author">
     <h2>Author</h2>
@@ -88,11 +97,11 @@ turbidity_mv, sigmaT</p></dd>
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

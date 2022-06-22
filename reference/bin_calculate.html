@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -66,16 +66,23 @@
 <dd><p>ctd data frame object including scan, salinity, temperature,
 depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
 altitude, cast_id, n_roi</p></dd>
+
+
 <dt>binSize</dt>
 <dd><p>the height of bins over which to average, default is 1 metre</p></dd>
+
+
 <dt>imageVolume</dt>
 <dd><p>the volume of VPR images used for calculating concentrations (mm^3)</p></dd>
+
+
 <dt>rev</dt>
 <dd><p>logical value, if TRUE, binning will begin at bottom of each cast,
 this controls data loss due to uneven binning over depth. If bins begin at
 bottom, small amounts of data may be lost at the surface of each cast, if
 binning begins at surface (rev = FALSE), small amounts of data may be lost
 at bottom of each cast</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -102,11 +109,11 @@ Used internally ( <code><a href="bin_cast.html">bin_cast</a></code> ) after <cod
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily Chisholm, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>
