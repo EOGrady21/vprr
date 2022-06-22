@@ -18,7 +18,7 @@ Used inside vpr_roi_concentration"><!-- mathjax --><script src="https://cdnjs.cl
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -27,7 +27,7 @@ Used inside vpr_roi_concentration"><!-- mathjax --><script src="https://cdnjs.cl
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -66,16 +66,25 @@ Used inside <code><a href="vpr_roi_concentration.html">vpr_roi_concentration</a>
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>dataframe produced by processing internal to vpr_roi_concentration</p></dd>
+
+
 <dt>taxa</dt>
 <dd><p>name of taxa isolated</p></dd>
+
+
 <dt>binSize</dt>
 <dd><p>passed to <code><a href="bin_calculate.html">bin_calculate</a></code>, determines size of depth bins over which data is averaged</p></dd>
+
+
 <dt>imageVolume</dt>
 <dd><p>the volume of VPR images used for calculating concentrations (mm^3)</p></dd>
+
+
 <dt>rev</dt>
 <dd><p>Logical value defining direction of binning, FALSE - bins will be
 calculated from surface to bottom, TRUE- bins will be calculated bottom to
 surface</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -100,7 +109,7 @@ For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume 
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

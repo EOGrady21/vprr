@@ -13,7 +13,16 @@
     <loc>/authors.html</loc>
   </url>
   <url>
+    <loc>/CODE_OF_CONDUCT.html</loc>
+  </url>
+  <url>
+    <loc>/CONTRIBUTING.html</loc>
+  </url>
+  <url>
     <loc>/index.html</loc>
+  </url>
+  <url>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
     <loc>/news/index.html</loc>
@@ -154,6 +163,9 @@
     <loc>/reference/vpr_plot_TScat.html</loc>
   </url>
   <url>
+    <loc>/reference/vpr_pred_read.html</loc>
+  </url>
+  <url>
     <loc>/reference/vpr_roi.html</loc>
   </url>
   <url>
@@ -176,5 +188,8 @@
   </url>
   <url>
     <loc>/reference/vp_plot_unkn.html</loc>
+  </url>
+  <url>
+    <loc>/SECURITY.html</loc>
   </url>
 </urlset>

@@ -1,7 +1,7 @@
-pandoc: 2.7.3
-pkgdown: 2.0.2
+pandoc: 2.17.1.1
+pkgdown: 2.0.4
 pkgdown_sha: ~
 articles:
   VPR_processing: VPR_processing.html
-last_built: 2022-03-02T17:55Z
+last_built: 2022-06-22T13:03Z
 

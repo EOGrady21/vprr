@@ -18,7 +18,7 @@ This function is used inside concentration_category"><!-- mathjax --><script src
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -27,7 +27,7 @@ This function is used inside concentration_category"><!-- mathjax --><script src
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -66,20 +66,29 @@ This function is used inside <code><a href="concentration_category.html">concent
     <h2>Arguments</h2>
     <dl><dt>ctd_roi_oce</dt>
 <dd><p><code>oce</code> ctd format VPR data from <code><a href="vpr_oce_create.html">vpr_oce_create</a></code></p></dd>
+
+
 <dt>imageVolume</dt>
 <dd><p>the volume of VPR images used for calculating concentrations (mm^3)</p></dd>
+
+
 <dt>binSize</dt>
 <dd><p>passed to <code><a href="bin_calculate.html">bin_calculate</a></code>, determines size of depth bins over which data is averaged</p></dd>
+
+
 <dt>rev</dt>
 <dd><p>logical value,passed to <code><a href="bin_calculate.html">bin_calculate</a></code> if TRUE, binning will begin at bottom of each cast,
 this controls data loss due to uneven binning over depth. If bins begin at
 bottom, small amounts of data may be lost at the surface of each cast, if
 binning begins at surface (rev = FALSE), small amounts of data may be lost
 at bottom of each cast</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values</p>
+    
+
+<p>A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -100,7 +109,7 @@ For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume 
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

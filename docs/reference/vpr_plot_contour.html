@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -63,31 +63,46 @@
   dup <span class="op">=</span> <span class="st">"mean"</span>,
   method <span class="op">=</span> <span class="st">"interp"</span>,
   labels <span class="op">=</span> <span class="cn">TRUE</span>,
-  bw <span class="op">=</span> <span class="fl">1</span>
+  bw <span class="op">=</span> <span class="fl">1</span>,
+  <span class="va">cmo</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
-<dd><p>data frame needs to include avg_hr, depth, and variable of
+<dd><p>data frame needs to include time_hr, depth, and variable of
 choice (var)</p></dd>
+
+
 <dt>var</dt>
 <dd><p>variable in dataframe which will be interpolated and plotted</p></dd>
+
+
 <dt>dup</dt>
 <dd><p>if method == 'interp'. Method of handling duplicates in interpolation, passed to interp function (options: 'mean', 'strip', 'error')</p></dd>
+
+
 <dt>method</dt>
-<dd><p>Specifies interpolation method, options are 'akima', 'interp'
-or 'oce', akima and interp produce identical interpolations, oce uses
-slightly different method (oce is least error prone)</p></dd>
+<dd><p>Specifies interpolation method, options are 'interp' or
+'oce', oce uses slightly different method (oce is least error prone)</p></dd>
+
+
 <dt>labels</dt>
 <dd><p>logical value indicating whether or not to plot contour labels</p></dd>
+
+
 <dt>bw</dt>
 <dd><p>bin width defining interval at which contours are labelled</p></dd>
+
+
+<dt>cmo</dt>
+<dd><p>name of a <code>cmocean</code> plotting theme, see <code>?cmocean</code> for more information</p></dd>
+
 </dl></div>
     <div id="author">
     <h2>Author</h2>
-    <p>E. Chisholm</p>
+    <p>E. Chisholm &amp; Kevin Sorochan</p>
     </div>
 
   </div>
@@ -102,7 +117,7 @@ slightly different method (oce is least error prone)</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>
