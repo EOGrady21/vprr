@@ -334,7 +334,7 @@ is manually re-classified.
 
 The aid and aidmeas files are both text files which are
 specifically formatted to record classification outputs for further
-processing. The format and naming conventions of these files has been inherited from a VPR image classification and data processing tool called Visual Plankton (written in Matlab); however, the funcitonality of vprr is independent from that of Visual Plankton. The aid files are text records of image paths,
+processing. The format and naming conventions of these files has been inherited from a VPR image classification and data processing tool called Visual Plankton (written in Matlab); however, the functionality of vprr is independent from that of Visual Plankton. The aid files are text records of image paths,
 where each individual text file represents a classification category. Each line of
 the aid file is the full path to an image which was classified into the
 designated category. Note that the naming scheme of aid files does not
