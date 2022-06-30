@@ -57,13 +57,13 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_roi_concentration</span><span class="op">(</span>
-  <span class="va">data</span>,
-  <span class="va">taxas_list</span>,
-  <span class="va">station_of_interest</span>,
-  <span class="va">binSize</span>,
-  <span class="va">imageVolume</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_roi_concentration</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">taxas_list</span>,</span>
+<span>  <span class="va">station_of_interest</span>,</span>
+<span>  <span class="va">binSize</span>,</span>
+<span>  <span class="va">imageVolume</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -91,24 +91,24 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">'ctd_roi_merge'</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">time_hr</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">time_ms</span> <span class="op">/</span><span class="fl">3.6e+06</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">taxas_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Calanus'</span>, <span class="st">'krill'</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">binSize</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
-<span class="r-in"><span class="va">station_of_interest</span> <span class="op">&lt;-</span> <span class="st">'test'</span></span>
-<span class="r-in"><span class="va">imageVolume</span> <span class="op">&lt;-</span> <span class="fl">83663</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">taxa_conc_n</span> <span class="op">&lt;-</span> <span class="fu">vpr_roi_concentration</span><span class="op">(</span><span class="va">ctd_roi_merge</span>, <span class="va">taxas_list</span>,</span>
-<span class="r-in"><span class="va">station_of_interest</span>, <span class="va">binSize</span>, <span class="va">imageVolume</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">'ctd_roi_merge'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">time_hr</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">time_ms</span> <span class="op">/</span><span class="fl">3.6e+06</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">taxas_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Calanus'</span>, <span class="st">'krill'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">binSize</span> <span class="op">&lt;-</span> <span class="fl">5</span></span></span>
+<span class="r-in"><span><span class="va">station_of_interest</span> <span class="op">&lt;-</span> <span class="st">'test'</span></span></span>
+<span class="r-in"><span><span class="va">imageVolume</span> <span class="op">&lt;-</span> <span class="fl">83663</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">taxa_conc_n</span> <span class="op">&lt;-</span> <span class="fu">vpr_roi_concentration</span><span class="op">(</span><span class="va">ctd_roi_merge</span>, <span class="va">taxas_list</span>,</span></span>
+<span class="r-in"><span><span class="va">station_of_interest</span>, <span class="va">binSize</span>, <span class="va">imageVolume</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Removed bins at 7.5Removed bins at 12.5Removed bins at 17.5Removed bins at 22.5Removed bins at 27.5Removed bins at 32.5Removed bins at 37.5Removed bins at 42.5Removed bins at 47.5</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Removed bins at 10.5</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Cast descending_3 is too small to calculate information for bins of size 5</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Removed bins at 7.5Removed bins at 12.5Removed bins at 17.5Removed bins at 22.5Removed bins at 27.5Removed bins at 32.5Removed bins at 37.5Removed bins at 42.5Removed bins at 47.5</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Removed bins at 10.5</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Cast descending_3 is too small to calculate information for bins of size 5</span>
-<span class="r-in"></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -123,7 +123,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

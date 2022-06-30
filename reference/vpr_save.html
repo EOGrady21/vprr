@@ -57,7 +57,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_save</span><span class="op">(</span><span class="va">data</span>, <span class="va">metadata</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_save</span><span class="op">(</span><span class="va">data</span>, <span class="va">metadata</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -97,19 +97,19 @@ updated by providing the argument <code>metadata</code>.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"taxa_conc_n"</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'deploymentType'</span> <span class="op">=</span> <span class="st">'towyo'</span>, <span class="st">'waterDepth'</span> <span class="op">=</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">pressure</span><span class="op">)</span>, <span class="st">'serialNumber'</span> <span class="op">=</span> <span class="cn">NA</span>, <span class="st">'latitude'</span> <span class="op">=</span> <span class="fl">47</span>,</span>
-<span class="r-in"><span class="st">'longitude'</span> <span class="op">=</span> <span class="op">-</span><span class="fl">65</span>, <span class="st">'castDate'</span> <span class="op">=</span> <span class="st">'2019-08-11'</span>, <span class="st">'castStartTime'</span><span class="op">=</span> <span class="st">'00:00'</span>,</span>
-<span class="r-in"><span class="st">'castEndTime'</span> <span class="op">=</span> <span class="st">'01:00'</span>, <span class="st">'processedBy'</span> <span class="op">=</span> <span class="st">'E. Chisholm'</span>, <span class="st">'opticalSetting'</span> <span class="op">=</span></span>
-<span class="r-in"><span class="st">'S2'</span>, <span class="st">'imageVolume'</span> <span class="op">=</span> <span class="fl">83663</span>, <span class="st">'comment'</span> <span class="op">=</span> <span class="st">'test data'</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">oce_dat</span> <span class="op">&lt;-</span> <span class="fu">vpr_save</span><span class="op">(</span><span class="va">taxa_conc_n</span>, <span class="va">metadata</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"taxa_conc_n"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'deploymentType'</span> <span class="op">=</span> <span class="st">'towyo'</span>, <span class="st">'waterDepth'</span> <span class="op">=</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">$</span><span class="va">pressure</span><span class="op">)</span>, <span class="st">'serialNumber'</span> <span class="op">=</span> <span class="cn">NA</span>, <span class="st">'latitude'</span> <span class="op">=</span> <span class="fl">47</span>,</span></span>
+<span class="r-in"><span><span class="st">'longitude'</span> <span class="op">=</span> <span class="op">-</span><span class="fl">65</span>, <span class="st">'castDate'</span> <span class="op">=</span> <span class="st">'2019-08-11'</span>, <span class="st">'castStartTime'</span><span class="op">=</span> <span class="st">'00:00'</span>,</span></span>
+<span class="r-in"><span><span class="st">'castEndTime'</span> <span class="op">=</span> <span class="st">'01:00'</span>, <span class="st">'processedBy'</span> <span class="op">=</span> <span class="st">'E. Chisholm'</span>, <span class="st">'opticalSetting'</span> <span class="op">=</span></span></span>
+<span class="r-in"><span><span class="st">'S2'</span>, <span class="st">'imageVolume'</span> <span class="op">=</span> <span class="fl">83663</span>, <span class="st">'comment'</span> <span class="op">=</span> <span class="st">'test data'</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">oce_dat</span> <span class="op">&lt;-</span> <span class="fu">vpr_save</span><span class="op">(</span><span class="va">taxa_conc_n</span>, <span class="va">metadata</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Metadata parameter found in Data object!  max_cast_depth value of 60.1845368897147 moved to metadata slot. "</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Metadata parameter found in Data object!  taxa value of Calanus moved to metadata slot. "</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Metadata parameter found in Data object!  station value of test moved to metadata slot. "</span>
-<span class="r-in"><span class="co"># save(oce_dat, file = vpr_save.RData') # save data</span></span>
-<span class="r-in"></span>
+<span class="r-in"><span><span class="co"># save(oce_dat, file = vpr_save.RData') # save data</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -124,7 +124,7 @@ updated by providing the argument <code>metadata</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>
