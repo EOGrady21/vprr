@@ -244,25 +244,25 @@ on image copying are provided in Section 3.</p>
 <div class="section level3">
 <h3 id="section-2-3-manual-re-classification-optional">Section 2.3: Manual re-classification (optional):<a class="anchor" aria-label="anchor" href="#section-2-3-manual-re-classification-optional"></a>
 </h3>
-<p>Classifications from VP are manually checked, which allows for manual
-correction and addition of categories not previously used for
-classification in VP. ROIs that have been copied in Section 2.1 are
-manually sorted to correct for misclassifications made by automated
-classification. Updated aid and aidmeas files are produced. Further
-details on manual re-classification are provided in Section 4.</p>
+<p>Automated classifications from are manually checked, which allows for
+manual correction and addition of categories not previously used for
+automated classification. ROIs that have been copied in Section 2.1 are
+manually sorted to correct for misclassifications. Updated aid and
+aidmeas files are produced. Further details on manual re-classification
+are provided in Section 4.</p>
 </div>
 <div class="section level3">
 <h3 id="section-2-4-processing">Section 2.4: Processing:<a class="anchor" aria-label="anchor" href="#section-2-4-processing"></a>
 </h3>
-<p>Joining data outputs from Autodeck (ctd .dat files) and automatic
-classifications (aid files) and measurements (aidmeas files). The aid
-and aidmeas files, which may have been updated (see Section 2.3) are
-joined with CTD text files by the 8 digit time stamp. The data are then
-averaged in user-defined vertical bins to produce a time series of
-plankton concentrations and environmental variables. Quality controlled
-data products (before and after binning) are then exported in simple
-formats (csv, RData, oce) for plotting and analysis. Further details on
-data processing are provided in Section 5.</p>
+<p>Data outputs from Autodeck (ctd .dat files), automatic
+classifications (aid files) and measurements (aidmeas files) are joined
+together. The aid and aidmeas files, which may have been updated (see
+Section 2.3) are joined with CTD text files by the 8 digit time stamp.
+The data are then averaged in user-defined vertical bins to produce a
+time series of plankton concentrations and environmental variables.
+Quality controlled data products (before and after binning) are then
+exported in simple formats (csv, RData, oce) for plotting and analysis.
+Further details on data processing are provided in Section 5.</p>
 </div>
 </div>
 <div class="section level2">
@@ -314,11 +314,12 @@ variables<a class="anchor" aria-label="anchor" href="#section-4-1-preparing-the-
 <li>Load the processing environment, which includes the
 <code>auto_id_folder</code> variable.</li>
 <li>Set day and hour of interest.</li>
-<li>Set category of interest. These categories are the existing VP
-classification categories which require manual re-classification, as
-well as any new categories. The <code><a href="../reference/vpr_category_create.html">vprr::vpr_category_create()</a></code>
-function sets up the folder structure for any new categories which have
-been added to the list of interest.</li>
+<li>Set category of interest. These categories are the existing
+automated classification categories which require manual
+re-classification, as well as any new categories. The
+<code><a href="../reference/vpr_category_create.html">vprr::vpr_category_create()</a></code> function sets up the folder
+structure for any new categories which have been added to the list of
+interest.</li>
 <li>Run manual re-classification with
 <code><a href="../reference/vpr_manual_classification.html">vprr::vpr_manual_classification()</a></code>. This function has a few
 optional arguments to customize the manual re-classification experience,
@@ -331,7 +332,7 @@ user to see the outline of the organism better, any thin appendages
 become more clear and gelatinous organisms like chaetognaths or
 ctenophores are easier to distinguish.</li>
 </ul>
-<pre><code><span class="co">#### MANUAL RE-CLASSIFICATION</span>
+<!-- --><pre><code><span class="co">#### MANUAL RE-CLASSIFICATION</span>
     <span class="co"># -------------------------------------</span>
 
     <span class="co"># Once classified images are sorted by taxa</span>
@@ -400,24 +401,22 @@ after each hour of data is manually re-classified.</p>
 <span class="fu"><a href="../reference/vpr_autoid_create.html">vpr_autoid_create</a></span><span class="op">(</span><span class="va">reclassify</span>, <span class="va">misclassified</span>, <span class="va">auto_id_folder</span><span class="op">)</span></code></pre>
 <p>The aid and aidmeas files are both text files which are specifically
 formatted to record classification outputs for further processing. The
-format was originally used by Visual Plankton (VP) but can be used
-independently of VP. The aid files are text records of image paths,
-where each individual text file represents a classification category.
-Each line of the aid file is the full path to an image which was
-classified into the designated category. Note that the traditional
-naming scheme of aid files does not include the category name in the
-file title and the category is only identifiable by the folder in which
-it is located. For example the ‘krill’ classification aid file might be
-named ‘oct10_1svmaid.d224.h01’ but be located within the ‘krill’ autoid
+format and naming conventions of these files has been inherited from a
+VPR image classification and data processing tool called Visual Plankton
+(written in Matlab); however, the functionality of vprr is independent
+from that of Visual Plankton. The aid files are text records of image
+paths, where each individual text file represents a classification
+category. Each line of the aid file is the full path to an image which
+was classified into the designated category. Note that the naming scheme
+of aid files does not include the category name in the file title and
+the category is only identifiable by the folder in which it is located.
+For example the ‘krill’ classification aid file might be named
+‘oct10_1svmaid.d224.h01’ but be located within the ‘krill’ autoid
 folder. The aidmeas files are also text files which represent a variety
-of different measurements taken of the object(s) within a ROI image.
-These measurements are taken within VP during processing of the images.
-Please see VP documentation for details. The columns of the aidmeas
-files are
-c(‘Perimeter’,‘Area’,‘width1’,‘width2’,‘width3’,‘short_axis_length’,‘long_axis_length’).
-Note that these measurements are in pixels and should be converted to
-distance measurements using the specific VPR setting (S0, S1, S2, etc).
-Examples of each of these files can be found below.</p>
+of different measurements taken of the object(s) within a ROI image. The
+columns of the aidmeas files are
+c(‘Perimeter’,‘Area’,‘width1’,‘width2’,‘width3’,‘short_axis_length’,‘long_axis_length’).Examples
+of each of these files can be found below.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">aid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04"</span>, package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
@@ -458,10 +457,7 @@ The automated check function removes any empty aid files created. Empty
 files can cause errors in processing down the line. This function also
 checks that (1) aid and aidmeas files are aligned within an hour of
 data; (2) aid and aidmeas files include the same number of ROIs; and (3)
-the VPR tow number for all files is the same. If using the automated
-check function please be cautious, and read the documentation before
-implementing to be sure you understand the consequences of the check and
-how it will delete files.</p>
+the VPR tow number for all files is the same.</p>
 <pre><code><span class="co">#### FILE CHECK</span>
 <span class="co"># --------------------------------</span>
 
@@ -624,7 +620,9 @@ added using the function <code>vpr_ctd_ymd</code>.</p>
   <span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">remove</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">)</span></code></pre>
 <p>Average plankton concentration and environmental variables (e.g.,
 temperature, salinity, density, etc.) are then computed within a user
-defined depth bin. The bin-averaging step standardizes plankton
+defined depth bin. The computation of plankton concentration is
+dependent on the assumption that the same animals are not re-sampled by
+the instrument. The bin-averaging step standardizes plankton
 concentrations when the VPR does not sample the water column evenly.
 This can occur due to characteristics of the deployment or variability
 in the sampling rate, which is not necessarily constant in older
@@ -1014,7 +1012,7 @@ of R</p>
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Emily O’Grady, Kevin Sorochan Dev, Catherine Johnson Contributer.</p>
+<p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
