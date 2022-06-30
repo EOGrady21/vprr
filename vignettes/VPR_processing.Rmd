@@ -27,17 +27,18 @@ library(vprr)
 
 This document was produced at Bedford Institute of Oceanography (BIO) to
 accompany the vprr package, a processing and visualization package for
-data obtained from the Digital Auto Video Plankton Recorder (VPR) produced by SeaScan
-Inc. The VPR consists of a CPU, CTD, and camera system with different
-optical settings (i.e., magnifications). It captures underwater images
-and records their corresponding salinity, temperature, and depth. The
-vprr package functions to join environmental and plankton data derived
-from the CTD and camera, respectively, and calculate plankton
-concentration and averaged environmental variables along the path of the
-VPR. The package does not include automated image classification; however, 
-there is an optional manual classification module, which can be used to review 
-and correct outputs from automated image classification while providing a record 
-of any (re)classifications.
+data obtained from the Digital Auto Video Plankton Recorder (VPR)
+produced by SeaScan Inc. The VPR consists of a CPU, CTD, and camera
+system with different optical settings (i.e., magnifications). It
+captures underwater images and records their corresponding salinity,
+temperature, and depth. The vprr package functions to join environmental
+and plankton data derived from the CTD and camera, respectively, and
+calculate plankton concentration and averaged environmental variables
+along the path of the VPR. The package does not include automated image
+classification; however, there is an optional manual classification
+module, which can be used to review and correct outputs from automated
+image classification while providing a record of any
+(re)classifications.
 
 The VPR outputs two raw files (.dat and .idx) for a given time period in
 a deployment. These files are processed together in a software provided
@@ -49,19 +50,18 @@ milliseconds elapsed in the day at the time the image was captured. The
 last two digits correspond to the ROI identifier (01-99). The ROIs and
 corresponding CTD data are linked by their 8 digit time stamp. After the
 ROIs have been extracted from the raw files they may be sorted into
-categories manually or by an automated classification procedure. In vprr, 
-file naming conventions and directory structures are inherited from a VPR 
-image classification and analysis software, Visual Plankton. However, 
-the functionality of vprr is not dependent on the use of VP. 
+categories manually or by an automated classification procedure. In
+vprr, file naming conventions and directory structures are inherited
+from a VPR image classification and analysis software, Visual Plankton.
+However, the functionality of vprr is not dependent on the use of VP.
 
-
-The data inputs for processing in vprr consist of the following file types:
-aid (.txt), aidmeas (.txt), and CTD (.dat). The aid and aidmeas files are 
-derived from separate image classification and measurement steps outside 
-of vprr.  Each "aid" (i.e., autoid) file contains
-file paths to individual ROIs that have been classified to the category
-of interest. The corresponding "aidmeas" file contains morphological
-data for the ROIs (e.g., long axis length, perimeter, etc.). 
+The data inputs for processing in vprr consist of the following file
+types: aid (.txt), aidmeas (.txt), and CTD (.dat). The aid and aidmeas
+files are derived from separate image classification and measurement
+steps outside of vprr. Each "aid" (i.e., autoid) file contains file
+paths to individual ROIs that have been classified to the category of
+interest. The corresponding "aidmeas" file contains morphological data
+for the ROIs (e.g., long axis length, perimeter, etc.).
 
 ![Figure 1. VPR data processing flow chart. Blue boxes represent
 software, green and yellow boxes represent data sets, where yellow is
@@ -70,31 +70,33 @@ processes within 'Processing and Visualization (R).](vp_flowchart.PNG)
 
 # Section 2: Summary of vprr data processing steps
 
-The processing steps in R from the 'Post Processing
-and Visualization box in Figure 1 are detailed in Figure 2. 
+The processing steps in R from the 'Post Processing and Visualization
+box in Figure 1 are detailed in Figure 2.
 
-![Figure 2. Processing steps in R using vprr. Blue boxes represent each section of processing, 
-green ovals represent sub steps or routines within each step.](r_flowchart.png)
+![Figure 2. Processing steps in R using vprr. Blue boxes represent each
+section of processing, green ovals represent sub steps or routines
+within each step.](r_flowchart.png)
 
 ## Section 2.1: Processing Environment
 
-Before beginning data processing with vprr, it is recommended
-that a processing environment be created containing commonly used variables and
-file paths. The simplest and most reproducible way to achieve this is to write
-an R script where all the mission and system specific variables are contained,
-then save the environment as a RData file to be loaded at the start of
-any processing scripts. This processing environment contains reference to a
-station identifier csv file which should be created for each mission. This file
-links station names from deck sheets to the day and hour values assigned by
-AutoDeck. Day and hour values represent the Julian day (3 digit)
-and two digit hour (24 hour clock) when sampling was done. Note that the day and
-hour values will be in the time zone of the computer used to run AutoDeck.
-Ensure that this matches the time zone of the VPR CPU at the time of data
-collection to avoid a time offset between data sources.
+Before beginning data processing with vprr, it is recommended that a
+processing environment be created containing commonly used variables and
+file paths. The simplest and most reproducible way to achieve this is to
+write an R script where all the mission and system specific variables
+are contained, then save the environment as a RData file to be loaded at
+the start of any processing scripts. This processing environment
+contains reference to a station identifier csv file which should be
+created for each mission. This file links station names from deck sheets
+to the day and hour values assigned by AutoDeck. Day and hour values
+represent the Julian day (3 digit) and two digit hour (24 hour clock)
+when sampling was done. Note that the day and hour values will be in the
+time zone of the computer used to run AutoDeck. Ensure that this matches
+the time zone of the VPR CPU at the time of data collection to avoid a
+time offset between data sources.
 
-Another important part of setting up the processing environment
-is ensuring the proper directory structure is in place, see Appendix 1
-for details on the required directory structure.
+Another important part of setting up the processing environment is
+ensuring the proper directory structure is in place, see Appendix 1 for
+details on the required directory structure.
 
     # set VPR processing environment
 
@@ -170,12 +172,13 @@ folder names.
 
 ROIs are organized into folders corresponding to their assigned
 classification categories from automated image classification. The
-information in each aid file is used to create a folder of images that have been classified to
-that category. This step is only required if manual re-classification (see
-Section 2.2) is intended. Further details on image copying are provided in
-Section 3.
+information in each aid file is used to create a folder of images that
+have been classified to that category. This step is only required if
+manual re-classification (see Section 2.2) is intended. Further details
+on image copying are provided in Section 3.
 
 ## Section 2.3: Manual re-classification (optional):
+
 
 Automated classifications from are manually checked, which allows for
 manual correction and addition of categories not previously used for
@@ -194,18 +197,19 @@ variables. Quality controlled data products (before and after binning)
 are then exported in simple formats (csv, RData, oce) for plotting and
 analysis. Further details on data processing are provided in Section 5.
 
+
 # Section 3: Image Copying
 
 In this step, ROIs are copied to folders that are organized based on the
 day and hour of data collection and classification category assigned
-from automatic classification (see Appendix 1: 'Image Folders'). The images are organized by
-AutoDeck into day and hour; however, reorganizing them based on
-classification allows easier human interaction with the data and visual
-inspection of classifications. Moreover, this directory structure
-is used by the next step of processing (i.e., manual re-classification).
-To implement this step use the function `vprr::vpr_autoid_copy()`
-For more information on input variables, please see documentation for
-`vpr_autoid_copy()`
+from automatic classification (see Appendix 1: 'Image Folders'). The
+images are organized by AutoDeck into day and hour; however,
+reorganizing them based on classification allows easier human
+interaction with the data and visual inspection of classifications.
+Moreover, this directory structure is used by the next step of
+processing (i.e., manual re-classification). To implement this step use
+the function `vprr::vpr_autoid_copy()` For more information on input
+variables, please see documentation for `vpr_autoid_copy()`
 
     # create variables
     # ---------------------
@@ -226,12 +230,13 @@ For more information on input variables, please see documentation for
 Manual re-classification of some categories after automated
 classification may be required to achieve identification accuracy
 standards. In this step, ROIs are displayed on the screen one at a time
-for manual verification. If an image has been misclassified or if it falls
-into a new user-defined category (described below), the image can be re-classified.
- This is especially useful for classification of rare categories that
-were not defined prior to automatic classification. After completing manual re-classification 
-for a day-hour set, new aid and aidmeas files are created for new categories, which are
-identical in format to original aid and aidmeas files.
+for manual verification. If an image has been misclassified or if it
+falls into a new user-defined category (described below), the image can
+be re-classified. This is especially useful for classification of rare
+categories that were not defined prior to automatic classification.
+After completing manual re-classification for a day-hour set, new aid
+and aidmeas files are created for new categories, which are identical in
+format to original aid and aidmeas files.
 
 ## Section 4.1: Preparing the environment by setting some variables
 
@@ -255,61 +260,64 @@ identical in format to original aid and aidmeas files.
     appendages become more clear and gelatinous organisms like
     chaetognaths or ctenophores are easier to distinguish.
 
+```{=html}
+<!-- -->
 ```
-    #### MANUAL RE-CLASSIFICATION
-    # -------------------------------------
+        #### MANUAL RE-CLASSIFICATION
+        # -------------------------------------
 
-    # Once classified images are sorted by taxa
-    # verify classification accuracy by manually 
-    # looking through classified images
+        # Once classified images are sorted by taxa
+        # verify classification accuracy by manually 
+        # looking through classified images
 
-    #### USER INPUT REQUIRED ####     
+        #### USER INPUT REQUIRED ####     
 
-    load('COR2019002_env.RData')
+        load('COR2019002_env.RData')
 
-    day <- '235' 
-    hr <- '19' # keep leading zeros, must be two characters
-
-
-    category_of_interest <-
-      c(
-        'krill',
-        'Calanus',
-        'chaetognaths',
-        'ctenophores',
-        'Other',
-        'larval_fish',
-        'marine_snow',
-        'small_copepod',
-        'other_copepods',
-        'larval_crab',
-        'amphipod',
-        'Metridia',
-        'Paraeuchaeta',
-        'cnidarians',
-        'speciesA', # new category
-      )
+        day <- '235' 
+        hr <- '19' # keep leading zeros, must be two characters
 
 
-    # add new category (optional)
+        category_of_interest <-
+          c(
+            'krill',
+            'Calanus',
+            'chaetognaths',
+            'ctenophores',
+            'Other',
+            'larval_fish',
+            'marine_snow',
+            'small_copepod',
+            'other_copepods',
+            'larval_crab',
+            'amphipod',
+            'Metridia',
+            'Paraeuchaeta',
+            'cnidarians',
+            'speciesA', # new category
+          )
 
-    vpr_category_create(taxa = category_of_interest, auto_id_folder)
-    # ensures there is proper folder structure for all categories of interest
 
-    # reclassify images
-    vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
-              taxa_of_interest = category_of_interest, scale = 'x300',
-              opticalSetting = 'S3')
-```
+        # add new category (optional)
+
+        vpr_category_create(taxa = category_of_interest, auto_id_folder)
+        # ensures there is proper folder structure for all categories of interest
+
+        # reclassify images
+        vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
+                  taxa_of_interest = category_of_interest, scale = 'x300',
+                  opticalSetting = 'S3')
 
 ## Section 4.2: Generate new aid and aidmeas files
 
-The function`vprr::vpr_manual_classification()` produces
-two files ('misclassified' and 're-classified' text files) as a record
-of manual re-classification, which are found in the R project working
-directory in folders named by the day and hour that the data were collected. The function`vprr::vpr_autoid_create()`takes
-these files and outputs new aid and aidmeas files in the R working
-directory in folders named by classification category. This step should be run after each hour of data is manually re-classified.
+The function`vprr::vpr_manual_classification()` produces two files
+('misclassified' and 're-classified' text files) as a record of manual
+re-classification, which are found in the R project working directory in
+folders named by the day and hour that the data were collected. The
+function`vprr::vpr_autoid_create()`takes these files and outputs new aid
+and aidmeas files in the R working directory in folders named by
+classification category. This step should be run after each hour of data
+is manually re-classified.
 
     #### REORGANIZE ROI AND ROIMEAS DATA
     # -----------------------------------------
@@ -322,6 +330,7 @@ directory in folders named by classification category. This step should be run a
 
     # MOVE ROIS THAT WERE MISCLASSIFIED INTO CORRECT FILES & REMOVE MISCLASSIFIED ROIS
     vpr_autoid_create(reclassify, misclassified, auto_id_folder)
+
 
 The aid and aidmeas files are both text files which are
 specifically formatted to record classification outputs for further
@@ -337,6 +346,7 @@ variety of different measurements taken of the object(s) within a ROI image. The
 c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length').Examples
 of each of these files can be found below.
 
+
 ```{r, eval =  TRUE}
 
 aid <- read.table(file = system.file("extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04", package = 'vprr', mustWork = TRUE))
@@ -348,10 +358,23 @@ aidmeas <- readLines(system.file("extdata/COR2019002/autoid/bad_image_blurry/aid
 head(aidmeas)
 ```
 
-
 ## Section 4.3: File check
 
-The last step of manual re-classification includes some manual file organization and final checks. These files should be manually reorganized in a new directory which will become the new auto_id_folder (see Appendix 1: Directory Structure). Any aid and aidmeas files from categories which were not manually checked and re-classified should also be added to this new auto_id_folder if they are to be included in further processing (e.g., computation of concentration in user-specified depth bins). After the updated aid and aidmeas files have been manually reorganized they can be quality controlled using vprr::vpr_autoid_check(). The user could also manually check the files. The automated check function removes any empty aid files created.  Empty files can cause errors in processing down the line. This function also checks that (1) aid and aidmeas files are aligned within an hour of data; (2) aid and aidmeas files include the same number of ROIs; and (3) the VPR tow number for all files is the same.
+
+The last step of manual re-classification includes some manual file 
+organization and final checks. These files should be manually reorganized
+in a new directory which will become the new auto_id_folder (see Appendix 1:
+Directory Structure). Any aid and aidmeas files from categories which were 
+not manually checked and re-classified should also be added to this new auto_id_folder
+if they are to be included in further processing (e.g., computation of concentration
+in user-specified depth bins). After the updated aid and aidmeas files have been
+manually reorganized they can be quality controlled using vprr::vpr_autoid_check().
+The user could also manually check the files. The automated check function removes
+any empty aid files created.  Empty files can cause errors in processing down the line.
+This function also checks that (1) aid and aidmeas files are aligned within an hour of data;
+(2) aid and aidmeas files include the same number of ROIs; and (3) the
+VPR tow number for all files is the same.
+
 
     #### FILE CHECK
     # --------------------------------
@@ -364,9 +387,15 @@ The last step of manual re-classification includes some manual file organization
 
 # Section 5: Data Processing
 
-This is the main chunk of coding required to generate data products. This step does not require image copying (Section 3) or manual re-classification (Section 4) steps; however, if these steps were taken the aid and aidmeas files generated from manual re-classification and integrated into the directory structure (as specified in Section 4) are used as an input. The following is a walk-through of processing data from a DFO field mission (i.e. mission COR2019002) in the southern Gulf of St. Lawrence in 2019.
-First, all libraries should be loaded and the processing environment, described in Section 2.4 should be loaded.
-
+This is the main chunk of coding required to generate data products.
+This step does not require image copying (Section 3) or manual
+re-classification (Section 4) steps; however, if these steps were taken
+the aid and aidmeas files generated from manual re-classification and
+integrated into the directory structure (as specified in Section 4) are
+used as an input. The following is a walk-through of processing data
+from a DFO field mission (i.e. mission COR2019002) in the southern Gulf
+of St. Lawrence in 2019. First, all libraries should be loaded and the
+processing environment, described in Section 2.4 should be loaded.
 
     ##### PROCESSING  --------------------------------------------------------------------------------------------------------------------
     library(vprr)
@@ -410,9 +439,10 @@ processing environment (Section 2.4).
 
 CTD data are loaded in using `vprr::vpr_ctd_files` to find files and
 `vprr::vpr_ctd_read` to read in files. During CTD data read in, a
- seawater density variable `sigmaT` is derived using the
-function `oce::swSigmaT`, and `depth` (in meters) is derived from
-pressure using the function `oce::swDepth`. For more information on the oce package, see dankelley/oce on GitHub.
+seawater density variable `sigmaT` is derived using the function
+`oce::swSigmaT`, and `depth` (in meters) is derived from pressure using
+the function `oce::swDepth`. For more information on the oce package,
+see dankelley/oce on GitHub.
 
       #get day and hour info from station names list
       dayhour <- vpr_dayhour(station_of_interest, file = station_names_file)
@@ -432,7 +462,8 @@ pressure using the function `oce::swDepth`. For more information on the oce pack
       cat('\n')
       
 
-The aid and aidmea files, which reflect manual classification (if used, see Section 4), are then found
+The aid and aidmea files, which reflect manual classification (if used,
+see Section 4), are then found
 
       ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
       
@@ -486,7 +517,9 @@ aid and aidmeas files are read in using `vprr::vpr_autoid_read()`.
       cat('ROI and measurement data read in complete! \n')
       cat('\n')
 
-Next, CTD and aid data are merged to create a data frame describing both environmental variables (eg. temperature, salinity) and classified images. The function used is `vprr::vpr_ctdroi_merge()`.
+Next, CTD and aid data are merged to create a data frame describing both
+environmental variables (eg. temperature, salinity) and classified
+images. The function used is `vprr::vpr_ctdroi_merge()`.
 
       ##### MERGE CTD AND ROI DATA ---------------------------------------------------------------------------------------------------------------------
       ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
@@ -494,7 +527,10 @@ Next, CTD and aid data are merged to create a data frame describing both environ
       cat('CTD and ROI data combined! \n')
       cat('\n')
 
-Before final export of data products, the following variables are added to the data frame: time in hours (time_hr) is calculated, and a time stamp (ymdhms) with POSIXct signature in Y-M-D h:m:s format is added using the function `vpr_ctd_ymd`.
+Before final export of data products, the following variables are added
+to the data frame: time in hours (time_hr) is calculated, and a time
+stamp (ymdhms) with POSIXct signature in Y-M-D h:m:s format is added
+using the function `vpr_ctd_ymd`.
 
       ##### CALCULATED VARS ----------------------------------------------------------------------------------------------------------------------------
       
@@ -514,7 +550,20 @@ Before final export of data products, the following variables are added to the d
       # clean environment
       remove(ctd_roi_merge)
 
-Average plankton concentration and environmental variables (e.g., temperature, salinity, density, etc.) are then computed within a user defined depth bin. The computation of plankton concentration is dependent on the assumption that the same animals are not re-sampled by the instrument. The bin-averaging step standardizes plankton concentrations when the VPR does not sample the water column evenly. This can occur due to characteristics of the deployment or variability in the sampling rate, which is not necessarily constant in older versions of the VPR. Binning also reduces noise in the data. First, an oce CTD object is created using `vprr::vpr_oce_create()`. Then, bin-averaging is done using `vprr::bin_cast()`. Concentrations are calculated for each category of interest.
+
+Average plankton concentration and environmental variables (e.g.,
+temperature, salinity, density, etc.) are then computed within a user
+defined depth bin. The computation of plankton concentration is dependent
+on the assumption that the same animals are not re-sampled by the
+instrument. The bin-averaging step standardizes plankton concentrations
+when the VPR does not sample the water column evenly. This can occur 
+due to characteristics of the deployment or variability in the sampling
+rate, which is not necessarily constant in older versions of the VPR. 
+Binning also reduces noise in the data. First, an oce CTD object is 
+created using `vprr::vpr_oce_create()`. Then, bin-averaging is done 
+using `vprr::bin_cast()`. Concentrations are calculated for each 
+category of interest.
+
 
       ##### BIN DATA AND DERIVE CONCENTRATION ----------------------------------------------------------------------------------------------------------
       
@@ -753,7 +802,7 @@ R. The directory structure required is described below
                 -   taxa
                     -   aid
                     -   aidmea
-                    -   image folders 
+                    -   image folders
 
             -   rois
 
@@ -766,34 +815,36 @@ R. The directory structure required is described below
                 -   vprtow#
                     -   day
                         -   hour
-                        
 
-This is your project directory, where your R scripts and work products will be stored:
+This is your project directory, where your R scripts and work products
+will be stored:
 
--   …
-      -   VPR_PROJECT
-      
-      -   R 
-      
-          -   R scripts/ workflows
-        
-      -   new_autoid
-      
-          -   taxa
-        
-             -   aid
-             -   aidmea
-          
-      -   manual_reclassification_record
-      
-          -   day/hour
-        
-            -   misclassified
-            -   reclassified
-          
-      -   figures
-        
-      -   station names (csv)
+-   ...
+    -   VPR_PROJECT
+
+    -   R
+
+        -   R scripts/ workflows
+
+    -   new_autoid
+
+        -   taxa
+
+        -   aid
+
+        -   aidmea
+
+    -   manual_reclassification_record
+
+        -   day/hour
+
+        -   misclassified
+
+        -   reclassified
+
+    -   figures
+
+    -   station names (csv)
 
 # Appendix 2: Glossary
 
@@ -833,7 +884,12 @@ digits)
 **Hour** - Two digit hour (24 hour clock) describing time at which VPR
 data was collected
 
-**Image volume** - The measured volume of water captured within a VPR image. Calculated based on optical setting and VPR standards. This is based on AutoDeck settings, it is calculated from the VPR calibration file (unique to each instrument). It will change based on AutoDeck settings and should be updated with each cruise/ processing batch. It is measured in cubic mm
+**Image volume** - The measured volume of water captured within a VPR
+image. Calculated based on optical setting and VPR standards. This is
+based on AutoDeck settings, it is calculated from the VPR calibration
+file (unique to each instrument). It will change based on AutoDeck
+settings and should be updated with each cruise/ processing batch. It is
+measured in cubic mm
 
 **Optical Setting** - A VPR setting controlling image magnification and
 field of view, which can be S0, S1, S2 or S3, where S0 has the greatest
