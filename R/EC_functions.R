@@ -836,6 +836,9 @@ if( export == 'aidmeas'){
     data_tmp$taxa <- unlist(unique(vpr_category(file_list_aid[i])[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
+    if(length(day) >1 | length(hour) >1){
+      stop('Problem detecting day/hour values!')
+    }
     data_tmp$day_hour <- paste(day, hour, sep = ".")
     dat[[i]]<- data_tmp
 
@@ -1918,7 +1921,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         mtry <- try(read.table(sizefile, sep = ",", header = TRUE),
                     silent = TRUE)
 
-        if (class(mtry) != "try-error") {
+        if (inherits(mtry, what = 'try-error')) {
           # print('try error == FALSE')
           #Get info
           roi_ID <- read.table(roifile, stringsAsFactors = FALSE)

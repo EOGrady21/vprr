@@ -24,7 +24,6 @@ Imports: ggplot2,
     metR,
     gridExtra,
     lubridate,
-    usethis,
     cmocean,
     withr
 Suggests: 
