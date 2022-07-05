@@ -15,7 +15,12 @@ checking installed package size ... NOTE
       
        * The external data in this package has been cut down to a bare minimum but due to the nature of the data being processed by this package (images and video), the data is inherantly large and difficult to reduce any further
 
+New maintainer:
+  Emily O'Grady <vprrcontact@gmail.com>
+Old maintainer(s):
+  Emily Chisholm <vprrcontact@gmail.com>
     
+    * The maintainer has not changed but I have changed my last name
 
 23/10/2020
 Notes from third submission:
