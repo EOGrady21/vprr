@@ -30,7 +30,8 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
-    markdown
+    markdown,
+    usethis
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
