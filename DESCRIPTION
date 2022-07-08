@@ -25,13 +25,13 @@ Imports: ggplot2,
     gridExtra,
     lubridate,
     cmocean,
-    withr
+    withr,
+    usethis
 Suggests: 
     knitr,
     rmarkdown,
     testthat,
-    markdown,
-    usethis
+    markdown
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
