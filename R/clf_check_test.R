@@ -148,7 +148,7 @@ vpr_manual_classification <-
           }
           if (opticalSetting == 'S3') {
             # px to mm conversion factor
-            frame_mm <- 48
+            frame_mm <- 42 # correct conversion factor (7/11/2022)
             mm_px <-
               frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
             pxtomm <- 1 / mm_px
