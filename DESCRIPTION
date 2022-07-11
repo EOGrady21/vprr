@@ -1,7 +1,7 @@
 Package: vprr
 Type: Package
 Title: Processing and Visualization of Video Plankton Recorder Data
-Version: 0.2.2
+Version: 0.2.3
 Authors@R: c(person("Emily O'Grady",  role = c("aut", "cre","cph"), email = "vprrcontact@gmail.com"), person("Kevin Sorochan", role = "aut", "dev"), person("Catherine Johnson", role = "aut"))
 Maintainer: Emily O'Grady <vprrcontact@gmail.com>
 Description: An oceanographic data processing package for analyzing and visualizing Video 
