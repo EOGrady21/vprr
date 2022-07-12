@@ -2,6 +2,16 @@
 title: "cran-comments"
 output: html_document
 ---
+7/12/2022
+Submission comments (0.2.3)
+  Please write the LICENSE in the way that is ONY contains the two   lines Starting
+  YEAR:
+  COPYRIGHT HOLDER:
+      
+      * fixed
+  
+
+
 6/8/2022
 
 Package Update (0.2.0)
