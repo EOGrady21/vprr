@@ -62,7 +62,7 @@ vpr_manual_classification <-
         c('Yes', 'No'),
         graphics = FALSE,
         title = paste(
-          'WARNING!!! ALL EXISITING FILES IN', day_hour,
+          'WARNING!!! ALL EXISTING FILES IN', day_hour,
           'ARE ABOUT TO BE DELETED. DO YOU WISH TO PROCEED?'
         )
       )
