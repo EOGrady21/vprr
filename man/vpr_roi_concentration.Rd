@@ -6,7 +6,7 @@
 \usage{
 vpr_roi_concentration(
   data,
-  taxas_list,
+  category_list,
   station_of_interest,
   binSize,
   imageVolume
@@ -15,7 +15,7 @@ vpr_roi_concentration(
 \arguments{
 \item{data}{a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}}
 
-\item{taxas_list}{a list of character strings representing taxa present in the station being processed}
+\item{category_list}{a list of character strings representing taxa present in the station being processed}
 
 \item{station_of_interest}{The station being processed}
 
@@ -31,12 +31,12 @@ Calculates concentrations for each named taxa in dataframe
 data('ctd_roi_merge')
 ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 
-taxas_list <- c('Calanus', 'krill')
+category_list <- c('Calanus', 'krill')
 binSize <- 5
 station_of_interest <- 'test'
 imageVolume <- 83663
 
-taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
+taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
 station_of_interest, binSize, imageVolume)
 
 }

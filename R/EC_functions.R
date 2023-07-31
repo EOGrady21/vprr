@@ -400,7 +400,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' Calculates concentrations for each named taxa in dataframe
 #'
 #' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
-#' @param taxas_list a list of character strings representing taxa present in the station being processed
+#' @param category_list a list of character strings representing taxa present in the station being processed
 #' @param station_of_interest The station being processed
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
@@ -410,24 +410,24 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' data('ctd_roi_merge')
 #' ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
-#' taxas_list <- c('Calanus', 'krill')
+#' category_list <- c('Calanus', 'krill')
 #' binSize <- 5
 #' station_of_interest <- 'test'
 #' imageVolume <- 83663
 #'
-#' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, taxas_list,
+#' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
 #' station_of_interest, binSize, imageVolume)
 #'
 #'@export
 #'
 #'
-vpr_roi_concentration <- function(data, taxas_list, station_of_interest, binSize, imageVolume){
+vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume){
 
   # avoid CRAN notes
   . <- NA
   # check that taxa exist for this station
 
-  taxa_in_data <- names(data) %in% taxas_list
+  taxa_in_data <- names(data) %in% category_list
 
   valid_taxa <- names(data)[taxa_in_data == TRUE]
 

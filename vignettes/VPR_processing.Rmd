@@ -573,10 +573,10 @@ category of interest.
       vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
       
       # get list of valid taxa
-      taxas_list <- unique(roimeas_dat_combine$taxa)
+      category_list <- unique(roimeas_dat_combine$taxa)
       
       # bin and calculate concentrations for each category
-      taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)  
+      taxa_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)  
 
       cat('Station', station_of_interest, 'processing complete! \n')
       cat('\n')
