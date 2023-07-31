@@ -2,18 +2,18 @@
 % Please edit documentation in R/clf_check_test.R
 \name{vpr_category_create}
 \alias{vpr_category_create}
-\title{Create a new taxa to be considered for classification after processing with VP}
+\title{Create a new category to be considered for classification after processing with VP}
 \usage{
-vpr_category_create(taxa, basepath)
+vpr_category_create(category, basepath)
 }
 \arguments{
-\item{taxa}{new taxa name to be added (can be a list of multiple taxa names)}
+\item{category}{new category name to be added (can be a list of multiple category names)}
 
 \item{basepath}{basepath used for vpr_manual_classification}
 }
 \value{
-empty directory structure using new taxa name inside basepath
+empty directory structure using new category name inside basepath
 }
 \description{
-creates empty directory structure to allow consideration of new taxa during vpr_manual_classification()
+creates empty directory structure to allow consideration of new category during vpr_manual_classification()
 }

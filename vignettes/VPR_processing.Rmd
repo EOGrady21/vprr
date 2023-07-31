@@ -266,7 +266,7 @@ format to original aid and aidmeas files.
         #### MANUAL RE-CLASSIFICATION
         # -------------------------------------
 
-        # Once classified images are sorted by taxa
+        # Once classified images are sorted by category
         # verify classification accuracy by manually 
         # looking through classified images
 
@@ -300,12 +300,12 @@ format to original aid and aidmeas files.
 
         # add new category (optional)
 
-        vpr_category_create(taxa = category_of_interest, auto_id_folder)
+        vpr_category_create(category = category_of_interest, auto_id_folder)
         # ensures there is proper folder structure for all categories of interest
 
         # reclassify images
         vpr_manual_classification(day = day, hour= hr, basepath = auto_id_folder,gr = FALSE, 
-                  taxa_of_interest = category_of_interest, scale = 'x300',
+                  category_of_interest = category_of_interest, scale = 'x300',
                   opticalSetting = 'S3')
 
 ## Section 4.2: Generate new aid and aidmeas files
@@ -467,9 +467,9 @@ see Section 4), are then found
 
       ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
       
-      # Path to aid for each taxa                               
+      # Path to aid for each category                               
       aid_path <- paste0(auto_id_path, '/aid/')              
-      # Path to mea for each taxa                               
+      # Path to mea for each category                               
       aidmea_path <- paste0(auto_id_path, '/aidmea/')        
       
       # AUTO ID FILES
@@ -569,21 +569,21 @@ category of interest.
       
       ctd_roi_oce <- vpr_oce_create(data)
       
-    # bin and calculate concentration for all taxa (combined)
+    # bin and calculate concentration for all category (combined)
       vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
       
-      # get list of valid taxa
-      category_list <- unique(roimeas_dat_combine$taxa)
+      # get list of valid category
+      category_list <- unique(roimeas_dat_combine$category)
       
       # bin and calculate concentrations for each category
-      taxa_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)  
+      category_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)  
 
       cat('Station', station_of_interest, 'processing complete! \n')
       cat('\n')
       
       # bin size data
       
-      size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest)
+      size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest)
       
       size_df_b <- vpr_size_bin(size_df_f, bin_mea = 3)
       
@@ -594,7 +594,7 @@ and metadata in an efficient format.
 
       ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
       # Save oce object
-      oce_dat <- vpr_save(taxa_conc_n)
+      oce_dat <- vpr_save(category_conc_n)
       save(file = paste0(savedir, '/oceData_', station_of_interest,'.RData'), oce_dat) # oce data and metadata object
       
       
@@ -611,7 +611,7 @@ and metadata in an efficient format.
       # Write csv files
       # write.csv(file = paste0(stdir, '/vpr_data_unbinned', station_of_interest, '.csv'), data, row.names = F) # VPR and CTD data (not binned)
       # write.csv(file = paste0(stdir, '/vpr_meas', station_of_interest, '.csv'), roimeas_dat_combine) # measurement data
-      write.csv(file = paste0(stdir, '/vpr_data_binned', station_of_interest, '.csv'), taxa_conc_n) # VPR and CTD data with concentrations by taxa
+      write.csv(file = paste0(stdir, '/vpr_data_binned', station_of_interest, '.csv'), category_conc_n) # VPR and CTD data with concentrations by category
       
       cat('ROI measurments, ROI-CTD merge-unbinned, and ROI-CTD merge-binned written to csv! \n')
       cat('\n')
@@ -657,7 +657,7 @@ classification categories to plot (eg. "Calanus" and "krill").
     all_stations <- read.csv(station_names_file, stringsAsFactors = FALSE)
     all_stations_of_interest <- unique(all_stations$station)
 
-    taxa_to_plot <- c("Calanus", "krill")
+    category_to_plot <- c("Calanus", "krill")
 
 
     for (j in 1:length(all_stations_of_interest)){
@@ -685,7 +685,7 @@ csv file.
       
       
      # load concentration data
-      taxa_conc_n <- read.csv(fn_conc, stringsAsFactors = F)
+      category_conc_n <- read.csv(fn_conc, stringsAsFactors = F)
       
       station_name <- paste('Station ', station)
 
@@ -705,7 +705,7 @@ The following example presents a plot of the concentrations of a taxon
 as scaled bubbles along the tow path, overlain on contours of an
 environmental variable from the CTD. The main function used is
 `vprr::vpr_plot_contour()` which uses a standard VPR data frame
-(`taxa_conc_n` - produced from processing (Section 5)) and plots the
+(`category_conc_n` - produced from processing (Section 5)) and plots the
 background contours. Interpolation methods can be adjusted based on data
 or preference. The VPR tow path can be added on top of contours. This
 method can be repeated with various environmental variables (e.g.,
@@ -713,14 +713,14 @@ temperature, salinity etc.) used to calculate the contours, by changing
 the `var` argument in `vprr::vpr_plot_contour()`.
 
       # Density (sigmaT)
-      png('conPlot_taxa_dens.png', width = width, height = height)
-      p <- vpr_plot_contour(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
+      png('conPlot_category_dens.png', width = width, height = height)
+      p <- vpr_plot_contour(category_conc_n[category_conc_n$category %in% c(category_to_plot),], var = 'density', dup = 'strip', method = 'oce', bw = 0.5)
       p <- p + geom_line(data = data, aes(x = time_hr - min(time_hr), y = pressure), col = 'snow4', inherit.aes = FALSE) +
-        geom_point(data = taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),], aes(x = time_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
+        geom_point(data = category_conc_n[category_conc_n$category %in% c(category_to_plot),], aes(x = time_hr, y = min_pressure, size = conc_m3), alpha = 0.5)+
         ggtitle(station_name ) +
         labs(size = expression("Concentration /m" ^3), fill = 'Density')+
         scale_size_continuous(range = c(0, 10)) +
-        facet_wrap(~taxa, ncol = 1, scales = 'free') +
+        facet_wrap(~category, ncol = 1, scales = 'free') +
         theme(legend.key.size = unit(0.8, 'cm'),
               axis.title = element_text(size = 20),
               strip.text = element_text(size = 20),
@@ -740,7 +740,7 @@ compressed over the sampling duration can be generated using
 pattern in vertical distribution over the VPR deployment.
 
         png('profilePlots.png', width = 1000, height = 500)
-        p <- vpr_plot_profile(taxa_conc_n, taxa_to_plot)
+        p <- vpr_plot_profile(category_conc_n, category_to_plot)
         print(p)
         dev.off()
 
@@ -755,11 +755,11 @@ ggplot2 package for more information).
 
     ####TS BUBBLE PLOT ----------------------------------------------------------------------------------------------------------------------------
       
-      # plot by taxa
-      taxa_conc <- taxa_conc_n[taxa_conc_n$conc_m3 > 0,]
-      png('TS_conc_taxa.png', width = 1000, height = 500)
-      p <- vpr_plot_TS(taxa_conc[taxa_conc$taxa %in% c(taxa_to_plot),], var = 'conc_m3') +
-        facet_wrap(~taxa, nrow = 1) +
+      # plot by category
+      category_conc <- category_conc_n[category_conc_n$conc_m3 > 0,]
+      png('TS_conc_category.png', width = 1000, height = 500)
+      p <- vpr_plot_TS(category_conc[category_conc$category %in% c(category_to_plot),], var = 'conc_m3') +
+        facet_wrap(~category, nrow = 1) +
         theme(strip.text = element_text(size = 18),
               axis.title = element_text(size = 20),
               panel.spacing = unit(2, 'lines'))
@@ -799,7 +799,7 @@ R. The directory structure required is described below
 
             -   autoid
 
-                -   taxa
+                -   category
                     -   aid
                     -   aidmea
                     -   image folders
@@ -828,7 +828,7 @@ will be stored:
 
     -   new_autoid
 
-        -   taxa
+        -   category
 
         -   aid
 
@@ -868,7 +868,7 @@ Plankton's automatic classifications
 **BIO** - Bedford Institute of Oceanography, a research institute in
 Halifax NS, Canada
 
-**Classification category (Taxa)** - A defined group under which VPR
+**Classification category (category)** - A defined group under which VPR
 images can be classified, often represents a taxonomic group (e.g.
 Krill), but can also be defined by image type (e.g. 'bad_image_blurry'),
 or other (e.g. 'marine_snow'), should be one continuous string (no

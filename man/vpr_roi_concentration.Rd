@@ -15,7 +15,7 @@ vpr_roi_concentration(
 \arguments{
 \item{data}{a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}}
 
-\item{category_list}{a list of character strings representing taxa present in the station being processed}
+\item{category_list}{a list of character strings representing category present in the station being processed}
 
 \item{station_of_interest}{The station being processed}
 
@@ -24,7 +24,7 @@ vpr_roi_concentration(
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
 }
 \description{
-Calculates concentrations for each named taxa in dataframe
+Calculates concentrations for each named category in dataframe
 }
 \examples{
 

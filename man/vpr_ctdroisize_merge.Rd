@@ -4,14 +4,14 @@
 \alias{vpr_ctdroisize_merge}
 \title{Format CTD and Size data from VPR}
 \usage{
-vpr_ctdroisize_merge(data, data_mea, taxa_of_interest)
+vpr_ctdroisize_merge(data, data_mea, category_of_interest)
 }
 \arguments{
 \item{data}{VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT}
 
 \item{data_mea}{VPR size data frame from \code{\link{vpr_autoid_read}}}
 
-\item{taxa_of_interest}{a list of taxa of interest to be included in output dataframe}
+\item{category_of_interest}{a list of category of interest to be included in output dataframe}
 }
 \value{
 A dataframe containing VPR CTD and size data
@@ -28,6 +28,6 @@ category_of_interest = 'Calanus'
 ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 
 size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
- taxa_of_interest = category_of_interest)
+ category_of_interest = category_of_interest)
 
 }

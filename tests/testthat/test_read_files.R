@@ -79,14 +79,14 @@ test_that("VPR autoid files are read in accurately", {
   expect_equal(is.data.frame(roi_dat_combine), TRUE) # check output is dataframe
   expect_identical(as.character(roi_dat_combine$time_ms), roi_dat_combine$roi) #check time and roi stamps match
 
-  taxa_names <- names(roi_dat_combine)[-c(1,13)]
+  category_names <- names(roi_dat_combine)[-c(1,13)]
   t_names_exp <- list()
   for(i in seq_len(length(aid_files))){
     t_names_exp[[i]] <- vpr_category(aid_files[[i]])
   }
   t_names_exp <- unique(unlist(t_names_exp))
 
-  expect_identical(taxa_names, t_names_exp) #check taxa names are pulled properly
+  expect_identical(category_names, t_names_exp) #check category names are pulled properly
 
 
   # check for NAs
@@ -104,8 +104,8 @@ test_that("VPR autoid files are read in accurately", {
   # num_roi_images <- length(img1) +length(img2)
   #
   # num_dat_img <- list()
-  # for(i in 1:length(taxa_names)){
-  #   num_dat_img[[i]] <- sum(roi_dat_combine[[taxa_names[[i]]]])
+  # for(i in 1:length(category_names)){
+  #   num_dat_img[[i]] <- sum(roi_dat_combine[[category_names[[i]]]])
   # }
   #
   # num_dat_img <- sum(unlist(num_dat_img))
@@ -144,8 +144,8 @@ test_that("VPR autoid files are read in accurately", {
 
   # check match to aid files
   num_dat_img <- list()
-  for(i in seq_len(length(taxa_names))){
-    num_dat_img[[i]] <- sum(roi_dat_combine[[taxa_names[[i]]]])
+  for(i in seq_len(length(category_names))){
+    num_dat_img[[i]] <- sum(roi_dat_combine[[category_names[[i]]]])
   }
 
   num_dat_img <- sum(unlist(num_dat_img))
@@ -156,7 +156,7 @@ test_that("VPR autoid files are read in accurately", {
 
   # check pixel and mm data frames are the same for all metadata
   expect_identical(roimeas_dat_combine$roi, roimeas_dat_combine_px$roi)
-  expect_identical(roimeas_dat_combine$taxa, roimeas_dat_combine_px$taxa)
+  expect_identical(roimeas_dat_combine$category, roimeas_dat_combine_px$category)
   expect_identical(roimeas_dat_combine$day_hour, roimeas_dat_combine_px$day_hour)
   expect_identical(roimeas_dat_combine$station, roimeas_dat_combine_px$station)
   expect_identical(roimeas_dat_combine$time_ms, roimeas_dat_combine_px$time_ms)

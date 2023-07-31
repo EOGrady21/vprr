@@ -67,9 +67,9 @@ ctd_dat_combine <- ctd_dat_combine[1:1000,]
 usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   ##### FIND VPR DATA FILES ----------------------------------------------------------------------------------------------------------------------
 
-  # Path to aid for each taxa
+  # Path to aid for each category
   aid_path <- paste0(auto_id_path, '/aid/')
-  # Path to mea for each taxa
+  # Path to mea for each category
   aidmea_path <- paste0(auto_id_path, '/aidmea/')
 
   # AUTO ID FILES
@@ -152,25 +152,25 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   usethis::use_data(ctd_roi_oce, overwrite = TRUE)
 
 
-  # bin and calculate concentration for all taxa (combined)
+  # bin and calculate concentration for all category (combined)
   # vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume)
 
   # save(vpr_depth_bin, file = paste0(save_dir, 'bin_vpr_data.RData'))
   # usethis::use_data(vpr_depth_bin, overwrite = TRUE)
 
-  # get list of valid taxa
-   taxas_list <- unique(roimeas_dat_combine$taxa)
+  # get list of valid category
+   category_list <- unique(roimeas_dat_combine$category)
 
   # bin and calculate concentrations for each category
-  # taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume)
+  # category_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)
 
-  # save(taxa_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
-  # usethis::use_data(taxa_conc_n, overwrite = TRUE)
+  # save(category_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
+  # usethis::use_data(category_conc_n, overwrite = TRUE)
 
 
   # bin size data
 
-  # size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest)
+  # size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest)
 
   # save(size_df_f, file = paste0(save_dir, 'vpr_ctdroisize_merge.RData'))
   # usethis::use_data(size_df_f, overwrite = TRUE)
@@ -178,7 +178,7 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
 
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------
   # Save oce object
-  # oce_dat <- vpr_save(taxa_conc_n)
+  # oce_dat <- vpr_save(category_conc_n)
 
   # save(oce_dat, file = paste0(save_dir, 'vpr_save.RData'))
   # usethis::use_data(oce_dat, overwrite = TRUE)

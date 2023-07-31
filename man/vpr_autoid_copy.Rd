@@ -4,7 +4,14 @@
 \alias{vpr_autoid_copy}
 \title{Copy VPR images into folders}
 \usage{
-vpr_autoid_copy(basepath, day, hour, classifier_type, classifier_name, taxa)
+vpr_autoid_copy(
+  basepath,
+  day,
+  hour,
+  classifier_type,
+  classifier_name,
+  category
+)
 }
 \arguments{
 \item{basepath}{A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"}
@@ -17,7 +24,7 @@ vpr_autoid_copy(basepath, day, hour, classifier_type, classifier_name, taxa)
 
 \item{classifier_name}{character string representing name of Visual Plankton classifier}
 
-\item{taxa}{optional list of character strings if you wish to only copy images from specific classification groups}
+\item{category}{optional list of character strings if you wish to only copy images from specific classification groups}
 }
 \value{
 organized file directory where VPR images are contained with folders, organized by day, hour and classification,

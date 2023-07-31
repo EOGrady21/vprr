@@ -30,7 +30,7 @@ test_that('VPR data is properly binned',{
   expect_true('ctd' %in% class(ctd_roi_oce)) # check that output is oce ctd object
 
 
-  # bin and calculate concentration for all taxa (combined)
+  # bin and calculate concentration for all category (combined)
   # expect_silent(vpr_depth_bin <- bin_cast(ctd_roi_oce = ctd_roi_oce, binSize =  binSize, imageVolume = imageVolume))
   # expect_true(max(vpr_depth_bin$depth_diff) < binSize) # check that bin size is enforced
   # expect_true(diff(vpr_depth_bin$depth)[1] >0) # check that depth is increasing
@@ -45,22 +45,22 @@ test_that('VPR data is properly binned',{
   # expect_equal(vpr_depth_bin$max_cast_depth, vpr_depth_bin_rev$max_cast_depth) # max cast depth should not change
   #
   #
-  # taxas_list <- unique(roimeas_dat_combine$taxa)
+  # category_list <- unique(roimeas_dat_combine$category)
   #
   # # bin and calculate concentrations for each category
-  # expect_silent(taxa_conc_n <- vpr_roi_concentration(data, taxas_list, station_of_interest, binSize, imageVolume))
-  # expect_true(is.data.frame(taxa_conc_n)) # check output is data frame
-  # expect_equal(length(taxa_conc_n[[1]])/length(taxas_list), length(vpr_depth_bin[[1]])) # same number of bins, just multiplied by number of taxa
-  # expect_identical(taxas_list, unique(taxa_conc_n$taxa)) # check that all taxa are included
+  # expect_silent(category_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume))
+  # expect_true(is.data.frame(category_conc_n)) # check output is data frame
+  # expect_equal(length(category_conc_n[[1]])/length(category_list), length(vpr_depth_bin[[1]])) # same number of bins, just multiplied by number of category
+  # expect_identical(category_list, unique(category_conc_n$category)) # check that all category are included
 
   # TODO: try and test concentration calculation...
 
 
   # bin size data
-  expect_message(size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, taxa_of_interest = category_of_interest))
+  expect_message(size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest))
   expect_true(is.data.frame(size_df_f))
   expect_true(length(size_df_f[[1]]) > 0)
-  expect_identical(unique(size_df_f$taxa), category_of_interest)
+  expect_identical(unique(size_df_f$category), category_of_interest)
   expect_identical(stringr::str_sub(size_df_f$roi, 1, 8), as.character(size_df_f$time_ms))
   expect_identical(stringr::str_sub(size_df_f$roi, 1, 8), size_df_f$roi_ID)
   expect_true(is.numeric(size_df_f$long_axis_length))

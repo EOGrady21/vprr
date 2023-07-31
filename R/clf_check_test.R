@@ -11,7 +11,7 @@ vpr_manual_classification <-
   function(day,
            hour,
            basepath,
-           taxa_of_interest,
+           category_of_interest,
            gr = TRUE,
            scale = 'x300',
            opticalSetting = 'S2',
@@ -22,12 +22,12 @@ vpr_manual_classification <-
     #' Displays each image in day hour specified,
     #' prompts user to confirm or deny classification.
     #' If classification is denied, asks for a reclassification
-    #'  value based on available taxa
+    #'  value based on available category
     #'
     #' @param day day of interest in autoid
     #' @param hour hour of interest in autoid
     #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
-    #' @param taxa_of_interest list of taxa folders you wish you sort through
+    #' @param category_of_interest list of category folders you wish you sort through
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
     #' @param opticalSetting specifies optical setting of VPR, defining image frame
@@ -73,33 +73,33 @@ vpr_manual_classification <-
               paste('CAUTION, FILES FOR', day_hour, 'ARE BEING APPENDED!!'))
     }
 
-    taxaFolders_og <- list.files(basepath, full.names = TRUE)
-    taxaNames <- list.files(basepath)
-    allTaxa <- list.files(basepath)
+   categoryFolders_og <- list.files(basepath, full.names = TRUE)
+   categoryNames <- list.files(basepath)
+    allcategory <- list.files(basepath)
 
-    taxaFolders <- taxaFolders_og[taxaNames %in% taxa_of_interest]
-    taxaNames <- taxaNames[taxaNames %in% taxa_of_interest]
-    if (length(taxaFolders) == 0) {
-      stop('No taxa folders match taxa of interest!
+   categoryFolders <-categoryFolders_og[categoryNames %in%category_of_interest]
+   categoryNames <- categoryNames[categoryNames %in% category_of_interest]
+    if (length(categoryFolders) == 0) {
+      stop('No category folders match category of interest!
                                      Caution of capitalization!')
     }
 
-    t_f <- dir.exists(taxaFolders)
+    t_f <- dir.exists(categoryFolders)
 
-    # Make an empty list for reclassficiations with named elements for each taxa
-    reclassified <- vector("list", length(allTaxa))
-    names(reclassified) <- allTaxa
+    # Make an empty list for reclassficiations with named elements for each category
+    reclassified <- vector("list", length(allcategory))
+    names(reclassified) <- allcategory
 
-    for (i in seq_len(length(taxaFolders))) {
+    for (i in seq_len(length(categoryFolders))) {
       misclassified <- vector()
 
-      print(paste('TAXA START : ', taxaFolders[i]))
-      y <- readline(paste('CONFIRM NEW TAXA : ', taxaFolders[i]))
+      print(paste('CATEGORY START : ', categoryFolders[i]))
+      y <- readline(paste('CONFIRM NEW CATEGORY : ', categoryFolders[i]))
       # clear existing files
-      path <- taxaFolders[i]
+      path <- categoryFolders[i]
 
       if (t_f[i] == FALSE) {
-        print(paste('TAXA : ', taxaFolders[i], 'DOES NOT EXIST!'))
+        print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
         SKIP = TRUE
       } else{
         dayHrFolders <- list.files(path, full.names = TRUE)
@@ -108,7 +108,7 @@ vpr_manual_classification <-
           grep(dayHrFolders, pattern = day_hour, value = TRUE)
 
         if (length(dayHrFolder) == 0) {
-          print(paste('TAXA : ', taxaFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
+          print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
           SKIP = TRUE
         } else{
           SKIP = FALSE
@@ -158,7 +158,7 @@ vpr_manual_classification <-
             print(paste(ii, '/', length(rois)))
             img <- magick::image_read(rois[ii], strip = FALSE) %>%
               magick::image_scale(scale) %>%
-              magick::image_annotate(taxaNames[i], color = 'red', size = 12)
+              magick::image_annotate(categoryNames[i], color = 'red', size = 12)
             # read in original image without scaling
             img_o <- magick::image_read(rois[ii])
             imgdat <- magick::image_info(img_o)
@@ -195,7 +195,7 @@ vpr_manual_classification <-
                 graphics = gr,
                 title = paste(
                   "Is the classification, ",
-                  taxaNames[i],
+                  categoryNames[i],
                   ", accurate? (y/n)"
                 )
               )
@@ -205,26 +205,26 @@ vpr_manual_classification <-
 
             } else{
               # original method
-              # sink(file = paste0(day_hour,'/misclassified_', taxaNames[i], '.txt'), append = TRUE)
+              # sink(file = paste0(day_hour,'/misclassified_', categoryNames[i], '.txt'), append = TRUE)
               # cat(aid_dat[[ii]], '\n')
               # sink()
 
               misclassified <- c(misclassified, aid_dat[[ii]])
 
 
-              # update to create generic taxa options
+              # update to create generic category options
               # EC 2019 October 30
               ans <-
-                menu(c(allTaxa),
+                menu(c(allcategory),
                      graphics = gr,
-                     title = "Appropriate Taxa Classification?")
+                     title = "Appropriate Category Classification?")
 
 
               reclassified[[ans]] <-
                 c(reclassified[[ans]], aid_dat[[ii]])
 
               # original method
-              # sink(file = paste0(day_hour,'/reclassify_', allTaxa[[ans]], '.txt'), append = TRUE)
+              # sink(file = paste0(day_hour,'/reclassify_', allcategory[[ans]], '.txt'), append = TRUE)
               # cat(aid_dat[ii], '\n')
               # sink()
 
@@ -235,27 +235,27 @@ vpr_manual_classification <-
 
           # Write information to file
           # sink(
-          #   file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+          #   file = paste0(day_hour, '/misclassified_', categoryNames[i], '.txt'),
           #   append = T
           # )
-          withr::with_output_sink(paste0(dirpath, '/misclassified_', taxaNames[i], '.txt'),
+          withr::with_output_sink(paste0(dirpath, '/misclassified_', categoryNames[i], '.txt'),
                                   append = TRUE,
                                   code = {
                                     cat(misclassified, sep = '\n')
                                   })
           #sink()
 
-        }# skip = TRUE loop (taxa)
+        }# skip = TRUE loop (category)
       }# skip = TRUE loop (dayhr)
 
       if (SKIP == TRUE) {
-        # creates blank misclassified file if taxa of interest is not present in specified hour (so images reclassified as this taxa will be moved)
+        # creates blank misclassified file if category of interest is not present in specified hour (so images reclassified as this category will be moved)
         # sink(
-        #   file = paste0(day_hour, '/misclassified_', taxaNames[i], '.txt'),
+        #   file = paste0(day_hour, '/misclassified_', categoryNames[i], '.txt'),
         #   append = TRUE
         # )
         # sink()
-        withr::with_output_sink(paste0(dirpath, '/misclassified_', taxaNames[i], '.txt'),
+        withr::with_output_sink(paste0(dirpath, '/misclassified_', categoryNames[i], '.txt'),
                                 append = TRUE,
                                 code = {
                                   cat('\n')
@@ -263,18 +263,18 @@ vpr_manual_classification <-
       }
     }
 
-    # Write reclassified files for each taxa
+    # Write reclassified files for each category
     for (i in seq_len(length(reclassified))) {
-      taxa_id <- names(reclassified[i])
+      category_id <- names(reclassified[i])
       recl_tmp <- reclassified[[i]]
 
-      # Make a reclassify file only for taxa that need to be reclassified
+      # Make a reclassify file only for category that need to be reclassified
       if (length(recl_tmp != 0)) {
         # sink(
-        #   file = paste0(day_hour, '/reclassify_', taxa_id, '.txt'),
+        #   file = paste0(day_hour, '/reclassify_', category_id, '.txt'),
         #   append = TRUE
         # )
-        withr::with_output_sink(paste0(dirpath, '/reclassify_', taxa_id, '.txt'), append = TRUE, code = {
+        withr::with_output_sink(paste0(dirpath, '/reclassify_', category_id, '.txt'), append = TRUE, code = {
           cat(recl_tmp, sep = '\n')
         })
         # sink()
@@ -311,24 +311,24 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
 
   # avoid CRAN notes
   . <- day <- hour <- NA
-  taxaNames <- list.files(basepath)
+  categoryNames <- list.files(basepath)
 
   # find aid txt files
-  taxaFolders <- list.files(basepath, full.names = TRUE)
+  categoryFolders <- list.files(basepath, full.names = TRUE)
   # remove misclassified ROIS
   for (i in seq_len(length(misclassified))) {
     # TODO: generalize solution, remove hardcoding
     # TODO make sure this works with new directory structure
-    taxa <- vpr_category(misclassified[i])
+    category <- vpr_category(misclassified[i])
 
-   # if (taxa == 'ctenophores'){ browser()}
+   # if (category == 'ctenophores'){ browser()}
     #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
-    taxaFolder <- grep(taxaFolders, pattern = taxa, value = TRUE)
-    if (!taxa %in% taxaNames) {
+    categoryFolder <- grep(categoryFolders, pattern = category, value = TRUE)
+    if (!category %in% categoryNames) {
       stop(
         paste(
-          taxa,
-          'is not a valid taxa name. Please run vpr_category_create() to create proper file structure within basepath'
+          category,
+          'is not a valid category name. Please run vpr_category_create() to create proper file structure within basepath'
         )
       )
     }
@@ -348,10 +348,10 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       mis_roi_gen <- unlist(vpr_roi(mis_roi))
 
       mis_roi_df <-
-        data.frame(mis_roi_gen, day_hour, taxa, stringsAsFactors = FALSE)
+        data.frame(mis_roi_gen, day_hour, category, stringsAsFactors = FALSE)
 
       aidFolder <-
-        list.files(taxaFolder, pattern = '^aid$', full.names = TRUE)
+        list.files(categoryFolder, pattern = '^aid$', full.names = TRUE)
 
       mis_roi_df <- mis_roi_df %>%
         dplyr::group_by(., day_hour)
@@ -362,14 +362,14 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     } else{
       # if there is no misclassified information
 
-      print(paste('Blank misclassified file found for', taxa, '!'))
+      print(paste('Blank misclassified file found for', category, '!'))
       # browser()
       day_n <- vpr_day(misclassified[i])
       hr_n <- vpr_hour(misclassified[i])
       day_hour <- paste0('d', day, '.h', hour)
       # day_hour <- unique(substr(misclassified[i], 1, 8))
       aidFolder <-
-        list.files(taxaFolder, pattern = '^aid$', full.names = TRUE)
+        list.files(categoryFolder, pattern = '^aid$', full.names = TRUE)
 
     }
     # open correct day hour aid file
@@ -390,7 +390,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
         cat('\n')
       })
       #sink()
-      print(paste('DUMMY FILE CREATED FOR', taxa, ' : ', aid_list_old_fn))
+      print(paste('DUMMY FILE CREATED FOR', category, ' : ', aid_list_old_fn))
 
       DUMMY = TRUE
 
@@ -431,7 +431,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
           '>>>>',
           length(ind),
           'ROIs removed from',
-          taxa ,
+          category ,
           'in',
           unique(day_hour),
           '\n>>>> File:',
@@ -446,7 +446,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     # FIX MEAS FILE TO MATCH
     if(mea == TRUE){
     aidMeaFolder <-
-      list.files(taxaFolder, pattern = '^aidmea$', full.names = TRUE)
+      list.files(categoryFolder, pattern = '^aidmea$', full.names = TRUE)
     aidMeaFile <-
       list.files(aidMeaFolder,
                  pattern = paste0('*', day_hour),
@@ -464,7 +464,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       })
       # sink()
 
-      print(paste('DUMMY FILE CREATED FOR MEAS OF', taxa, ' : ', aidMeaFile))
+      print(paste('DUMMY FILE CREATED FOR MEAS OF', category, ' : ', aidMeaFile))
 
       aidMea_new <- NULL
       DUMMY = TRUE
@@ -484,7 +484,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
           '>>>>',
           length(ind),
           'Measurements removed from',
-          taxa ,
+          category ,
           'in',
           unique(day_hour),
           '\n>>>> File:',
@@ -499,27 +499,27 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     }
     }
     # add reclassified rois
-    # to specific taxa
-    recl <- grep(reclassify, pattern = taxa)
+    # to specific category
+    recl <- grep(reclassify, pattern = category)
     if (length(recl) == 0) {
-      print(paste('No', taxa, 'to be reclassified'))
+      print(paste('No', category, 'to be reclassified'))
       # final files only have rois removed
       if(mea == TRUE){aidMea_final <- aidMea_new}
       aid_final <- aid_new
       if (DUMMY == TRUE) {
         warning(print(
-          'No original data and no reclassified data, consider removing taxa.'
+          'No original data and no reclassified data, consider removing category.'
         ))
       }
     } else{
       # loop should end right before files are saved
 
-      reclassify_taxa <-
-        grep(reclassify, pattern = taxa, value = TRUE)
+      reclassify_category <-
+        grep(reclassify, pattern = category, value = TRUE)
 
 
       # pull one reclassify file at a time
-      recl_roi <- readLines(reclassify_taxa)
+      recl_roi <- readLines(reclassify_category)
       # get day.hour info
       day_hour_re <- paste(day, hour, sep = ".") # arguments now given to function no need to find them in file names
       # day_hour_re <-
@@ -532,13 +532,13 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       # get generic roi string
       recl_roi_gen <- unlist(vpr_roi(recl_roi))
 
-      # which taxa to add recl rois to
+      # which category to add recl rois to
 
       # check only one hour present in file
       if (length(unique(day_hour_re)) > 1) {
         stop(
           paste(
-            reclassify_taxa,
+            reclassify_category,
             'has more than one unique hour value!
                                                      Please double check file.'
           )
@@ -563,7 +563,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
         '>>>>',
         length(recl_roi_df$recl_roi),
         'ROIs added to',
-        taxa ,
+        category ,
         'in',
         unique(day_hour),
         '\n'
@@ -571,9 +571,9 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       # ADD RECLASSIFIED ROI MEAS TO MEA FILE
 
       # find original meas file
-      # need original taxa info
+      # need original category info
 
-      # find original taxa data
+      # find original category data
       # read in all roi folders
       # weird folder character cut off problems
 
@@ -583,23 +583,23 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       # bp <- substr(basepath, 1, nchar(basepath) - 1)
       # auto_id_folder <- bp
       # nchar_folder <- nchar(auto_id_folder)
-      # taxafolder <- list.files(auto_id_folder, full.names = T)
+      # categoryfolder <- list.files(auto_id_folder, full.names = T)
       # auto_measure_px <-
-        # getRoiMeasurements(taxafolder, nchar_folder, unit = 'px')
+        # getRoiMeasurements(categoryfolder, nchar_folder, unit = 'px')
 # DONE : Edit so that only required size data is loaded, without using getRoiMeasurements [ EC 28-01-2020 ]
 
-      #get all taxa aid and aidmea files for day/hour of interest
+      #get all category aid and aidmea files for day/hour of interest
       aid_fn_list <- list()
-    for(l in seq_len(length(taxaFolders))){
+    for(l in seq_len(length(categoryFolders))){
 
-      all_aids <- list.files(file.path(taxaFolders[[l]], 'aid'), full.names = TRUE)
+      all_aids <- list.files(file.path(categoryFolders[[l]], 'aid'), full.names = TRUE)
       aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour, value = TRUE)
     }
 if(mea == TRUE){
       aidm_fn_list <- list()
-      for(l in seq_len(length(taxaFolders))){
+      for(l in seq_len(length(categoryFolders))){
 
-        all_aidms <- list.files(file.path(taxaFolders[[l]], 'aidmea'), full.names = TRUE)
+        all_aidms <- list.files(file.path(categoryFolders[[l]], 'aidmea'), full.names = TRUE)
         aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour, value = TRUE)
       }
 
@@ -675,7 +675,7 @@ if(mea == TRUE){
         '>>>>',
         length(recl_roi_meas$Perimeter),
         'Measurements added to',
-        taxa ,
+        category ,
         'in',
         unique(day_hour),
         '\n'
@@ -687,14 +687,14 @@ if(mea == TRUE){
     }# end reclassified loop
     }
     # save files
-    dirpath <- file.path('new_autoid', taxa[[1]])
+    dirpath <- file.path('new_autoid', category[[1]])
     dir.create(dirpath, showWarnings = FALSE, recursive = TRUE)
 
 
 if(mea == TRUE){
     aidMea_final_nm <- paste0('new_aid.mea.', unique(day_hour))
     aidMea_final_fn <- file.path(dirpath, 'aidmea', aidMea_final_nm)
-    dir.create(file.path(taxa, 'aidmea'),
+    dir.create(file.path(category, 'aidmea'),
                showWarnings = FALSE,
                recursive = TRUE)
     write.table(
@@ -722,7 +722,7 @@ if(mea == TRUE){
     )
     cat(paste(
       '>>>> New aid and aid.mea files created for',
-      taxa,
+      category,
       'in',
       unique(day_hour),
       '\n'
@@ -753,31 +753,31 @@ if(mea == TRUE){
 
 
 
-# function to create new taxa within data structure post VP output
+# function to create new category within data structure post VP output
 
-#' Create a new taxa to be considered for classification after processing with VP
+#' Create a new category to be considered for classification after processing with VP
 #'
-#' creates empty directory structure to allow consideration of new taxa during vpr_manual_classification()
+#' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
 #'
-#' @param taxa new taxa name to be added (can be a list of multiple taxa names)
+#' @param category new category name to be added (can be a list of multiple category names)
 #' @param basepath basepath used for vpr_manual_classification
 #'
-#' @return empty directory structure using new taxa name inside basepath
+#' @return empty directory structure using new category name inside basepath
 #' @export
 #'
 #'
 #'
 #'
-vpr_category_create <- function(taxa, basepath) {
-  for (i in seq_len(length(taxa))) {
-    # create new taxa folder
-    newtaxapath <- file.path(basepath, taxa[[i]])
-    dir.create(newtaxapath)
+vpr_category_create <- function(category, basepath) {
+  for (i in seq_len(length(category))) {
+    # create new category folder
+    newcategorypath <- file.path(basepath, category[[i]])
+    dir.create(newcategorypath)
 
     # create blank aid and aidmeas folders
 
-    dir.create(paste0(newtaxapath, '/aid'), showWarnings = FALSE)
-    dir.create(paste0(newtaxapath, '/aidmea'), showWarnings = FALSE)
+    dir.create(paste0(newcategorypath, '/aid'), showWarnings = FALSE)
+    dir.create(paste0(newcategorypath, '/aidmea'), showWarnings = FALSE)
 
   }
 }

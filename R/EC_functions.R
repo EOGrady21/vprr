@@ -260,7 +260,7 @@ vpr_size_bin <- function(data_all, bin_mea){
 #'
 #' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
 #' @param data_mea VPR size data frame from \code{\link{vpr_autoid_read}}
-#' @param taxa_of_interest a list of taxa of interest to be included in output dataframe
+#' @param category_of_interest a list of category of interest to be included in output dataframe
 #'
 #' @return A dataframe containing VPR CTD and size data
 #'
@@ -273,14 +273,14 @@ vpr_size_bin <- function(data_all, bin_mea){
 #'ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
 #'
 #' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
-#'  taxa_of_interest = category_of_interest)
+#'  category_of_interest = category_of_interest)
 #'
 #' @export
 #'
-vpr_ctdroisize_merge <- function(data, data_mea, taxa_of_interest){
+vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest){
 
   # avoid CRAN notes
-  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- taxa <- NA
+  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
 
 data <- data[!duplicated(data$time_ms),]
 
@@ -301,7 +301,7 @@ data_mea <- data_mea %>%
 data_all <- right_join(data_ctd, data_mea) %>%
   dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
   dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
-  dplyr::filter(., taxa %in% taxa_of_interest)
+  dplyr::filter(., category %in% category_of_interest)
 
 #cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
 #data_all <- data_all %>%
@@ -320,23 +320,23 @@ return(data_all)
 #' @param hour character string representing hour of interest
 #' @param classifier_type character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton
 #' @param classifier_name character string representing name of Visual Plankton classifier
-#' @param taxa optional list of character strings if you wish to only copy images from specific classification groups
+#' @param category optional list of character strings if you wish to only copy images from specific classification groups
 #'
 #' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
 #' inside your basepath/autoid folder
 #'
 #' @export
-vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, taxa){
+vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, category){
 
   folder_names <- list.files(basepath)
 
-  if(!missing(taxa)){
-    folder_names <- folder_names[folder_names %in% taxa]
+  if(!missing(category)){
+    folder_names <- folder_names[folder_names %in% category]
   }
 
   #check valid folders
   if(length(folder_names) < 1){
-    stop('No valid taxa folders found in basepath!')
+    stop('No valid category folders found in basepath!')
   }
 
   day_hour <- paste0('d', day, '.h', hour)
@@ -397,10 +397,10 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 
 #'Calculate VPR concentrations
 #'
-#' Calculates concentrations for each named taxa in dataframe
+#' Calculates concentrations for each named category in dataframe
 #'
 #' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
-#' @param category_list a list of character strings representing taxa present in the station being processed
+#' @param category_list a list of character strings representing category present in the station being processed
 #' @param station_of_interest The station being processed
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)

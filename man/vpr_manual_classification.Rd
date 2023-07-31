@@ -8,7 +8,7 @@ vpr_manual_classification(
   day,
   hour,
   basepath,
-  taxa_of_interest,
+  category_of_interest,
   gr = TRUE,
   scale = "x300",
   opticalSetting = "S2",
@@ -22,7 +22,7 @@ vpr_manual_classification(
 
 \item{basepath}{file path to auto id folder eg 'E:/autoID_EC_07032019/'}
 
-\item{taxa_of_interest}{list of taxa folders you wish you sort through}
+\item{category_of_interest}{list of category folders you wish you sort through}
 
 \item{gr}{logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)}
 
@@ -40,7 +40,7 @@ fine appendages)}
 Displays each image in day hour specified,
 prompts user to confirm or deny classification.
 If classification is denied, asks for a reclassification
-value based on available taxa
+value based on available category
 }
 \details{
 Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
