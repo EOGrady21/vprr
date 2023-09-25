@@ -2,7 +2,7 @@
 ### BUG FIXES AND ENHANCEMENTS
 * [ENHANCEMENT] CodeFactor suggested updates to style
 * [BUG FIX] export vpr_manual_classification (Issue #23)
-* [ENHANCEMENT] update processing method to be flexible enough to run prediction output from non-vp automated classifcation system
+* [ENHANCEMENT] update processing method to be flexible enough to run prediction output from non-vp automated classification system
 * [BUG FIX] consistency in variable naming for plotting depth/pressure (Issue #22)
 
 ### CHANGES
