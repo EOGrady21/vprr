@@ -52,7 +52,7 @@ ROIs have been extracted from the raw files they may be sorted into
 categories manually or by an automated classification procedure. In vprr, 
 file naming conventions and directory structures are inherited from a VPR 
 image classification and analysis software, Visual Plankton. However, 
-the functionality of vprr is not dependent on the use of VP. 
+the functionality of vprr is not dependent on the use of Visual Plankton. 
 
 
 The data inputs for processing in vprr consist of the following file types:
@@ -132,7 +132,7 @@ for details on the required directory structure.
     dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
 
     # BIN SIZE FOR COMPUTING DEPTH AVERAGED PLANKTON CONCENTRATION ALONG PATH OF THE VPR
-    binSize <- 3
+    binSize <- 3 #metres
 
     # CATEGORY OF INTEREST (PLANKTON CATEGORIES TO BE PROCESSED AND VISUALIZED)
     category_of_interest <-
@@ -168,7 +168,7 @@ folder names.
 
 ## Section 2.2: Image Copying (optional):
 
-ROIs are organized into folders corresponding to their assigned
+The purpose of "image copying" to organize ROIs into folders corresponding to their assigned
 classification categories from automated image classification. The
 information in each aid file is used to create a folder of images that have been classified to
 that category. This step is only required if manual re-classification (see
