@@ -2,22 +2,22 @@
 % Please edit documentation in R/EC_functions.R
 \name{vpr_category}
 \alias{vpr_category}
-\title{Get taxa ids from string}
+\title{Get category ids from string}
 \usage{
 vpr_category(x)
 }
 \arguments{
-\item{x}{A string specifying the directory of the "taxafolder", containing the taxa id}
+\item{x}{A string specifying the directory of the "categoryfolder", containing the category id}
 }
 \value{
-A string of only the taxa id
+A string of only the category id
 }
 \description{
-Get taxa ids from string
+Get category ids from string
 }
 \examples{
-taxa_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-vpr_category(taxa_string)
+category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+vpr_category(category_string)
 
 }
 \seealso{

@@ -7,11 +7,11 @@
 vpr_plot_histsize(data, param, title = NULL, bw = 0.1, xlim = NULL)
 }
 \arguments{
-\item{data}{size data from auto_measure_mm subset into taxas}
+\item{data}{size data from auto_measure_mm subset into categorys}
 
 \item{param}{size parameter of interest (corresponds to sub lists within data argument)}
 
-\item{title}{main title for plot, if left null will default based on parameter and taxa}
+\item{title}{main title for plot, if left null will default based on parameter and category}
 
 \item{bw}{bin width, defines width of bars on histogram, defaults to 0.1, decrease for more detail}
 

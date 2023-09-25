@@ -162,18 +162,18 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
    category_list <- unique(roimeas_dat_combine$category)
 
   # bin and calculate concentrations for each category
-  # category_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)
+   category_conc_n <- vpr_roi_concentration(data, category_list, station_of_interest, binSize, imageVolume)
 
   # save(category_conc_n, file = paste0(save_dir, 'vpr_roi_concentration.RData'))
-  # usethis::use_data(category_conc_n, overwrite = TRUE)
+   usethis::use_data(category_conc_n, overwrite = TRUE)
 
 
   # bin size data
 
-  # size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest)
+   size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest)
 
-  # save(size_df_f, file = paste0(save_dir, 'vpr_ctdroisize_merge.RData'))
-  # usethis::use_data(size_df_f, overwrite = TRUE)
+   #save(size_df_f, file = paste0(save_dir, 'vpr_ctdroisize_merge.RData'))
+   usethis::use_data(size_df_f, overwrite = TRUE)
 
 
   ##### SAVE DATA ---------------------------------------------------------------------------------------------------------------------------------

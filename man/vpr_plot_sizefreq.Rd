@@ -7,14 +7,14 @@
 vpr_plot_sizefreq(x, number_of_classes, colour_of_bar)
 }
 \arguments{
-\item{x}{a data frame with columns 'taxa', 'long_axis_length'}
+\item{x}{a data frame with columns 'category', 'long_axis_length'}
 
 \item{number_of_classes}{numeric value passed to nclass argument in hist()}
 
 \item{colour_of_bar}{character value defining colour of plotted bars}
 }
 \description{
-This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
+This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a category.
 \strong{!!WARNING:} this function uses hard coded plot attributes
 }
 \author{

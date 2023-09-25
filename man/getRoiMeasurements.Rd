@@ -4,10 +4,10 @@
 \alias{getRoiMeasurements}
 \title{THIS FUNCTION HAS BEEN DEPRECATED}
 \usage{
-getRoiMeasurements(taxafolder, nchar_folder, unit = "mm", opticalSetting)
+getRoiMeasurements(categoryfolder, nchar_folder, unit = "mm", opticalSetting)
 }
 \arguments{
-\item{taxafolder}{path to taxa folder (base -- autoid folder)}
+\item{categoryfolder}{path to category folder (base -- autoid folder)}
 
 \item{nchar_folder}{number of characters in basepath}
 
@@ -16,10 +16,10 @@ getRoiMeasurements(taxafolder, nchar_folder, unit = "mm", opticalSetting)
 \item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')}
 }
 \description{
-pull roi measurements from all taxa, all files
+pull roi measurements from all category, all files
 }
 \note{
 This function is very finicky, easily broken because it relies on character string splitting.
-taxaFolder argument should not end in a backslash, please check output carefully to
-ensure taxa names or ROI numbers have been properly sub string'd
+categoryFolder argument should not end in a backslash, please check output carefully to
+ensure category names or ROI numbers have been properly sub string'd
 }

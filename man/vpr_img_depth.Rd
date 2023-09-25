@@ -23,5 +23,5 @@ of file names or 'image' where images will be displayed}
 }
 \description{
 Allows user to pull VPR images from specific depth ranges, to investigate
-trends before classification of images into taxa groups
+trends before classification of images into category groups
 }

@@ -4,7 +4,7 @@
 \alias{vpr_img_reclassified}
 \title{Explore reclassified images}
 \usage{
-vpr_img_reclassified(day, hour, base_dir, taxa_of_interest, image_dir)
+vpr_img_reclassified(day, hour, base_dir, category_of_interest, image_dir)
 }
 \arguments{
 \item{day}{Character string, 3 digit day of interest of VPR data}
@@ -13,7 +13,7 @@ vpr_img_reclassified(day, hour, base_dir, taxa_of_interest, image_dir)
 
 \item{base_dir}{directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )}
 
-\item{taxa_of_interest}{Classification group from which to pull images}
+\item{category_of_interest}{Classification group from which to pull images}
 
 \item{image_dir}{directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized}
 }

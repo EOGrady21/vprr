@@ -14,7 +14,7 @@ vpr_plot_TS(x, reference.p = 0, var)
 \item{var}{variable on which size of points will be based, eg conc_m3 or n_roi_bin}
 }
 \description{
-TS balloon plot with ROI concentration, sorted by taxa
+TS balloon plot with ROI concentration, sorted by category
 includes isopycnal line calculations
 }
 \note{

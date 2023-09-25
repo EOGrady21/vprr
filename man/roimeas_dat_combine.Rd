@@ -8,7 +8,7 @@
 A data frame with 12 variables
 \describe{
 \item{roi}{Unique ROI identifier - 10 digit}
-\item{taxa}{Category in which ROI has been classified by Visual Plankton}
+\item{category}{Category in which ROI has been classified}
 \item{day_hour}{day and hour in which data was collected (from Autodeck)}
 \item{Perimeter}{The perimeter of the ROI in millimeters}
 \item{Area}{The area of the ROI in millimeters}

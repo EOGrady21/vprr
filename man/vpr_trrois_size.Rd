@@ -4,17 +4,17 @@
 \alias{vpr_trrois_size}
 \title{Get size data from idsize files}
 \usage{
-vpr_trrois_size(directory, taxa, opticalSetting)
+vpr_trrois_size(directory, category, opticalSetting)
 }
 \arguments{
 \item{directory}{cruise directory eg. 'C:/data/IML2018051/'}
 
-\item{taxa}{list of character elements containing taxa of interest}
+\item{category}{list of character elements containing category of interest}
 
 \item{opticalSetting}{VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')}
 }
 \description{
-useful for getting size distribution of known rois from each taxa. gathers
+useful for getting size distribution of known rois from each category. gathers
 size information from idsize text files produced when training a new
 classifier in VP (Visual Plankton)
 }

@@ -4,12 +4,12 @@
 \alias{concentration_category}
 \title{Binned concentrations}
 \usage{
-concentration_category(data, taxa, binSize, imageVolume, rev = FALSE)
+concentration_category(data, category, binSize, imageVolume, rev = FALSE)
 }
 \arguments{
 \item{data}{dataframe produced by processing internal to vpr_roi_concentration}
 
-\item{taxa}{name of taxa isolated}
+\item{category}{name of category isolated}
 
 \item{binSize}{passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged}
 
@@ -20,7 +20,7 @@ calculated from surface to bottom, TRUE- bins will be calculated bottom to
 surface}
 }
 \description{
-This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_cast}} but calculates concentrations for only one taxa.
+This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.
 Used inside \code{\link{vpr_roi_concentration}}
 }
 \details{

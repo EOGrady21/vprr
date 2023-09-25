@@ -8,6 +8,7 @@
 #' @importFrom graphics hist par plot.new
 #' @importFrom stats aggregate median quantile
 #' @importFrom utils menu read.csv read.table write.table
+#' @importFrom usethis use_data
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
@@ -78,14 +79,14 @@ vpr_pred_read <- function(filename){
 #' @export
 #'
 #' @examples
-#' data("taxa_conc_n")
+#' data("category_conc_n")
 #' metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
 #' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitude' = 47,
 #' 'longitude' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
 #' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
 #' 'S2', 'imageVolume' = 83663, 'comment' = 'test data')
 #'
-#' oce_dat <- vpr_save(taxa_conc_n, metadata)
+#' oce_dat <- vpr_save(category_conc_n, metadata)
 #' # save(oce_dat, file = vpr_save.RData') # save data
 #'
 vpr_save <- function(data, metadata){
@@ -415,7 +416,7 @@ print(paste('Day ', day, ', Hour ', hour, 'completed!'))
 #' station_of_interest <- 'test'
 #' imageVolume <- 83663
 #'
-#' taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
+#' category_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
 #' station_of_interest, binSize, imageVolume)
 #'
 #'@export
@@ -425,37 +426,37 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 
   # avoid CRAN notes
   . <- NA
-  # check that taxa exist for this station
+  # check that category exist for this station
 
-  taxa_in_data <- names(data) %in% category_list
+  category_in_data <- names(data) %in% category_list
 
-  valid_taxa <- names(data)[taxa_in_data == TRUE]
+  valid_category <- names(data)[category_in_data == TRUE]
 
   # calculate concentrations
   conc_dat <- list()
-  for ( ii in seq_len(length(valid_taxa))){
-    conc_dat[[ii]] <- concentration_category(data, valid_taxa[ii], binSize, imageVolume) %>%
-      dplyr::mutate(., taxa = valid_taxa[ii])
+  for ( ii in seq_len(length(valid_category))){
+    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume) %>%
+      dplyr::mutate(., category = valid_category[ii])
   }
 
-  names(conc_dat) <- valid_taxa
+  names(conc_dat) <- valid_category
 
-  taxa_conc <- do.call(rbind, conc_dat)
+  category_conc <- do.call(rbind, conc_dat)
 
-  taxa_conc_n <- taxa_conc %>%
+  category_conc_n <- category_conc %>%
     dplyr::mutate(., station = station_of_interest)
 
-  return(taxa_conc_n)
+  return(category_conc_n)
 }
 
 #' Binned concentrations
 #'
-#' This function produces depth binned concentrations for a specified taxa. Similar to \code{\link{bin_cast}} but calculates concentrations for only one taxa.
+#' This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.
 #' Used inside \code{\link{vpr_roi_concentration}}
 #'
 #'
 #' @param data dataframe produced by processing internal to vpr_roi_concentration
-#' @param taxa name of taxa isolated
+#' @param category name of category isolated
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
 #' @param rev Logical value defining direction of binning, FALSE - bins will be
@@ -470,11 +471,11 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 #' @author E. Chisholm
 #'
 #' @export
-concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE){
+concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE){
   . <- NA # avoid CRAN notes
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
-  nontaxa <-
+  noncategory <-
     c(
       'time_ms',
       'conductivity',
@@ -495,11 +496,11 @@ concentration_category <- function(data, taxa, binSize, imageVolume, rev = FALSE
       'depth'
     )
   dt <- data %>%
-    dplyr::select(., nontaxa, taxa)
+    dplyr::select(., noncategory, category)
 
-  # get n_roi of only one taxa
+  # get n_roi of only one category
   names(dt) <-
-    gsub(names(dt), pattern = taxa, replacement = 'n_roi')
+    gsub(names(dt), pattern = category, replacement = 'n_roi')
 
   # format into oce ctd
   ctd_roi_oce <- vpr_oce_create(dt)
@@ -684,7 +685,7 @@ if(length(ctd_files) == 0){
 #'
 #'Combines CTD data (time, hydrographic parameters), with ROI information
 #'(identification number) into single dataframe, aligning ROI identification
-#'numbers and taxa classifications with time and hydrographic parameters
+#'numbers and category classifications with time and hydrographic parameters
 #'
 #'@author E. Chisholm & K. Sorochan
 #'
@@ -712,10 +713,10 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 
 
   # Get total number of rois per frame
-  taxas <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
-  taxa_col_id <- which(colnames(roi_dat_combine) %in% taxas)
-  taxa_subset <- roi_dat_combine[,taxa_col_id]
-  n_roi_total <- base::rowSums(taxa_subset)
+  categorys <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
+  category_col_id <- which(colnames(roi_dat_combine) %in% categorys)
+  category_subset <- roi_dat_combine[,category_col_id]
+  n_roi_total <- base::rowSums(category_subset)
   roi_dat_2 <- data.frame(roi_dat_combine, n_roi_total)
 
   # Combine subsetted CTD and roi data
@@ -764,9 +765,9 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #' auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
 #' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 #'
-#' #'   # Path to aid for each taxa
+#' #'   # Path to aid for each category
 #' aid_path <- paste0(auto_id_path, '/aid/')
-#' # Path to mea for each taxa
+#' # Path to mea for each category
 #' aidmea_path <- paste0(auto_id_path, '/aidmea/')
 #'
 #' # AUTO ID FILES
@@ -811,7 +812,7 @@ vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of
   # set-up for only processing aid data
   if(missing(file_list_aidmeas)){export <- 'aid'}
   # avoid CRAN notes
-  . <- roi <- taxa <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
+  . <- roi <- category <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
 if( export == 'aidmeas'){
   if (missing(opticalSetting)){
     opticalSetting <- NA
@@ -833,7 +834,7 @@ if( export == 'aidmeas'){
 
 
 
-    data_tmp$taxa <- unlist(unique(vpr_category(file_list_aid[i])[[1]]))
+    data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i])[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
     if(length(day) >1 | length(hour) >1){
@@ -854,12 +855,12 @@ if( export == 'aidmeas'){
   dat_combine_aid$id <- row.names(dat_combine_aid)
 
 
-  # Get tabulated rois per time by taxa
+  # Get tabulated rois per time by category
   roi_df <- dat_combine_aid %>%
     dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
-    dplyr::group_by(., taxa, roi) %>%
+    dplyr::group_by(., category, roi) %>%
     dplyr::summarise(., n_roi = dplyr::n(), .groups = NULL) %>%
-    tidyr::spread(., taxa, n_roi) %>%
+    tidyr::spread(., category, n_roi) %>%
     dplyr::mutate(., time_ms = as.numeric(roi))
 
   roi_dat <- data.frame(roi_df)
@@ -884,7 +885,7 @@ if(!is.na(opticalSetting)){
 
 
 
-  data_tmp$taxa <- unlist(vpr_category(file_list_aidmeas[i]))
+  data_tmp$category <- unlist(vpr_category(file_list_aidmeas[i]))
   day <- unlist(vpr_day(file_list_aidmeas[i]))
   hour <- unlist(vpr_hour(file_list_aidmeas[i]))
   data_tmp$day_hour <- paste(day, hour, sep = ".")
@@ -899,9 +900,9 @@ if(!is.na(opticalSetting)){
 
   # Get roi measurement data frame
   dat_combine_selected <- dat_combine_aidmeas %>%
-    dplyr::select(., taxa, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
+    dplyr::select(., category, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
 
-  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('taxa', 'day_hour', 'id') ) %>%
+  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('category', 'day_hour', 'id') ) %>%
     dplyr::select(., - id) %>%
     dplyr::mutate(., station = station_of_interest) %>%
     dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
@@ -1048,13 +1049,13 @@ normalize_matrix <- function(mat){
 #' Get size data from idsize files
 #'
 #'
-#' useful for getting size distribution of known rois from each taxa. gathers
+#' useful for getting size distribution of known rois from each category. gathers
 #' size information from idsize text files produced when training a new
 #' classifier in VP (Visual Plankton)
 #'
 #'
 #'@param directory cruise directory eg. 'C:/data/IML2018051/'
-#'@param taxa list of character elements containing taxa of interest
+#'@param category list of character elements containing category of interest
 #'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
 #'
 #' @export
@@ -1065,14 +1066,14 @@ normalize_matrix <- function(mat){
 #
 # }
 
-vpr_trrois_size <- function(directory, taxa, opticalSetting){
+vpr_trrois_size <- function(directory, category, opticalSetting){
 
-  #loop for each taxa of interest
-  for (t in taxa){
+  #loop for each category of interest
+  for (t in category){
     #check
-    # g <- grep(taxa_names, pattern = t)
+    # g <- grep(category_names, pattern = t)
     # if (length(g) == 0){
-    #   stop(paste('Taxa of interest, ', t, 'not found in data provided!'))
+    #   stop(paste('category of interest, ', t, 'not found in data provided!'))
     # }
     #
     size_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('mea.', t))
@@ -1421,17 +1422,17 @@ vpr_roi <- function(x) {
 }
 
 
-#' Get taxa ids from string
+#' Get category ids from string
 #'
 #' @author K Sorochan
 #'
-#' @param x A string specifying the directory of the "taxafolder", containing the taxa id
+#' @param x A string specifying the directory of the "categoryfolder", containing the category id
 #'
-#' @return A string of only the taxa id
+#' @return A string of only the category id
 #'
 #' @examples
-#' taxa_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-#' vpr_category(taxa_string)
+#' category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+#' vpr_category(category_string)
 #'
 #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
 #' @export
@@ -1439,7 +1440,7 @@ vpr_roi <- function(x) {
 #'
 vpr_category <- function(x) {
 # TODO if x is a list
-  taxa_ids <- c(
+  category_ids <- c(
     "bad_image_blurry",
     "bad_image_malfunction",
     "bad_image_strobe",
@@ -1461,18 +1462,18 @@ vpr_category <- function(x) {
     'cnidarians'
   )
 
-  for(i in seq_len(length(taxa_ids))) {
+  for(i in seq_len(length(category_ids))) {
 
-    taxa_id <- taxa_ids[i]
+    category_id <- category_ids[i]
 
-    m_tmp <- gregexpr(taxa_id, x)
+    m_tmp <- gregexpr(category_id, x)
 
     if (m_tmp[[1]][1] > 0) {
 
       m <- m_tmp
 
     } else{
-      # stop('Taxa ID not found! Check internal list of taxa options!')
+      # stop('category ID not found! Check internal list of category options!')
     }
 
   }
@@ -1673,14 +1674,14 @@ vpr_autoid_check <- function(basepath, cruise, del){
   on.exit(closeAllConnections()) # make sure text file gets closed
 
 
-  taxa_folders <- list.files(basepath, full.names = TRUE)
+  category_folders <- list.files(basepath, full.names = TRUE)
 
   withr::with_output_sink(paste0(cruise,'_aid_file_check.txt'), code = {
   # sink(paste0(cruise,'_aid_file_check.txt'))
-  # loop through each taxa
+  # loop through each category
 
-  for (i in seq_len(length(taxa_folders))){
-    path <- taxa_folders[i]
+  for (i in seq_len(length(category_folders))){
+    path <- category_folders[i]
 
     # get all files (aid )
     aid_fns <- list.files(file.path(path, 'aid'), full.names = TRUE)
@@ -1701,7 +1702,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
         empty_ind[ii] <- FALSE
       }
     }
-    cat('Empty file check complete for', taxa_folders[i], '\n')
+    cat('Empty file check complete for', category_folders[i], '\n')
 
     if (del == TRUE){
     # automated deleteion of empty files
@@ -1798,15 +1799,15 @@ vpr_autoid_check <- function(basepath, cruise, del){
 
 
       }
-      cat('VPR tow number check complete, ', taxa_folders[i], '\n')
+      cat('VPR tow number check complete, ', category_folders[i], '\n')
 
 
       #### SIZE / ROI FILE LENGTH CHECK
 
       # check that aid and aid mea files are same length
       # find files
-      sizefiles <- list.files(paste(taxa_folders[i],'aidmea',sep='\\'), full.names = TRUE)
-      roifiles <- list.files(paste(taxa_folders[i],'aid',sep='\\'), full.names=TRUE)
+      sizefiles <- list.files(paste(category_folders[i],'aidmea',sep='\\'), full.names = TRUE)
+      roifiles <- list.files(paste(category_folders[i],'aid',sep='\\'), full.names=TRUE)
 
       if(length(sizefiles) != length(roifiles)){
         cat('Mismatched number of size and roi files! \n')
@@ -1825,20 +1826,20 @@ vpr_autoid_check <- function(basepath, cruise, del){
         }
       }
 
-      cat('File size check complete, ', taxa_folders[i], '\n')
+      cat('File size check complete, ', category_folders[i], '\n')
       cat('\n')
       cat('------------ \n')
       cat('\n')
 
     }else{
-      cat('All files are empty, ', taxa_folders[i], '\n')
+      cat('All files are empty, ', category_folders[i], '\n')
       cat('No other checks completed \n')
       cat('\n')
       cat('------------ \n')
       cat('\n')
 
 
-    } # end if all files are empty for taxa
+    } # end if all files are empty for category
 
   }
 
@@ -1851,20 +1852,20 @@ vpr_autoid_check <- function(basepath, cruise, del){
 
 
 #deprecated ----------------------------------------------------------------------------------------------------------------------
-getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSetting) {
+getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', opticalSetting) {
 
   #' THIS FUNCTION HAS BEEN DEPRECATED
   #'
-  #' pull roi measurements from all taxa, all files
+  #' pull roi measurements from all category, all files
   #'
-  #' @param taxafolder path to taxa folder (base -- autoid folder)
+  #' @param categoryfolder path to category folder (base -- autoid folder)
   #' @param nchar_folder number of characters in basepath
   #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
   #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
   #'
   #' @note This function is very finicky, easily broken because it relies on character string splitting.
-  #' taxaFolder argument should not end in a backslash, please check output carefully to
-  #' ensure taxa names or ROI numbers have been properly sub string'd
+  #' categoryFolder argument should not end in a backslash, please check output carefully to
+  #' ensure category names or ROI numbers have been properly sub string'd
   #' @export
   #browser()
 
@@ -1873,13 +1874,13 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 
   .Deprecated('vpr_autoid_read')
 
-  auto_measure_mm_alltaxa_ls <- list()
+  auto_measure_mm_allcategory_ls <- list()
   # browser()
-  for (i in seq_len(length(taxafolder))) {
+  for (i in seq_len(length(categoryfolder))) {
     # print(paste( 'i = ',i))
     #find files
-    sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = TRUE)
-    roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=TRUE)
+    sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = TRUE)
+    roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=TRUE)
 
     #remove dummy files for vpr_manual_classification
     #check for dummy files
@@ -1893,7 +1894,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
       roifiles <- roifiles[-rfd]
 
     }
-    #skip for blank taxa
+    #skip for blank category
     #browser()
     if(length(roifiles) == 0){
       SKIP = TRUE
@@ -1901,14 +1902,14 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
       #browser()
       #i = i+1
       #find files
-      # sizefiles <- list.files(paste(taxafolder[i],'aidmea',sep='\\'), full.names = T)
-      # roifiles <- list.files(paste(taxafolder[i],'aid',sep='\\'), full.names=T)
+      # sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = T)
+      # roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=T)
 
     } else{
       SKIP = FALSE
       # print(paste(i, 'SKIP == FALSE'))
 
-      #prevent mixing of taxa in same list where some hours were not properly being overwirtten
+      #prevent mixing of category in same list where some hours were not properly being overwirtten
       auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
 
 
@@ -1928,7 +1929,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
           auto_measure_px <- read.table(sizefile, stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
 
         } else {
-          # print(paste('cannot open roi file from ', taxafolder[i]))
+          # print(paste('cannot open roi file from ', categoryfolder[i]))
           #      print(roifiles)
           stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
         }
@@ -1950,21 +1951,21 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
         #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, vpr_roi)
 
-        #taxa <- substr(taxafolder[i], nchar_folder + 2, nchar(taxafolder[i])) #Get taxa label
-        #taxa <- substr(taxafolder[i], nchar_folder + 1, nchar(taxafolder[i])) #Get taxa label
+        #category <- substr(categoryfolder[i], nchar_folder + 2, nchar(categoryfolder[i])) #Get category label
+        #category <- substr(categoryfolder[i], nchar_folder + 1, nchar(categoryfolder[i])) #Get category label
 
-        #auto_measure_mm$taxa <- rep(taxa, nrow(auto_measure_mm)) #add taxa to dataset
+        #auto_measure_mm$category <- rep(category, nrow(auto_measure_mm)) #add category to dataset
 
 
         #day_hour <- substr(sizefile, nchar(sizefile) - 7, nchar(sizefile))
         #auto_measure_mm$day_hour <- rep(day_hour, nrow(auto_measure_mm))
-        #saveRDS(auto_measure_mm, paste(taxafolder, "/", "measurements_mm_", taxa[i], ".RDS", sep=""))
+        #saveRDS(auto_measure_mm, paste(categoryfolder, "/", "measurements_mm_", category[i], ".RDS", sep=""))
 
-        taxafolder_tmp <- taxafolder[i]
+        categoryfolder_tmp <- categoryfolder[i]
         # browser()
         auto_measure_mm <- auto_measure_mm_tmp %>%
           dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, vpr_roi))) %>%
-          dplyr::mutate(., taxa = unlist(lapply(taxafolder_tmp, vpr_category))) %>%
+          dplyr::mutate(., category = unlist(lapply(categoryfolder_tmp, vpr_category))) %>%
           dplyr::mutate(., day = unlist(lapply(sizefile, vpr_day))) %>%
           dplyr::mutate(., hour = unlist(lapply(sizefile, vpr_hour))) %>%
           dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
@@ -1975,7 +1976,7 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
         if(auto_measure_mm$day[1] == 'd240.h09' ){
           # browser()
           #cat('d240.h09')
-          # cat(taxafolder[i], '\n')
+          # cat(categoryfolder[i], '\n')
           #cat('number of ROIs: ', length(auto_measure_mm$roi_ID), '\n')
           #cat('number of unique ROIs: ', length(unique(auto_measure_mm$roi_ID)), '\n')
 
@@ -1984,18 +1985,18 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 
       }
 
-      auto_measure_mm_alltaxa_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
+      auto_measure_mm_allcategory_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
       #browser()
 
-      # print(paste('completed', taxafolder[i]))
+      # print(paste('completed', categoryfolder[i]))
     }
   }
 
 
 
-  auto_measure_mm_alltaxa_df <- do.call(rbind, auto_measure_mm_alltaxa_ls)
+  auto_measure_mm_allcategory_df <- do.call(rbind, auto_measure_mm_allcategory_ls)
   #browser()
-  return(auto_measure_mm_alltaxa_df)
+  return(auto_measure_mm_allcategory_df)
 
 
 
@@ -2009,12 +2010,12 @@ getRoiMeasurements <- function(taxafolder, nchar_folder, unit = 'mm', opticalSet
 
 #' Size Frequency plots for VPR data
 #'
-#' This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a taxa.
+#' This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a category.
 #' \strong{!!WARNING:} this function uses hard coded plot attributes
 #'
 #' @author K. Sorochan
 #'
-#' @param x a data frame with columns 'taxa', 'long_axis_length'
+#' @param x a data frame with columns 'category', 'long_axis_length'
 #' @param number_of_classes numeric value passed to nclass argument in hist()
 #' @param colour_of_bar character value defining colour of plotted bars
 #'
@@ -2030,23 +2031,23 @@ vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
   # avoid CRAN notes
   . <- NA
   data <- x
-  taxa <- unique(data$taxa)
+  category <- unique(data$category)
 
-  for(i in seq_len(length(taxa))) {
+  for(i in seq_len(length(category))) {
 
     # par(mfrow = c(1,2))
     withr::with_par(mfrow = c(1,2), code = {
 
-    taxa_id <- taxa[i]
+    category_id <- category[i]
 
     data_hist <- data %>%
-      dplyr::filter(., taxa == taxa_id)
+      dplyr::filter(., category == category_id)
 
     data_hist2 <- data_hist$long_axis_length
 
-    hist(data_hist2, nclass = number_of_classes, col = colour_of_bar, xlab = "Long axis of bug (mm)", main = taxa_id) #Eventually you will want to loop through taxa
+    hist(data_hist2, nclass = number_of_classes, col = colour_of_bar, xlab = "Long axis of bug (mm)", main = category_id) #Eventually you will want to loop through category
 
-    if(length(taxa) == 1) {
+    if(length(category) == 1) {
 
       plot.new()
 
@@ -2116,7 +2117,7 @@ vpr_plot_TS <- function(x, reference.p = 0, var){
 
   #' Make a balloon plot against a TS plot
   #'
-  #' TS balloon plot with ROI concentration, sorted by taxa
+  #' TS balloon plot with ROI concentration, sorted by category
   #' includes isopycnal line calculations
   #'
   #' @author E. Chisholm
@@ -2181,12 +2182,12 @@ vpr_plot_TS <- function(x, reference.p = 0, var){
                            max(round(TS$density*2)/2, na.rm = TRUE),
                            by = .5)) +
                            geom_text_contour(data = TS, aes(x = sal, y =pot.temp, z= density),binwidth = 0.5, col = 'grey', nudge_x = 0.1)+ #CONTOUR LABELS
-                           #roi data sorted by number of rois and taxa
+                           #roi data sorted by number of rois and category
                            geom_point(data = x, aes(x = salinity, y = temperature, size = ", var, "), shape = 21) +
                            scale_size_area(max_size=10)+ #make balloons bigger
                            #label legends
                            labs(size = expression('Concentration /m'^3)) +
-                           labs(col = 'Taxa')+
+                           labs(col = 'category')+
                            #set x axis (ensure scaling to data)
                            scale_x_continuous(name = 'Salinity [PSU]', expand = c(0,0),
                            limits = c(floor(min(x$salinity, na.rm = TRUE)), ceiling(max(x$salinity, na.rm = TRUE)))) + # use range of 'sal' for x axis
@@ -2220,15 +2221,15 @@ vpr_plot_TScat <- function(x, reference.p = 0){
 
   #' Make a balloon plot
   #'
-  #' Balloon plot against a TS plot with ROI concentration and sorted by taxa
-  #' includes isopycnal line calculations. Version of \code{\link{vpr_plot_TS}}, with only relevant* taxa specified.
+  #' Balloon plot against a TS plot with ROI concentration and sorted by category
+  #' includes isopycnal line calculations. Version of \code{\link{vpr_plot_TS}}, with only relevant* category specified.
   #' *to current analysis and research objectives (See note).
   #'
   #'
-  #' @note \strong{WARNING HARD CODED} FOR  5 TAXA, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
+  #' @note \strong{WARNING HARD CODED} FOR  5 category, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
   #' !! Uses isopycnal labelling method which does not label every contour
   #'
-  #' @param x dataframe with temperature, salinity, number of rois named by taxa
+  #' @param x dataframe with temperature, salinity, number of rois named by category
   #' @param reference.p reference pressure (default at 0 for surface)- used to calculate isopycnals
   #'
   #'
@@ -2276,10 +2277,10 @@ vpr_plot_TScat <- function(x, reference.p = 0){
     v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
   }
 
-  #initialize taxa
-  #WARNING HARD CODING, 5 TAXA
+  #initialize category
+  #WARNING HARD CODING, 5 category
   cols <- c('t1' = 'darkorchid3', 't2' = 'deeppink3', 't3' = 'dodgerblue3', 't4' = 'tomato3', 't5' = 'gold3')
-  taxas <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
+  categorys <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
   #plot
   p <- ggplot()+
     #isopycnal lines
@@ -2287,7 +2288,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
                  breaks = seq(min(round(TS$density*2)/2, na.rm = TRUE), # taking density times 2, rounding and dividing by 2 rounds it to the neares 0.5
                               max(round(TS$density*2)/2, na.rm = TRUE),
                               by = .5)) +
-    #roi data sorted by number of rois and taxa
+    #roi data sorted by number of rois and category
     geom_point(data = x, aes(x = salinity, y = temperature, size = calanus, col = 't1' ), shape = 21) +
     #geom_point(data = x, aes(x = salinity, y = temperature, size = marine_snow), shape = 21) +
     #geom_point(data = x, aes(x = salinity, y = temperature, size = stick), shape = 21) +
@@ -2295,11 +2296,11 @@ vpr_plot_TScat <- function(x, reference.p = 0){
     geom_point(data = x, aes(x = salinity, y = temperature, size = small_copepod, col = 't3'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = krill, col = 't4'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = echinoderm_larvae, col = 't5'), shape = 21) +
-    scale_colour_manual(name = 'Taxas', values = cols, guide = guide_legend(), labels = taxas) +
+    scale_colour_manual(name = 'categorys', values = cols, guide = guide_legend(), labels = categorys) +
     scale_size_area(max_size=10)+ #make balloons bigger
     #label legends
     labs(size = 'Number of \n ROIs') +
-    #labs(col = 'Taxa')+
+    #labs(col = 'category')+
     #set x axis (ensure scaling to data)
     scale_x_continuous(name = "salinity", expand = c(0,0),
                        limits = c(floor(min(x$salinity, na.rm = TRUE)), ceiling(max(x$salinity, na.rm = TRUE)))) + # use range of "sal" for x axis
@@ -2393,7 +2394,7 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL
   if (addLabels == TRUE){
     #find diagonal values
     acc <- confusion$Freq[confusion$Var1 == confusion$Var2]
-    #for each taxa
+    #for each category
     for (i in seq_len(length(unique(confusion$Var1)))){
       #add text label
       p <- p + annotate('text', x = i, y = i, #position on diagonal
@@ -2442,8 +2443,8 @@ vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL)
   #'
   #'@author E. Chisholm
   #' @param param size parameter of interest (corresponds to sub lists within data argument)
-  #' @param data  size data from auto_measure_mm subset into taxas
-  #' @param title main title for plot, if left null will default based on parameter and taxa
+  #' @param data  size data from auto_measure_mm subset into categorys
+  #' @param title main title for plot, if left null will default based on parameter and category
   #' @param bw bin width, defines width of bars on histogram, defaults to 0.1, decrease for more detail
   #' @param xlim plot xlimit, defaults to min max of data if not provided
   #'
@@ -2457,7 +2458,7 @@ vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL)
 
 
   if (is.null(title)){
-    title <- paste(param , ':', data$taxa[1])
+    title <- paste(param , ':', data$category[1])
   }
   if(is.null(xlim)){
     xlim <- c(min(data[[param]]), max(data[[param]]))
@@ -2483,7 +2484,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
   #'
   #'
   #' @param cm dual unknown confusion matrix from VP
-  #' @param classes taxa groups in order, from VP
+  #' @param classes category groups in order, from VP
   #' @param threshold minimum value which will be labelled in plot
   #' @param sample_size character string describes the sample size used to train the model being plotted (optional)
   #' @param summary logical to add text summary to plot
@@ -2493,7 +2494,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
   #' @export
 
   # avoid CRAN notes
-  Var1 <- Var2 <- Freq <- taxas <- NA
+  Var1 <- Var2 <- Freq <- categorys <- NA
   dimcm <- dim(cm)
   #remove total columns
   conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
@@ -2549,7 +2550,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
       c(
         'Sample Size' = sample_size , #update for different sizes
         'Total Disagreement' = sum(confusion$Freq),
-        'Average loss per taxa' = round(sum(confusion$Freq)/length(taxas), digits = 0)
+        'Average loss per category' = round(sum(confusion$Freq)/length(categorys), digits = 0)
       )
     )
 
@@ -2700,25 +2701,25 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
 #'
 #'
 #' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
-#' Facet wrap is used to create distinct panels for each taxa provided
+#' Facet wrap is used to create distinct panels for each category provided
 #'
-#' @param taxa_conc_n A VPR data frame with hydrographic and concentration data separated by taxa (from \code{\link{vpr_roi_concentration}})
-#' @param taxa_to_plot The specific classification groups which will be plotted, if NULL, will plot all taxa combined
+#' @param category_conc_n A VPR data frame with hydrographic and concentration data separated by category (from \code{\link{vpr_roi_concentration}})
+#' @param category_to_plot The specific classification groups which will be plotted, if NULL, will plot all category combined
 #' @param plot_conc Logical value whether or not to include a concentration plot (FALSE just shows CTD data)
 #'
 #' @return A gridded object of at least 3 ggplot objects
 #' @export
 
-vpr_plot_profile <- function(taxa_conc_n, taxa_to_plot, plot_conc){
+vpr_plot_profile <- function(category_conc_n, category_to_plot, plot_conc){
   # check that depth is present
-  if(!'depth' %in% names(taxa_conc_n)){
+  if(!'depth' %in% names(category_conc_n)){
     stop("These plots require a 'depth' variable!")
   }
 
   # avoid CRAN notes
   temperature <- depth <- salinity <- fluorescence <- density <- conc_m3 <- pressure <- NA
 # plot temp
-p <- ggplot(taxa_conc_n) +
+p <- ggplot(category_conc_n) +
   geom_point(aes(x = temperature, y = depth), col = 'red') +
   scale_y_reverse(name = 'Depth [m]')
 # plot salinity
@@ -2736,7 +2737,7 @@ p_TS <- p + geom_point(aes(x = (salinity -25), y = depth), col = 'blue') +
 # have to force rescale for multi axes ggplot
 
 # plot fluorescence
-p <- ggplot(taxa_conc_n) +
+p <- ggplot(category_conc_n) +
   geom_point(aes(x = fluorescence, y = depth), col = 'green') +
   scale_y_reverse(name = 'Depth [m]')
 
@@ -2754,8 +2755,8 @@ p_FD <- p + geom_point(aes(x = (density  -20) *20, y = depth)) +
 # manual rescale
 
 
-if(is.null(taxa_to_plot)){
-  pp <- ggplot(taxa_conc_n) +
+if(is.null(category_to_plot)){
+  pp <- ggplot(category_conc_n) +
     geom_point(aes(x = depth, y = conc_m3/1000)) + #conversion of m3 to L using default density
     stat_summary_bin(aes(x = depth, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
     scale_x_reverse(name = 'Depth [m]') +
@@ -2767,14 +2768,14 @@ if(is.null(taxa_to_plot)){
           axis.title = element_text(size = 20))+
     coord_flip()
 }else{
-# facet wrap plot all taxa, if only one taxa, comment out facet wrap
-pp <- ggplot(taxa_conc_n[taxa_conc_n$taxa %in% c(taxa_to_plot),]) +
+# facet wrap plot all category, if only one category, comment out facet wrap
+pp <- ggplot(category_conc_n[category_conc_n$category %in% c(category_to_plot),]) +
   geom_point(aes(x = depth, y = conc_m3/1000)) + #conversion of m3 to L using default density
   stat_summary_bin(aes(x = depth, y = conc_m3/1000), fun = 'mean', col = 'red', geom = 'line', size = 3)  +
   scale_x_reverse(name = 'Depth [m]') +
   scale_y_continuous(name = expression('ROI L'^'-1')) +
   # ggtitle('Concentrations') +
-  facet_wrap(~taxa, nrow = 1, ncol = length(unique(taxa_conc_n$taxa)), scales = 'free_x')+
+  facet_wrap(~category, nrow = 1, ncol = length(unique(category_conc_n$category)), scales = 'free_x')+
   theme_classic() +
   theme(strip.text = element_text(size = 18),
         plot.title = element_text(size = 25),
@@ -2803,14 +2804,14 @@ return(p)
 #' @param day Character string, 3 digit day of interest of VPR data
 #' @param hour Character string, 2 digit hour of interest of VPR data
 #' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
-#' @param taxa_of_interest Classification group from which to pull images
+#' @param category_of_interest Classification group from which to pull images
 #' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized
 #'
 #' @return folders of misclassified or reclassified images inside image_dir
 #' @export
 #'
 #'
-vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_dir){
+vpr_img_reclassified <- function(day, hour, base_dir, category_of_interest, image_dir){
 
   ####directory where misclassified/reclassified files
   ####base_dir <- 'C:/VPR_PROJECT/r_project_data_vis/classification files/'
@@ -2827,20 +2828,20 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
 
   folder <- list.files(base_dir, pattern = day_hour, full.names = TRUE)
 
-  files <- list.files(folder, pattern = taxa_of_interest)
+  files <- list.files(folder, pattern = category_of_interest)
 
   #pulls out missclassified files
   #(you only want to look at images
-  #you have reclassified as specific taxa - select "n" if pop up appears)
+  #you have reclassified as specific category - select "n" if pop up appears)
 
   #only exception (reason to select "y",
-  #would be to look specifically at images that you pulled out of a taxa,
+  #would be to look specifically at images that you pulled out of a category,
   #for example to check the accuracy of an automatic ID scheme)
   tt <- grep(files, pattern = 'misclassified')
   if (length(tt) > 0 ){
-    warning(paste('misclassified files found for ', taxa_of_interest))
+    warning(paste('misclassified files found for ', category_of_interest))
     ans <- readline('Would you like to include these files? (y/n)
-                    *NOTE, looking at misclassified images will show you images that were removed from you taxa of interest
+                    *NOTE, looking at misclassified images will show you images that were removed from you category of interest
                     during reclassification, this may be useful to get an idea of the accuracy of your automatic
                     classification or which images are confusing your automatic classification.')
     if(ans == 'n'){
@@ -2852,7 +2853,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
     }
   }
 
-  message(paste('>>>>>', files, 'found for', taxa_of_interest, ' in ', day_hour, '!'))
+  message(paste('>>>>>', files, 'found for', category_of_interest, ' in ', day_hour, '!'))
   message('>>>>> Copying images now!')
 
 
@@ -2871,7 +2872,7 @@ vpr_img_reclassified <- function(day, hour, base_dir, taxa_of_interest, image_di
     new_roi_path <- file.path(image_dir, sub_roi_path, fsep = "\\")
 
     #Create a new folder for autoid rois (where images will be stored)
-    roi_folder <- file.path(image_dir, taxa_of_interest, folder_name, fsep = "\\")
+    roi_folder <- file.path(image_dir, category_of_interest, folder_name, fsep = "\\")
     command1 <- paste('mkdir', roi_folder, sep = " ")
     shell(command1)
 
@@ -2900,7 +2901,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #' Explore VPR images by depth bin
   #'
   #' Allows user to pull VPR images from specific depth ranges, to investigate
-  #' trends before classification of images into taxa groups
+  #' trends before classification of images into category groups
   #'
   #'
   #'
@@ -2989,7 +2990,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
 }
 
 
-vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = 'list', taxa_of_interest){
+vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = 'list', category_of_interest){
 
   #' Explore images by depth and classification
   #'
@@ -3008,7 +3009,7 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #'   C:/data, but will be quicker to process with more specific file path)
   #' @param format option of how images will be output, either as 'list' a list
   #'   of file names or 'image' where images will be displayed
-  #' @param taxa_of_interest character string of classification group from which
+  #' @param category_of_interest character string of classification group from which
   #'   to pull images
   #'
   #' @export
@@ -3020,29 +3021,29 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   # #run image exploration
   # roi_files <- vpr_img_category(all_dat, min.depth = mid, max.depth = mad,
   # roiFolder = paste0('E:/data/IML2018051/rois/vpr', tow ), format = 'list',
-  # taxa = 'Calanus')
+  # category = 'Calanus')
   #
   # #copy image files into new directory to be browsed
   # roi_file_unlist <- unlist(roi_files)
-  # newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', taxa))
+  # newdir <- file.path(plotdir, paste0('vpr', tow, 'images_', mid, '_', mad, '_', category))
   # dir.create(newdir)
   # file.copy(roi_file_unlist, newdir)
   #
   #
 
   # avoid CRAN notes
-  . <- pressure <- taxa <- roi <- NA
-  if(length(taxa_of_interest) > 1){
-    stop("Only explore one taxa at a time!")
+  . <- pressure <- category <- roi <- NA
+  if(length(category_of_interest) > 1){
+    stop("Only explore one category at a time!")
   }
 
   data_filtered <- data %>%
     dplyr::filter(., pressure >= min.depth) %>%
     dplyr::filter(., pressure <= max.depth) %>%
-    dplyr::filter(., taxa %in% taxa_of_interest)
+    dplyr::filter(., category %in% category_of_interest)
 
   if(length(data_filtered$roi) < 1){
-    stop('No data exists within this depth and taxa range!')
+    stop('No data exists within this depth and category range!')
   }
 
 
@@ -3087,17 +3088,17 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
 }
 
 
-vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
-  #' Image copying function for specific taxa of interest
+vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
+  #' Image copying function for specific category of interest
   #'
-  #' This function can be used to copy images from a particular taxa, day and hour into distinct folders within the auto id directory
+  #' This function can be used to copy images from a particular category, day and hour into distinct folders within the auto id directory
   #' This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
   #' images not matching classification group descriptions.
   #'
   #'
   #'
   #' @param auto_id_folder eg "D:/VP_data/IML2018051/autoid"
-  #' @param taxas.of.interest eg. taxas.of.interest <- c('Calanus')
+  #' @param categorys.of.interest eg. categorys.of.interest <- c('Calanus')
   #' @param day character, day of interest
   #' @param hour character, hour of interest
   #'
@@ -3110,7 +3111,7 @@ vpr_img_copy <- function(auto_id_folder, taxas.of.interest, day, hour){
   folder_names <- list.files(auto_id_folder)
 
 
-  folder_names <- folder_names[folder_names %in% taxas.of.interest]
+  folder_names <- folder_names[folder_names %in% categorys.of.interest]
 
 
 
@@ -3207,7 +3208,7 @@ vpr_img_check <- function(folder_dir, basepath){
   #'
   #'
   #' @param folder_dir directory path to day hour folders containing manually
-  #'   reorganized images of a specific taxa eg.
+  #'   reorganized images of a specific category eg.
   #'   'C:/data/cruise_IML2018051/krill/images/' where that folder contains
   #'   '......d123.h01/' which contains manually sorted images of krill
   #' @param basepath directory path to original Visual Plankton files, specified

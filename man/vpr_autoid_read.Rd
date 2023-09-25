@@ -47,9 +47,9 @@ imageVolume <- 83663 #mm^3
 auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
 auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
 
-#'   # Path to aid for each taxa
+#'   # Path to aid for each category
 aid_path <- paste0(auto_id_path, '/aid/')
-# Path to mea for each taxa
+# Path to mea for each category
 aidmea_path <- paste0(auto_id_path, '/aidmea/')
 
 # AUTO ID FILES

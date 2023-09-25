@@ -8,7 +8,7 @@ vpr_img_check(folder_dir, basepath)
 }
 \arguments{
 \item{folder_dir}{directory path to day hour folders containing manually
-reorganized images of a specific taxa eg.
+reorganized images of a specific category eg.
 'C:/data/cruise_IML2018051/krill/images/' where that folder contains
 '......d123.h01/' which contains manually sorted images of krill}
 

@@ -36,7 +36,7 @@ binSize <- 5
 station_of_interest <- 'test'
 imageVolume <- 83663
 
-taxa_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
+category_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
 station_of_interest, binSize, imageVolume)
 
 }

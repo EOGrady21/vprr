@@ -10,7 +10,7 @@ vpr_img_category(
   max.depth,
   roiFolder,
   format = "list",
-  taxa_of_interest
+  category_of_interest
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ C:/data, but will be quicker to process with more specific file path)}
 \item{format}{option of how images will be output, either as 'list' a list
 of file names or 'image' where images will be displayed}
 
-\item{taxa_of_interest}{character string of classification group from which
+\item{category_of_interest}{character string of classification group from which
 to pull images}
 }
 \description{

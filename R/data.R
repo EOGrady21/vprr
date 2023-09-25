@@ -32,7 +32,7 @@
 #'   \item{roi}{Unique ROI identification number - 10
 #'   digits, 8 digit millisecond time stamp and two unique digits to denote
 #'   multiple ROIs within a millisecond}
-#'   \item{taxa}{Category in which ROI has
+#'   \item{category}{Category in which ROI has
 #'   been classified by Visual Plankton}
 #'   \item{day_hour}{Day and hour in which
 #'   data was collected, from AutoDeck processing}
@@ -76,10 +76,10 @@
 #'   \item{vol_sampled_bin_m3}{The volume of the bin sampled in metres cubed}
 #'   \item{toyo}{Identifier of the tow-yo section which bin is a part of, either ascending or descending, appended by a number}
 #'   \item{max_cast_depth}{The maximum depth of the entire VPR cast}
-#'   \item{taxa}{The category in which ROIs in bin have been classified by Visual Plankton}
+#'   \item{category}{The category in which ROIs in bin have been classified by Visual Plankton}
 #'   \item{station}{Station identifier provided during processing}
 #' }
-"taxa_conc_n"
+"category_conc_n"
 
 
 #' VPR CTD data combined with tabulated ROIs
@@ -121,7 +121,7 @@
 #' @format A data frame with 12 variables
 #'   \describe{
 #'     \item{roi}{Unique ROI identifier - 10 digit}
-#'     \item{taxa}{Category in which ROI has been classified by Visual Plankton}
+#'     \item{category}{Category in which ROI has been classified}
 #'     \item{day_hour}{day and hour in which data was collected (from Autodeck)}
 #'     \item{Perimeter}{The perimeter of the ROI in millimeters}
 #'     \item{Area}{The area of the ROI in millimeters}

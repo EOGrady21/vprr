@@ -29,7 +29,7 @@ millivolts (uncalibrated)}
 \item{roi}{Unique ROI identification number - 10
 digits, 8 digit millisecond time stamp and two unique digits to denote
 multiple ROIs within a millisecond}
-\item{taxa}{Category in which ROI has
+\item{category}{Category in which ROI has
 been classified by Visual Plankton}
 \item{day_hour}{Day and hour in which
 data was collected, from AutoDeck processing}

@@ -7,17 +7,17 @@
 vpr_plot_TScat(x, reference.p = 0)
 }
 \arguments{
-\item{x}{dataframe with temperature, salinity, number of rois named by taxa}
+\item{x}{dataframe with temperature, salinity, number of rois named by category}
 
 \item{reference.p}{reference pressure (default at 0 for surface)- used to calculate isopycnals}
 }
 \description{
-Balloon plot against a TS plot with ROI concentration and sorted by taxa
-includes isopycnal line calculations. Version of \code{\link{vpr_plot_TS}}, with only relevant* taxa specified.
+Balloon plot against a TS plot with ROI concentration and sorted by category
+includes isopycnal line calculations. Version of \code{\link{vpr_plot_TS}}, with only relevant* category specified.
 *to current analysis and research objectives (See note).
 }
 \note{
-\strong{WARNING HARD CODED} FOR  5 TAXA, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
+\strong{WARNING HARD CODED} FOR  5 category, CALANUS, KRILL, ECHINODERM LARVAE, SMALL COPEPOD, CHAETOGNATHS
 !! Uses isopycnal labelling method which does not label every contour
 
 modified from source: \url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
