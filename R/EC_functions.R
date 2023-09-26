@@ -580,10 +580,16 @@ vpr_oce_create <- function(data){
 
   # create oce objects
   ctd_roi_oce <- oce::as.ctd(data)
-  otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'time_hr') # TODO edit to avoid hard coding variable names
-  for ( o in otherVars){
-    eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
+  # compare oce vars to df vars
+  oce_names <- names(ctd_roi_oce@data)
+  df_names <- colnames(data)
+  if(length(oce_names) < length(df_names)){
+    warning("oce-ctd object may be missing some data columns!")
   }
+  # otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'time_hr') # TODO edit to avoid hard coding variable names
+  # for ( o in otherVars){
+  #   eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
+  # }
 
   return(ctd_roi_oce)
 }
