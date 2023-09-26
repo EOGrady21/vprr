@@ -501,7 +501,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     }
     # add reclassified rois
     # to specific category
-    recl <- grep(reclassify, pattern = category)
+    recl <- grep(reclassify, pattern = paste0("^", category, "$"))
     if (length(recl) == 0) {
       print(paste('No', category, 'to be reclassified'))
       # final files only have rois removed
@@ -516,7 +516,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       # loop should end right before files are saved
 
       reclassify_category <-
-        grep(reclassify, pattern = category, value = TRUE)
+        grep(reclassify, pattern = paste0("^", category, "$"), value = TRUE)
 
 
       # pull one reclassify file at a time
