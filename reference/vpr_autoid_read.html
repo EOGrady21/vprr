@@ -63,7 +63,8 @@
 <span>  <span class="va">export</span>,</span>
 <span>  <span class="va">station_of_interest</span>,</span>
 <span>  <span class="va">opticalSetting</span>,</span>
-<span>  warn <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  warn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">categories</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,6 +93,10 @@
 <dt>warn</dt>
 <dd><p>Logical, FALSE silences size data unit warnings</p></dd>
 
+
+<dt>categories</dt>
+<dd><p>A list object (of chr strings) with all the potential classification categories</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -111,6 +116,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">station_of_interest</span> <span class="op">&lt;-</span> <span class="st">'test'</span></span></span>
 <span class="r-in"><span><span class="va">dayhour</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'d222.h03'</span>, <span class="st">'d222.h04'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">categories</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bad_image_blurry"</span>, <span class="st">"bad_image_malfunction"</span>,</span></span>
+<span class="r-in"><span><span class="st">"bad_image_strobe"</span>, <span class="st">"Calanus"</span>, <span class="st">"chaetognaths"</span>,<span class="st">"ctenophores"</span>,<span class="st">"krill"</span>,</span></span>
+<span class="r-in"><span><span class="st">"marine_snow"</span>,<span class="st">"Other"</span>,<span class="st">"small_copepod"</span>, <span class="st">"stick"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)</span></span></span>
 <span class="r-in"><span><span class="va">opticalSetting</span> <span class="op">&lt;-</span> <span class="st">"S2"</span></span></span>
@@ -146,7 +154,8 @@
 <span class="r-in"><span>    export <span class="op">=</span> <span class="st">'aid'</span>,</span></span>
 <span class="r-in"><span>    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span></span>
 <span class="r-in"><span>    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span></span>
-<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>    categories <span class="op">=</span> <span class="va">categories</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># MEASUREMENTS</span></span></span>
@@ -157,7 +166,8 @@
 <span class="r-in"><span>    export <span class="op">=</span> <span class="st">'aidmeas'</span>,</span></span>
 <span class="r-in"><span>    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span></span>
 <span class="r-in"><span>    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span></span>
-<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>    categories <span class="op">=</span> <span class="va">categories</span></span></span>
 <span class="r-in"><span> <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

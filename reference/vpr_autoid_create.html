@@ -57,7 +57,15 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_autoid_create</span><span class="op">(</span><span class="va">reclassify</span>, <span class="va">misclassified</span>, <span class="va">basepath</span>, <span class="va">day</span>, <span class="va">hour</span>, mea <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_autoid_create</span><span class="op">(</span></span>
+<span>  <span class="va">reclassify</span>,</span>
+<span>  <span class="va">misclassified</span>,</span>
+<span>  <span class="va">basepath</span>,</span>
+<span>  <span class="va">day</span>,</span>
+<span>  <span class="va">hour</span>,</span>
+<span>  mea <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">categories</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -83,17 +91,22 @@
 
 
 <dt>mea</dt>
-<dd><p>logical indicating whether or not there are accompanying measurement files to be created</p><div class="section">
+<dd><p>logical indicating whether or not there are accompanying measurement files to be created</p></dd>
+
+
+<dt>categories</dt>
+<dd><p>A list object with all the potential classification categories</p><div class="section">
 <h3 id="examples">examples<a class="anchor" aria-label="anchor" href="#examples"></a></h3>
 
 
 <p>basepath &lt;- 'E:/autoID_EC_07032019/'
 day &lt;- '289'
 hr &lt;- '08'
+categories &lt;- c("bad_image_blurry","bad_image_malfunction","bad_image_strobe","Calanus","chaetognaths","ctenophores","krill","marine_snow","Other","small_copepod","stick")
 day_hour_files &lt;-  paste0('d', day, '.h', hr)
 misclassified &lt;- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
 reclassify &lt;- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-vpr_autoid_create(reclassify, misclassified, basepath)</p>
+vpr_autoid_create(reclassify, misclassified, basepath, categories)</p>
 </div></dd>
 
 </dl></div>
