@@ -94,7 +94,27 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
   # usethis::use_data(aidmea_file_list_all, overwrite = TRUE)
   ##### READ ROI AND MEASUREMENT DATA ------------------------------------------------------------------------------------------------------------
 
-
+  categories <- c(
+    "bad_image_blurry",
+    "bad_image_malfunction",
+    "bad_image_strobe",
+    "Calanus",
+    "chaetognaths",
+    "ctenophores",
+    "Echinoderm_larvae",
+    "krill",
+    "marine_snow",
+    "Other",
+    "small_copepod",
+    "stick",
+    "larval_fish",
+    'other_copepods',
+    'larval_crab',
+    'amphipod',
+    'Metridia',
+    'Paraeuchaeta',
+    'cnidarians'
+  )
   # ROIs
   roi_dat_combine <-
     vpr_autoid_read(
@@ -103,7 +123,8 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
       export = 'aid',
       station_of_interest = station_of_interest,
       opticalSetting = opticalSetting,
-      warn = FALSE
+      warn = FALSE,
+      categories = categories
     )
 
   # subset for size concerns
@@ -119,7 +140,8 @@ usethis::use_data(ctd_dat_combine, overwrite = TRUE)
       export = 'aidmeas',
       station_of_interest = station_of_interest,
       opticalSetting = opticalSetting,
-      warn = FALSE
+      warn = FALSE,
+      categories = categories
     )
 
   # subset for size concerns

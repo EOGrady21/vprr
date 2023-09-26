@@ -65,6 +65,8 @@ opticalSetting <- "S2"
 
 test_that("VPR autoid files are read in accurately", {
 
+  categories <- c("bad_image_blurry","bad_image_malfunction","bad_image_strobe","Calanus","chaetognaths","ctenophores","krill","marine_snow","Other","small_copepod","stick")
+
   # AID files
   expect_silent(roi_dat_combine <-
     vpr_autoid_read(
@@ -72,7 +74,8 @@ test_that("VPR autoid files are read in accurately", {
       file_list_aidmeas = aidmea_files,
       export = 'aid',
       station_of_interest = station_of_interest,
-      opticalSetting = opticalSetting
+      opticalSetting = opticalSetting,
+      categories = categories
     ))
 
 
@@ -82,7 +85,7 @@ test_that("VPR autoid files are read in accurately", {
   category_names <- names(roi_dat_combine)[-c(1,13)]
   t_names_exp <- list()
   for(i in seq_len(length(aid_files))){
-    t_names_exp[[i]] <- vpr_category(aid_files[[i]])
+    t_names_exp[[i]] <- vpr_category(aid_files[[i]], categories = categories)
   }
   t_names_exp <- unique(unlist(t_names_exp))
 
@@ -128,7 +131,8 @@ test_that("VPR autoid files are read in accurately", {
       file_list_aidmeas = aidmea_files,
       export = 'aidmeas',
       station_of_interest = station_of_interest,
-      opticalSetting = opticalSetting
+      opticalSetting = opticalSetting,
+      categories = categories
     ))
 
   # pixel data
@@ -137,7 +141,8 @@ test_that("VPR autoid files are read in accurately", {
                      file_list_aid = aid_files,
                      file_list_aidmeas = aidmea_files,
                      export = 'aidmeas',
-                     station_of_interest = station_of_interest
+                     station_of_interest = station_of_interest,
+                     categories = categories
                    ))
 
   expect_equal(is.data.frame(roimeas_dat_combine), TRUE) # check data output is data frame

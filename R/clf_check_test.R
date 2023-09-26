@@ -286,7 +286,7 @@ vpr_manual_classification <-
   }
 
 
-vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE) {
+vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE, categories) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
   #'
@@ -296,16 +296,17 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   #'@param day day identifier for relevant aid & aidmeas files
   #'@param hour  hour identifier for relevant aid & aidmeas files
   #'@param mea logical indicating whether or not there are accompanying measurement files to be created
-  #'
+  #'@param categories A list object with all the potential classification categories
   #'
   #' ### examples
   #'basepath <- 'E:/autoID_EC_07032019/'
   #'day <- '289'
   #'hr <- '08'
+  #'categories <- c("bad_image_blurry","bad_image_malfunction","bad_image_strobe","Calanus","chaetognaths","ctenophores","krill","marine_snow","Other","small_copepod","stick")
   #'day_hour_files <-  paste0('d', day, '.h', hr)
   #'misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
   #'reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-  #'vpr_autoid_create(reclassify, misclassified, basepath)
+  #'vpr_autoid_create(reclassify, misclassified, basepath, categories)
   #'
   #'@export
 
@@ -319,7 +320,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   for (i in seq_len(length(misclassified))) {
     # TODO: generalize solution, remove hardcoding
     # TODO make sure this works with new directory structure
-    category <- vpr_category(misclassified[i])
+    category <- vpr_category(misclassified[i], categories)
 
    # if (category == 'ctenophores'){ browser()}
     #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)

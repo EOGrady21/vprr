@@ -10,7 +10,8 @@ vpr_autoid_read(
   export,
   station_of_interest,
   opticalSetting,
-  warn = TRUE
+  warn = TRUE,
+  categories
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ vpr_autoid_read(
 \item{opticalSetting}{Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels}
 
 \item{warn}{Logical, FALSE silences size data unit warnings}
+
+\item{categories}{A list object (of chr strings) with all the potential classification categories}
 }
 \description{
 Read aid text files containing ROI string information or measurement data and output as a dataframe
@@ -39,6 +42,9 @@ Full paths to each file should be specified
 
 station_of_interest <- 'test'
 dayhour <- c('d222.h03', 'd222.h04')
+categories <- c("bad_image_blurry", "bad_image_malfunction",
+"bad_image_strobe", "Calanus", "chaetognaths","ctenophores","krill",
+"marine_snow","Other","small_copepod", "stick")
 
 #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
 opticalSetting <- "S2"
@@ -74,7 +80,8 @@ roi_dat_combine <-
     export = 'aid',
     station_of_interest = station_of_interest,
     opticalSetting = opticalSetting,
-    warn = FALSE
+    warn = FALSE,
+    categories = categories
   )
 
 # MEASUREMENTS
@@ -85,7 +92,8 @@ roimeas_dat_combine <-
     export = 'aidmeas',
     station_of_interest = station_of_interest,
     opticalSetting = opticalSetting,
-    warn = FALSE
+    warn = FALSE,
+    categories = categories
  )
 
 }

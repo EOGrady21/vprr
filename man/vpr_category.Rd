@@ -4,20 +4,26 @@
 \alias{vpr_category}
 \title{Get category ids from string}
 \usage{
-vpr_category(x)
+vpr_category(x, categories)
 }
 \arguments{
-\item{x}{A string specifying the directory of the "categoryfolder", containing the category id}
+\item{x}{A chr string which represents file paths from which category should be extracted}
+
+\item{categories}{A list object with all the potential classification categories}
 }
 \value{
-A string of only the category id
+A chr string of only the category id
 }
 \description{
 Get category ids from string
 }
+\note{
+This function searches for exact matches to categories within '/' file separators. You may encounter errors if
+}
 \examples{
 category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-vpr_category(category_string)
+categories <- list("Calanus", "marine_snow", "blurry", "other_copepod")
+vpr_category(category_string, categories)
 
 }
 \seealso{

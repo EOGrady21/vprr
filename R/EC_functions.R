@@ -750,6 +750,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'@param station_of_interest Station information to be added to ROI data output, use NA if irrelevant
 #'@param opticalSetting Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels
 #'@param warn Logical, FALSE silences size data unit warnings
+#'@param categories A list object (of chr strings) with all the potential classification categories
 #'
 #'@note Full paths to each file should be specified
 #'
@@ -757,6 +758,9 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'
 #' station_of_interest <- 'test'
 #' dayhour <- c('d222.h03', 'd222.h04')
+#' categories <- c("bad_image_blurry", "bad_image_malfunction",
+#' "bad_image_strobe", "Calanus", "chaetognaths","ctenophores","krill",
+#' "marine_snow","Other","small_copepod", "stick")
 #'
 #' #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
 #' opticalSetting <- "S2"
@@ -792,7 +796,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'     export = 'aid',
 #'     station_of_interest = station_of_interest,
 #'     opticalSetting = opticalSetting,
-#'     warn = FALSE
+#'     warn = FALSE,
+#'     categories = categories
 #'   )
 #'
 #' # MEASUREMENTS
@@ -803,11 +808,12 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'     export = 'aidmeas',
 #'     station_of_interest = station_of_interest,
 #'     opticalSetting = opticalSetting,
-#'     warn = FALSE
+#'     warn = FALSE,
+#'     categories = categories
 #'  )
 #'
 #' @export
-vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE){
+vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE, categories){
 
   # set-up for only processing aid data
   if(missing(file_list_aidmeas)){export <- 'aid'}
@@ -834,7 +840,7 @@ if( export == 'aidmeas'){
 
 
 
-    data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i])[[1]]))
+    data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i], categories)[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
     if(length(day) >1 | length(hour) >1){
@@ -885,7 +891,7 @@ if(!is.na(opticalSetting)){
 
 
 
-  data_tmp$category <- unlist(vpr_category(file_list_aidmeas[i]))
+  data_tmp$category <- unlist(vpr_category(file_list_aidmeas[i], categories))
   day <- unlist(vpr_day(file_list_aidmeas[i]))
   hour <- unlist(vpr_hour(file_list_aidmeas[i]))
   data_tmp$day_hour <- paste(day, hour, sep = ".")
@@ -1426,60 +1432,39 @@ vpr_roi <- function(x) {
 #'
 #' @author K Sorochan
 #'
-#' @param x A string specifying the directory of the "categoryfolder", containing the category id
+#' @param x A chr string which represents file paths from which category should be extracted
+#' @param categories A list object with all the potential classification categories
+#' @return A chr string of only the category id
 #'
-#' @return A string of only the category id
+#' @note This function searches for exact matches to categories within '/' file separators. You may encounter errors if
 #'
 #' @examples
 #' category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-#' vpr_category(category_string)
+#' categories <- list("Calanus", "marine_snow", "blurry", "other_copepod")
+#' vpr_category(category_string, categories)
 #'
 #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
 #' @export
 #'
 #'
-vpr_category <- function(x) {
-# TODO if x is a list
-  category_ids <- c(
-    "bad_image_blurry",
-    "bad_image_malfunction",
-    "bad_image_strobe",
-    "Calanus",
-    "chaetognaths",
-    "ctenophores",
-    "Echinoderm_larvae",
-    "krill",
-    "marine_snow",
-    "Other",
-    "small_copepod",
-    "stick",
-    "larval_fish",
-    'other_copepods',
-    'larval_crab',
-    'amphipod',
-    'Metridia',
-    'Paraeuchaeta',
-    'cnidarians'
-  )
+vpr_category <- function(x, categories) {
 
-  for(i in seq_len(length(category_ids))) {
-
-    category_id <- category_ids[i]
-
-    m_tmp <- gregexpr(category_id, x)
-
-    if (m_tmp[[1]][1] > 0) {
-
-      m <- m_tmp
-
-    } else{
-      # stop('category ID not found! Check internal list of category options!')
-    }
-
+  if(length(grep(x, pattern = "\\/")) == 0){
+    stop("x provided is not a valid file path! Please use'/' file seperators to properly catch category")
   }
-
+  m <- NA
+  for (i in seq_len(length(categories))) {
+    cat_id <- categories[i]
+    m_tmp <- gregexpr(paste0("\\/",cat_id, "\\/"), x)
+    if (m_tmp[[1]][1] > 0) {
+      m <- m_tmp
+    }
+  }
+  if(is.na(m)){
+    stop('category ID not found! Check list of category options!')
+  }
   y <- regmatches(x, m)
-
+  y <- gsub(y, pattern = "\\/", replacement = "")
   return(y)
 
 }
