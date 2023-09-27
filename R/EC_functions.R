@@ -1466,7 +1466,7 @@ vpr_category <- function(x, categories) {
       m <- m_tmp
     }
   }
-  if(is.na(m)){
+  if(anyNA(m)){
     stop('category ID not found! Check list of category options!')
   }
   y <- regmatches(x, m)
