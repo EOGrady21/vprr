@@ -4,14 +4,16 @@
 \alias{vpr_autoid_check}
 \title{Checks manually created aid files for errors}
 \usage{
-vpr_autoid_check(basepath, cruise, del)
+vpr_autoid_check(new_autoid, original_autoid, cruise, dayhours)
 }
 \arguments{
-\item{basepath}{basepath to autoid folder eg. C:/data/CRUISENAME/autoid/}
+\item{new_autoid}{file path to autoid folder eg. C:/data/CRUISENAME/autoid/ (produced by \code{vpr_autoid_create()})}
+
+\item{original_autoid}{file path to original autoid folder (produced by automated classification)}
 
 \item{cruise}{name of cruise which is being checked}
 
-\item{del}{Logical value, if \code{TRUE}, empty files will be deleted (see warning), if \code{FALSE}, files WILL NOT be deleted (they will be listed in output)}
+\item{dayhours}{chr vector, of unique day and hour values to check through (format d123.h12)}
 }
 \value{
 text file (saved in working directory) named CRUISENAME_aid_file_check.txt
