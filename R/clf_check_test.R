@@ -318,9 +318,12 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   categoryFolders <- list.files(basepath, full.names = TRUE)
   # remove misclassified ROIS
   for (i in seq_len(length(misclassified))) {
-    # TODO: generalize solution, remove hardcoding
-    # TODO make sure this works with new directory structure
-    category <- vpr_category(misclassified[i], categories)
+    # TODO: get category from misclassified file
+    category <- lapply(misclassified[i], function(u) categories[stringr::str_detect(u, categories )])
+    if(length(category[[1]]) > 1){
+      stop('Error in detecting category!')
+    }
+
 
    # if (category == 'ctenophores'){ browser()}
     #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
@@ -419,7 +422,8 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       #%>%
         # dplyr::filter(.,!duplicated(mis_roi_gen)) #remove duplicates #BUG FIX 01/16/20
 
-      mm <-   sub_mis_roi$mis_roi_gen %in% aid_old_gen #switched order to prevent error (EC: 01/16/2020)
+      #mm <-   sub_mis_roi$mis_roi_gen %in% aid_old_gen #switched order to prevent error (EC: 01/16/2020)
+      mm <-     aid_old_gen %in% sub_mis_roi$mis_roi_gen # FIXED SEPTEMBER 27 - WAS CAUSING MASSIVE ERRORS IN AUTOID FILES
 
       ind <- grep(mm , pattern = 'TRUE')
 

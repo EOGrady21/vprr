@@ -869,7 +869,7 @@ if( export == 'aidmeas'){
 
   # Get tabulated rois per time by category
   roi_df <- dat_combine_aid %>%
-    dplyr::mutate(., roi = substr(roi, 1, 8)) %>%
+    dplyr::mutate(., roi = substr(roi, 1, 8)) %>% # TODO why are we subsetting to 8 digits?
     dplyr::group_by(., category, roi) %>%
     dplyr::summarise(., n_roi = dplyr::n(), .groups = NULL) %>%
     tidyr::spread(., category, n_roi) %>%
