@@ -1454,23 +1454,17 @@ vpr_roi <- function(x) {
 #'
 #'
 vpr_category <- function(x, categories) {
-
-  if(length(grep(x, pattern = "\\/")) == 0){
-    stop("x provided is not a valid file path! Please use'/' file seperators to properly catch category")
-  }
-  m <- NA
+# updated to vpr_category_ks2 version
   for (i in seq_len(length(categories))) {
-    cat_id <- categories[i]
-    m_tmp <- gregexpr(paste0("\\/",cat_id, "\\/"), x)
+    category <- categories[i]
+    m_tmp <- gregexpr(category, x)
     if (m_tmp[[1]][1] > 0) {
       m <- m_tmp
     }
-  }
-  if(anyNA(m)){
-    stop('category ID not found! Check list of category options!')
+    else {
+    }
   }
   y <- regmatches(x, m)
-  y <- gsub(y, pattern = "\\/", replacement = "")
   return(y)
 
 }
@@ -1650,9 +1644,10 @@ insertRow <- function(existingDF, newrow, r) {
 #'
 #' @author E Chisholm
 #'
-#' @param basepath basepath to autoid folder eg. C:/data/CRUISENAME/autoid/
+#' @param new_autoid file path to autoid folder eg. C:/data/CRUISENAME/autoid/ (produced by `vpr_autoid_create()`)
+#' @param original_autoid file path to original autoid folder (produced by automated classification)
 #' @param cruise name of cruise which is being checked
-#' @param del Logical value, if `TRUE`, empty files will be deleted (see warning), if `FALSE`, files WILL NOT be deleted (they will be listed in output)
+#' @param dayhours chr vector, of unique day and hour values to check through (format d123.h12)
 #'
 #' @return text file (saved in working directory) named CRUISENAME_aid_file_check.txt
 #'
@@ -1660,16 +1655,15 @@ insertRow <- function(existingDF, newrow, r) {
 #' @export
 #'
 #'
-vpr_autoid_check <- function(basepath, cruise, del){
+vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
   on.exit(closeAllConnections()) # make sure text file gets closed
 
 
-  category_folders <- list.files(basepath, full.names = TRUE)
+  category_folders <- list.files(new_autoid, full.names = TRUE)
 
   withr::with_output_sink(paste0(cruise,'_aid_file_check.txt'), code = {
-  # sink(paste0(cruise,'_aid_file_check.txt'))
-  # loop through each category
+  # loop through each day.hour
 
   for (i in seq_len(length(category_folders))){
     path <- category_folders[i]
@@ -1685,7 +1679,7 @@ vpr_autoid_check <- function(basepath, cruise, del){
       if(length(fn) == 0){
         cat('\n')
         cat(aid_fns[ii], '\n')
-        cat('File is empty, please delete! \n')
+        cat('File is empty! \n')
         cat('\n')
 
         empty_ind[ii] <- TRUE
@@ -1694,152 +1688,116 @@ vpr_autoid_check <- function(basepath, cruise, del){
       }
     }
     cat('Empty file check complete for', category_folders[i], '\n')
-
-    if (del == TRUE){
-    # automated deleteion of empty files
-
-    empty_aids <- aid_fns[empty_ind == TRUE]
-
-    # find corresponding aid meas files
-    # get all files (aidmea )
-    aidmea_fns <- list.files(file.path(path, 'aidmea'), full.names = TRUE)
-
-    empty_aidmeas <- aidmea_fns[empty_ind == TRUE]
-
-    # double check that files are empty
-    empty_files <- c(empty_aids, empty_aidmeas)
-
-    if (length(empty_files) != 0){ # only if empty files exist
-      for (ii in seq_len(length(empty_files))){
-
-        check <- readLines(empty_files[ii])
-
-        if (length(check) != 0){
-
-          stop('Attempting to delete file which is not empty!')
-        }else{
-          cat('\n')
-          cat('Deleteing empty aid and aidmea files! \n')
-          cat(empty_files[ii], 'deleted! \n')
-
-          unlink(empty_files[ii])
-
-        }
-      }
-    }
-
-    }
-    # remove any empty files from data frame before running next check
-
-    aid_fns <- aid_fns[empty_ind == FALSE]
-
-    if(length(aid_fns) != 0){
-      #### VPR TOW NUMBER CHECK
-      # check that all vpr two numbers are the same
-
-
-      # read each aid file
-      for (ii in seq_len(length(aid_fns))){
-        fn <- readLines(aid_fns[ii])
-        # check vpr tow number
-
-        v_loc <- stringr::str_locate(fn, 'vpr')
-
-        vpr_num <- list()
-        for (iii in seq_len(length(v_loc[,1]))){
-          fn_str <- fn[iii]
-          fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
-          vpr_num[iii] <- fn_str_split[[1]][5]
-
-        }
-
-        # test that they are all the same
-
-        un_num_vpr <- unique(vpr_num)
-        if(length(un_num_vpr) > 1){
-          cat('\n')
-          cat('Warning, multiple vpr tow numbers present in', aid_fns[ii], '\n')
-          cat(unlist(un_num_vpr), '\n')
-
-          # get numeric tow numbers
-          tow_num <- as.numeric(substr(un_num_vpr,4,  nchar(un_num_vpr)))
-
-          # should be less than 14 if duplicated
-          tow_num_final <- tow_num[tow_num <14]
-
-          final_vpr <- paste0('vpr', tow_num_final)
-          cat('Changing', aid_fns[ii], '\n')
-          cat(final_vpr, '\n')
-          cat('\n')
-          # put strings back together and save file
-
-          for(iii in seq_len(length(fn))){
-            fn_str <- fn[iii]
-            fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
-            fn_str_split[[1]][5] <- final_vpr
-            # paste string back together
-            s_str <- paste(fn_str_split[[1]][1], fn_str_split[[1]][2], fn_str_split[[1]][3], fn_str_split[[1]][4], fn_str_split[[1]][5], fn_str_split[[1]][6], fn_str_split[[1]][7], fn_str_split[[1]][8], sep = '\\')
-
-            fn[iii] <- s_str
-
-          }
-          write.table(file = aid_fns[ii], fn, quote = FALSE, col.names = FALSE, row.names = FALSE)
-
-
-        }
-
-
-      }
-      cat('VPR tow number check complete, ', category_folders[i], '\n')
-
-
-      #### SIZE / ROI FILE LENGTH CHECK
-
-      # check that aid and aid mea files are same length
-      # find files
-      sizefiles <- list.files(paste(category_folders[i],'aidmea',sep='\\'), full.names = TRUE)
-      roifiles <- list.files(paste(category_folders[i],'aid',sep='\\'), full.names=TRUE)
-
-      if(length(sizefiles) != length(roifiles)){
-        cat('Mismatched number of size and roi files! \n')
-      }
-
-      for (ii in seq_len(length(sizefiles))){
-        s_fn <- readLines(sizefiles[[ii]])
-        r_fn <- readLines(roifiles[[ii]])
-        if (length(s_fn > 0)){
-
-          if (length(s_fn[[1]]) != length(r_fn[[1]])){
-            cat('Warning mismatched file lengths! \n')
-            cat(sizefiles[[ii]], ',', roifiles[[ii]], '\n')
-            cat(length(s_fn[[1]]), ',', length(r_fn[[1]]), '\n')
-          }
-        }
-      }
-
-      cat('File size check complete, ', category_folders[i], '\n')
-      cat('\n')
-      cat('------------ \n')
-      cat('\n')
-
-    }else{
-      cat('All files are empty, ', category_folders[i], '\n')
-      cat('No other checks completed \n')
-      cat('\n')
-      cat('------------ \n')
-      cat('\n')
-
-
-    } # end if all files are empty for category
-
   }
 
+    new_aid_fn <- list.files(path = new_autoid, pattern = 'new_aid', recursive = TRUE, full.names = TRUE)
+
+    categories <- list.files(path = new_autoid)
+
+    cat_list <- lapply(FUN = vpr_category, new_aid_fn, categories)
+
+    new_aids <- data.frame(fn = new_aid_fn,
+                           category = unlist(cat_list),
+                           day = unlist(vpr_day(new_aid_fn)),
+                           hour = unlist(vpr_hour(new_aid_fn))
+    )
+
+    # check for and remove empty files
+    empty_files <- list()
+    for(j in 1:length(new_aids$fn)){
+      mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
+                  silent = TRUE)
+
+      if (class(mtry) == "try-error") {
+        empty_files[j] <- TRUE
+      } else{
+        empty_files[j] <- FALSE
+      }
+
+    }
+    new_aids <- new_aids[empty_files == FALSE,]
+
+
+    for(i in 1:length(dayhours)){
+
+      dh <- dayhours[i]
+
+      aid_fns <- new_aids$fn[paste0(new_aids$day,".", new_aids$hour) == dh]
+
+      if(length(aid_fns) == 0){
+        cat('WARNING: ', dh, 'skipped, no valid data found! \n')
+      }else{
+
+        # get test dh  aid cnn data into single table
+        all_cnn_aid <- list.files(original_autoid, pattern = dh,
+                                  full.names = TRUE, recursive = TRUE)
+        aid_dat_cnn <- list()
+        for(l in 1:length(all_cnn_aid)){
+          aid_dat_cnn[[l]] <- read_aid_cnn(all_cnn_aid[l])
+          cn <- stringr::str_split(all_cnn_aid[l], pattern = '/')
+          cn <- cn[[1]][6]
+          names(aid_dat_cnn)[l] <- cn
+        }
+
+        aid_dat_cnn <- data.table::rbindlist(aid_dat_cnn, idcol = TRUE) %>%
+          dplyr::rename(., 'category' = '.id')
+        aid_dat_cnn <- aid_dat_cnn %>%
+          dplyr::mutate(roi_num = unlist(vpr_roi(aid_dat_cnn$roi)))
+
+
+
+        # read all aid files in
+        aid_dat <- list()
+        for(l in 1:length(aid_fns)){
+          aid_dat[[l]] <- read.table(aid_fns[l], sep = " ")
+          names(aid_dat[[l]]) <- 'file_path'
+          names(aid_dat)[l] <- vpr_category(aid_fns[l], categories)
+          aid_dat[[l]] <- aid_dat[[l]] %>%
+            mutate(., roi = unlist(vpr_roi(aid_dat[[l]]$file_path)))
+        }
+
+        aid_dat_c <- data.table::rbindlist(aid_dat, idcol = TRUE, fill = TRUE) %>%
+          dplyr::rename(., 'category' = '.id')
+        aid_dat_c <- aid_dat_c %>%
+          dplyr::select(., category, roi)
+
+        #### check for duplicated ROIs ----
+        dupcheck <- duplicated(aid_dat_c$roi)
+
+        cat(length(dupcheck[dupcheck == TRUE]), "/", length(dupcheck), "ROIs are duplicated in ", dh, "\n")
+
+
+        #### check for missing ROIs ----
+        newaidrois <- unique(aid_dat_c$roi)
+
+        cnnaidrois <- aid_dat_cnn$roi
+
+        missingrois <- length(cnnaidrois) - length(newaidrois)
+
+        cat(missingrois, "ROIs are missing in ", dh, "\n")
+      }
+    }
 
   # sink()
   }) # end sink output
 
 }
 
+
+#' Read aid files produced by automated classification
+#'
+#' @param aid_file a file path to an aid file produced by automated classification (with ROI path and probability value)
+#'
+#' @return ROI path and probability values in a table
+#' @export
+#'
+read_aid_cnn <- function(aid_file){
+
+  aid_table <- read.table(aid_file, sep = " ")
+  names(aid_table) <- c('roi', 'confidence')
+
+  return(aid_table)
+}
 
 
 #deprecated ----------------------------------------------------------------------------------------------------------------------
