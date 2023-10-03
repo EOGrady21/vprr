@@ -9,6 +9,7 @@
 #' @importFrom stats aggregate median quantile
 #' @importFrom utils menu read.csv read.table write.table
 #' @importFrom usethis use_data
+#' @importFrom data.table rbindlist
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
@@ -1657,6 +1658,8 @@ insertRow <- function(existingDF, newrow, r) {
 #'
 vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
+  . <- category <- roi <- NA # remove global variable warnings
+
   on.exit(closeAllConnections()) # make sure text file gets closed
 
 
@@ -1708,7 +1711,8 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
       mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
                   silent = TRUE)
 
-      if (class(mtry) == "try-error") {
+      #if (class(mtry) == "try-error") {
+      if( inherits(mtry, 'try-error')){
         empty_files[j] <- TRUE
       } else{
         empty_files[j] <- FALSE
