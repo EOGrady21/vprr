@@ -9,13 +9,10 @@ vpr_autoid_copy(new_autoid, roi_path, day, hour, cast, station, threshold)
 \arguments{
 \item{new_autoid}{A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"}
 
-\item{roi_path}{\link{optional} provide if ROI data has been moved since autoid
+\item{roi_path}{(optional) provide if ROI data has been moved since autoid
 files were created (if path strings in aid files do not match where data
 currently exists), a file path where ROI data is stored (up to "rois"
-folder)
-@param threshold \link{optional} a numeric value, supplied only if you are
-copying images based on automated classifications, only images below this
-threshold of confidence will be copied for manual classification}
+folder)}
 
 \item{day}{character string representing numeric day of interest (3 chr)}
 
@@ -24,10 +21,14 @@ threshold of confidence will be copied for manual classification}
 \item{cast}{character string, VPR cast number of interest (3 chr)}
 
 \item{station}{character string, station name of interest (eg. "Shediac")}
+
+\item{threshold}{(optional) a numeric value, supplied only if you are
+copying images based on automated classifications, only images below this
+threshold of confidence will be copied for manual classification}
 }
 \value{
 organized file directory where VPR images are contained with folders, organized by day, hour and classification,
-inside your basepath/autoid folder
+inside your autoid folder
 }
 \description{
 Organize VPR images into folders based on classifications provided by visual plankton

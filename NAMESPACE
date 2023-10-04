@@ -52,6 +52,8 @@ import(metR, except = coriolis)
 
 import(oce)
 importFrom(data.table,rbindlist)
+importFrom(fs,dir_create)
+importFrom(fs,file_copy)
 importFrom(graphics,hist)
 importFrom(graphics,par)
 importFrom(graphics,plot.new)

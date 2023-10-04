@@ -27,7 +27,8 @@ Imports: ggplot2,
     cmocean,
     withr,
     usethis,
-    data.table
+    data.table,
+    fs
 Suggests: 
     knitr,
     rmarkdown,

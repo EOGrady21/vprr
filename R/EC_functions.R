@@ -10,6 +10,7 @@
 #' @importFrom utils menu read.csv read.table write.table
 #' @importFrom usethis use_data
 #' @importFrom data.table rbindlist
+#' @importFrom fs file_copy dir_create
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
@@ -322,11 +323,11 @@ return(data_all)
 #' @param hour character string representing hour of interest (2 chr)
 #' @param cast character string, VPR cast number of interest (3 chr)
 #' @param station character string, station name of interest (eg. "Shediac")
-#' @param roi_path [optional] provide if ROI data has been moved since autoid
+#' @param roi_path (optional) provide if ROI data has been moved since autoid
 #'   files were created (if path strings in aid files do not match where data
 #'   currently exists), a file path where ROI data is stored (up to "rois"
 #'   folder)
-#'   @param threshold [optional] a numeric value, supplied only if you are
+#' @param threshold (optional) a numeric value, supplied only if you are
 #'     copying images based on automated classifications, only images below this
 #'     threshold of confidence will be copied for manual classification
 #'
@@ -363,7 +364,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
       aid_dat <- read.table(aid_fns[ii])
         }else{
           aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
-          aid_dat <- subset(aid_dat, V2 < threshold)
+          aid_dat <- subset(aid_dat, aid_dat$V2 < threshold)
         }
       category <- unlist(vprr::vpr_category(aid_fns[ii],
                                             categories = list.files(path = new_autoid, include.dirs = TRUE)))
