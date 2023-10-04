@@ -4,7 +4,16 @@
 \alias{vpr_autoid_copy}
 \title{Copy VPR images into folders}
 \usage{
-vpr_autoid_copy(new_autoid, roi_path, day, hour, cast, station, threshold)
+vpr_autoid_copy(
+  new_autoid,
+  roi_path,
+  day,
+  hour,
+  cast,
+  station,
+  threshold,
+  org = "dayhour"
+)
 }
 \arguments{
 \item{new_autoid}{A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"}
@@ -25,6 +34,10 @@ folder)}
 \item{threshold}{(optional) a numeric value, supplied only if you are
 copying images based on automated classifications, only images below this
 threshold of confidence will be copied for manual classification}
+
+\item{org}{chr value, if 'station', images will be output in folders labelled
+by station, if 'dayhour', images will be output in folders labelled by day
+and hour}
 }
 \value{
 organized file directory where VPR images are contained with folders, organized by day, hour and classification,
