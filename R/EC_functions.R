@@ -330,6 +330,9 @@ return(data_all)
 #' @param threshold (optional) a numeric value, supplied only if you are
 #'     copying images based on automated classifications, only images below this
 #'     threshold of confidence will be copied for manual classification
+#' @param org chr value, if 'station', images will be output in folders labelled
+#'   by station, if 'dayhour', images will be output in folders labelled by day
+#'   and hour
 #'
 #' @note this function uses tidy paths, see fs::path_tidy() for more info
 #'
@@ -337,10 +340,9 @@ return(data_all)
 #' inside your autoid folder
 #'
 #' @export
-vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold){
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour'){
 
   #TODO update to use withr::with_dir to avoid CRAN complaints
-  #TODO add KS threshold subsetting
 
     # for each dh check which station it should be in
     dh <- paste0('d', day, '.h', hour)
@@ -386,8 +388,15 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 
       # copy images in batches
 
+      if(org == 'station'){
       copy_path <- file.path(new_autoid, category,
                              paste0('vpr', cast, '_', station, '_ROIS'))
+      }
+      if(org == 'dayhour'){
+        copy_path <- file.path(new_autoid, category,
+                               paste0("aid.", dh, "_ROIS"))
+      }
+      # if(!exists(copy_path)){stop('No valid path to copy files to!')}
 
       fs::dir_create(copy_path, recurse = TRUE)
 
