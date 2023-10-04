@@ -15,9 +15,9 @@ vpr_autoid_read(
 )
 }
 \arguments{
-\item{file_list_aid}{a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.}
+\item{file_list_aid}{a list object of aid text files, containing ROI strings.}
 
-\item{file_list_aidmeas}{a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.}
+\item{file_list_aidmeas}{a list object of aidmea text files, containing ROI measurements.}
 
 \item{export}{a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)}
 

@@ -752,8 +752,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'
 #' @author E. Chisholm & K. Sorochan
 #'
-#'@param  file_list_aid a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.
-#'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.
+#'@param  file_list_aid a list object of aid text files, containing ROI strings.
+#'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements.
 #'@param export a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)
 #'@param station_of_interest Station information to be added to ROI data output, use NA if irrelevant
 #'@param opticalSetting Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels
@@ -837,8 +837,25 @@ if( export == 'aidmeas'){
 }
 # aid
 
+
+  # check for empty files
+  empty_files <- list()
+  for(j in seq_len(length(file_list_aid))){
+    mtry <- try(read.table(file_list_aid[j], sep = ",", header = TRUE),
+                silent = TRUE)
+
+    if( inherits(mtry, 'try-error')){
+      empty_files[j] <- TRUE
+    } else{
+      empty_files[j] <- FALSE
+    }
+
+  }
+  file_list_aid <- file_list_aid[empty_files == FALSE]
+
   col_names <- "roi"
   dat <- list()
+
   for(i in seq_len(length(file_list_aid))) {
 
     data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
@@ -885,6 +902,22 @@ if( export == 'aidmeas'){
 # aidmeas
 # TODO: update code so it can run without measurement input
 if(export == 'aidmeas'){
+
+  # check for empty files
+  empty_files <- list()
+  for(j in seq_len(length(file_list_aidmeas))){
+    mtry <- try(read.table(file_list_aidmeas[j], sep = ",", header = TRUE),
+                silent = TRUE)
+
+    if( inherits(mtry, 'try-error')){
+      empty_files[j] <- TRUE
+    } else{
+      empty_files[j] <- FALSE
+    }
+
+  }
+  file_list_aidmeas <- file_list_aidmeas[empty_files == FALSE]
+
   dat <- list()
   col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
   for(i in seq_len(length(file_list_aidmeas))) {
@@ -1712,7 +1745,6 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
       mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
                   silent = TRUE)
 
-      #if (class(mtry) == "try-error") {
       if( inherits(mtry, 'try-error')){
         empty_files[j] <- TRUE
       } else{
