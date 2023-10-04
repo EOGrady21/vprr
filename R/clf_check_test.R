@@ -162,7 +162,7 @@ vpr_manual_classification <-
             stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
           }
           aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
-          aid_dat_threshold <- subset(aid_dat_scr, V2 < threshold_score)
+          aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
 
           aid_dat_t <- aid_dat_threshold$V1
           aid_dat_t_roi <- basename(aid_dat_t)
