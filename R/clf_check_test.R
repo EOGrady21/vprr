@@ -15,7 +15,10 @@ vpr_manual_classification <-
            gr = TRUE,
            scale = 'x300',
            opticalSetting = 'S2',
-           img_bright = TRUE) {
+           img_bright = TRUE,
+           threshold_score,
+           path_score) {
+
     #' Function to check results of classification manually
     #'
     #'
@@ -24,9 +27,9 @@ vpr_manual_classification <-
     #' If classification is denied, asks for a reclassification
     #'  value based on available category
     #'
-    #' @param day day of interest in autoid
-    #' @param hour hour of interest in autoid
-    #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
+    #' @param day day of interest in autoid (3 chr)
+    #' @param hour hour of interest in autoid (2 chr)
+    #' @param basepath file path to auto id folder eg 'E:/data/CAR2022299/autoid/'
     #' @param category_of_interest list of category folders you wish you sort through
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
@@ -36,6 +39,13 @@ vpr_manual_classification <-
     #'@param img_bright logical value indicating whether or not to include a blown
     #'  out high brightness version of image (can be helpful for viewing dark field
     #'  fine appendages)
+    #' @param threshold_score (optional) a numeric value defining the minimum confidence
+    #'   value, under which automatic classifications will be passed through
+    #'   manual reclassification. This argument should match the threshold
+    #'   provided in `vpr_autoid_copy()`
+    #' @param path_score (optional) file path to the autoid_cnn_scr folder
+    #'   (autoid files with confidence values produced by automated
+    #'   classification)
     #'
     #' @details Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
     #'   24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
@@ -52,6 +62,10 @@ vpr_manual_classification <-
     #'
     #'@export
 
+    # if no threshold score is provided, check through all images
+    if(missing(threshold_score)){
+      threshold_score <- 1
+    }
 
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
@@ -98,6 +112,13 @@ vpr_manual_classification <-
       # clear existing files
       path <- categoryFolders[i]
 
+      if(!missing(path_score)){
+      #ensure that the autoid and score folders match... can mismatch if extra categories are added to autoid directory in manual re-classification step
+      path_cat <- basename(path)
+      path_scr <- paste(path_score, path_cat, sep = "/")
+      path_scr_logical <- dir.exists(path_scr) # it will not exist if it is a newly added category (after cnn classification)
+      }
+
       if (t_f[i] == FALSE) {
         print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
         SKIP = TRUE
@@ -106,6 +127,11 @@ vpr_manual_classification <-
 
         dayHrFolder <-
           grep(dayHrFolders, pattern = day_hour, value = TRUE)
+        if(!missing(path_score)){
+          Folders_scr <- list.files(path_scr, full.names = TRUE)
+          Folders_scr2 <- list.files(Folders_scr, full.names = TRUE)
+
+        }
 
         if (length(dayHrFolder) == 0) {
           print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
@@ -113,7 +139,7 @@ vpr_manual_classification <-
         } else{
           SKIP = FALSE
 
-
+        if(missing(path_score)){
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
@@ -122,7 +148,43 @@ vpr_manual_classification <-
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
+        }else{
+          SKIP = FALSE
+          aidFolder <- grep(dayHrFolders, pattern = "aid$",
+                            value = TRUE)
 
+          aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
+          aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
+          rois_all <- list.files(dayHrFolder, full.names = TRUE)
+
+          aidFile_scr <- grep(Folders_scr2, pattern = day_hour, value = TRUE)
+          if(length(aidFile_scr) == 0){
+            stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
+          }
+          aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
+          aid_dat_threshold <- subset(aid_dat_scr, V2 < threshold_score)
+
+          aid_dat_t <- aid_dat_threshold$V1
+          aid_dat_t_roi <- basename(aid_dat_t)
+          aid_scr_t <- aid_dat_threshold$V2
+
+          rois_all_bn <- basename(rois_all)
+          # remove file extension in case of comparing .tif and .png
+            if(stringr::str_sub(rois_all_bn, start = -3, end = -1)[[1]] !=
+              stringr::str_sub(aid_dat_t_roi, start = -3, end = -1)[[1]]){
+              rois_all_bn <- stringr::str_sub(rois_all_bn, start = 1, end = -5) # remove file extension
+              aid_dat_t_roi <- stringr::str_sub(aid_dat_t_roi, start = 1, end = -5) # remove file extension
+              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi) # compare for index
+
+            }else{
+              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi)
+              }
+          rois <- rois_all[rois_threshold_idx]
+          if(length(rois) == 0){
+            stop('No ROIs found!')
+          }
+
+          }
 
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
@@ -156,6 +218,7 @@ vpr_manual_classification <-
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
+            if(missing(path_score)){
             img <- magick::image_read(rois[ii], strip = FALSE) %>%
               magick::image_scale(scale) %>%
               magick::image_annotate(categoryNames[i], color = 'red', size = 12)
@@ -176,6 +239,26 @@ vpr_manual_classification <-
                 location = '+0+10',
                 color = 'red'
               )
+            }else{
+              scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
+              if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
+                stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
+              }
+              img_tmp <- magick::image_read(rois[ii])
+              imgdat <- magick::image_info(img_tmp)
+
+
+              img <- magick::image_read(rois[ii], strip = FALSE) %>%
+                magick::image_scale(scale) %>%
+                magick::image_annotate(paste(categoryNames[i], "(roi.", unlist(vpr_roi(rois[ii])), ")"), color = "red", size = 12) %>%
+                magick::image_annotate(text = paste("scoreCNN = ", round(scr_tmp, digits = 2)),
+                                       location = "+0+20",
+                                       color = "red") %>%
+                magick::image_annotate(text = paste(round(imgdat$width/pxtomm, digits = 2), "x", round(imgdat$height/pxtomm, digits = 2), "mm"),
+                                       location = "+0+10",
+                                       color = "red")
+
+            }
             if (img_bright == TRUE) {
               img_n <- magick::image_modulate(img, brightness = 500)
 
@@ -209,7 +292,12 @@ vpr_manual_classification <-
               # cat(aid_dat[[ii]], '\n')
               # sink()
 
-              misclassified <- c(misclassified, aid_dat[[ii]])
+              if(missing(path_score)){
+                misclassified <- c(misclassified, aid_dat[[ii]])
+              }else{
+                misclassified <- c(misclassified, aid_dat_t[[ii]]) # if threshold has been applied
+                # TODO test that this is pulling correctly
+              }
 
 
               # update to create generic category options
@@ -219,9 +307,14 @@ vpr_manual_classification <-
                      graphics = gr,
                      title = "Appropriate Category Classification?")
 
-
+              if(missing(path_score)){
               reclassified[[ans]] <-
                 c(reclassified[[ans]], aid_dat[[ii]])
+              }else{ # if threshold has been applied
+                # TODO double check this pulling
+                reclassified[[ans]] <- c(reclassified[[ans]],
+                                         aid_dat_t[ii])
+              }
 
               # original method
               # sink(file = paste0(day_hour,'/reclassify_', allcategory[[ans]], '.txt'), append = TRUE)

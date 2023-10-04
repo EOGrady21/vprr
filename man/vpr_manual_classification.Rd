@@ -12,15 +12,17 @@ vpr_manual_classification(
   gr = TRUE,
   scale = "x300",
   opticalSetting = "S2",
-  img_bright = TRUE
+  img_bright = TRUE,
+  threshold_score,
+  path_score
 )
 }
 \arguments{
-\item{day}{day of interest in autoid}
+\item{day}{day of interest in autoid (3 chr)}
 
-\item{hour}{hour of interest in autoid}
+\item{hour}{hour of interest in autoid (2 chr)}
 
-\item{basepath}{file path to auto id folder eg 'E:/autoID_EC_07032019/'}
+\item{basepath}{file path to auto id folder eg 'E:/data/CAR2022299/autoid/'}
 
 \item{category_of_interest}{list of category folders you wish you sort through}
 
@@ -35,6 +37,15 @@ info in details}
 \item{img_bright}{logical value indicating whether or not to include a blown
 out high brightness version of image (can be helpful for viewing dark field
 fine appendages)}
+
+\item{threshold_score}{(optional) a numeric value defining the minimum confidence
+value, under which automatic classifications will be passed through
+manual reclassification. This argument should match the threshold
+provided in \code{vpr_autoid_copy()}}
+
+\item{path_score}{(optional) file path to the autoid_cnn_scr folder
+(autoid files with confidence values produced by automated
+classification)}
 }
 \description{
 Displays each image in day hour specified,
