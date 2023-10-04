@@ -317,83 +317,82 @@ return(data_all)
 #'
 #' Organize VPR images into folders based on classifications provided by visual plankton
 #'
-#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"
-#' @param day character string representing numeric day of interest
-#' @param hour character string representing hour of interest
-#' @param classifier_type character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton
-#' @param classifier_name character string representing name of Visual Plankton classifier
-#' @param category optional list of character strings if you wish to only copy images from specific classification groups
+#' @param new_autoid A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"
+#' @param day character string representing numeric day of interest (3 chr)
+#' @param hour character string representing hour of interest (2 chr)
+#' @param cast character string, VPR cast number of interest (3 chr)
+#' @param station character string, station name of interest (eg. "Shediac")
+#' @param roi_path [optional] provide if ROI data has been moved since autoid
+#'   files were created (if path strings in aid files do not match where data
+#'   currently exists), a file path where ROI data is stored (up to "rois"
+#'   folder)
+#'   @param threshold [optional] a numeric value, supplied only if you are
+#'     copying images based on automated classifications, only images below this
+#'     threshold of confidence will be copied for manual classification
 #'
 #' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
 #' inside your basepath/autoid folder
 #'
 #' @export
-vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, category){
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold){
 
-  folder_names <- list.files(basepath)
+  #TODO update to use withr::with_dir to avoid CRAN complaints
+  #TODO add KS threshold subsetting
 
-  if(!missing(category)){
-    folder_names <- folder_names[folder_names %in% category]
-  }
-
-  #check valid folders
-  if(length(folder_names) < 1){
-    stop('No valid category folders found in basepath!')
-  }
-
-  day_hour <- paste0('d', day, '.h', hour)
-  if(!missing(classifier_type)){
-    type_day_hour <- paste0(classifier_type,'aid.', day_hour)
-  } else{
-    warning('No classifier information provided, attempting to pull ROIs based only on day/hour, please check there is only one aid file for each category!')
-    type_day_hour <- day_hour
-  }
-
-for (i in folder_names) {
-
-  #Get name of folder containing .txt files with roi paths within a category
-  dir_roi <- paste(basepath, i, "/", "aid", sep = "")
-
-  #Get names of text files
-  txt_roi <- list.files(dir_roi)
-
-  subtxt <- grep(txt_roi, pattern = type_day_hour, value = TRUE)
-  txt_roi <- subtxt
-
-  if(!missing(classifier_name)){
-    subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
-    txt_roi <- subtxt2
-  }
-
-  for(ii in txt_roi) {
-
-    # setwd(dir_roi)
-    withr::with_dir(dir_roi, code = {
-
-    roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
-
-    #Create a new folder for autoid rois
-    roi_folder <- paste(basepath, i, "\\", ii, "_ROIS", sep = "")
-    command1 <- paste('mkdir', roi_folder, sep = " ")
-    shell(command1)
-
-    #Copy rois to this directory
-    for (iii in seq_len(nrow(roi_path_str))) {
-
-      dir_tmp <- as.character(roi_path_str[iii,1])
-      command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
-      shell(command2)
-
-      print(paste(iii, '/', nrow(roi_path_str),' completed!'))
+    # for each dh check which station it should be in
+    dh <- paste0('d', day, '.h', hour)
+    # pull new_aids per station
+    aid_fns <- list.files(new_autoid, pattern = dh, recursive = TRUE, full.names = TRUE)
+    # remove empty files
+    empty_ind <- list()
+    for(ii in seq_len(length(aid_fns))){
+      mtry <- try(read.table(aid_fns[ii], sep = ",", header = TRUE),
+                  silent = TRUE)
+      if(inherits(mtry, 'try-error')){
+        empty_ind[[ii]] <- TRUE
+      }else{
+        empty_ind[[ii]] <- FALSE
+      }
     }
 
-    })
-  }
+    aid_fns <- aid_fns[unlist(empty_ind) == FALSE]
 
-  print(paste(i, 'completed!'))
-}
+    # read aid files
+    for(ii in seq_len(length(aid_fns))){
+        if(missing(threshold)){
+      aid_dat <- read.table(aid_fns[ii])
+        }else{
+          aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
+          aid_dat <- subset(aid_dat, V2 < threshold)
+        }
+      category <- unlist(vprr::vpr_category(aid_fns[ii], categories = folder_names))
 
-print(paste('Day ', day, ', Hour ', hour, 'completed!'))
+
+      # fix file paths so they will copy
+      if(!missing(roi_path)){
+      tt<- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
+      sub_roi_path <- substr(aid_dat$V1, tt[1], nchar(aid_dat$V1))
+      new_roi_path <- paste0(basepath, sub_roi_path)
+      } else{
+        new_roi_path <- aid_dat$V1
+      }
+
+      # tidy path strings
+      new_roi_path <- fs::path_tidy(new_roi_path)
+
+      # copy images in batches
+
+      copy_path <- file.path(new_autoid, category,
+                             paste0('vpr', cast, '_', station, '_ROIS'))
+
+      fs::dir_create(copy_path, recurse = TRUE)
+
+      fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
+
+      cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
+    }
+
+
 }
 
 
