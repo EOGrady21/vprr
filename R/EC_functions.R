@@ -331,7 +331,7 @@ return(data_all)
 #'     threshold of confidence will be copied for manual classification
 #'
 #' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
-#' inside your basepath/autoid folder
+#' inside your autoid folder
 #'
 #' @export
 vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold){
@@ -365,14 +365,15 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
           aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
           aid_dat <- subset(aid_dat, V2 < threshold)
         }
-      category <- unlist(vprr::vpr_category(aid_fns[ii], categories = folder_names))
+      category <- unlist(vprr::vpr_category(aid_fns[ii],
+                                            categories = list.files(path = new_autoid, include.dirs = TRUE)))
 
 
       # fix file paths so they will copy
       if(!missing(roi_path)){
       tt<- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
       sub_roi_path <- substr(aid_dat$V1, tt[1], nchar(aid_dat$V1))
-      new_roi_path <- paste0(basepath, sub_roi_path)
+      new_roi_path <- paste0(roi_path, sub_roi_path)
       } else{
         new_roi_path <- aid_dat$V1
       }
