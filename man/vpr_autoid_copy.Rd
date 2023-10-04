@@ -33,3 +33,6 @@ inside your autoid folder
 \description{
 Organize VPR images into folders based on classifications provided by visual plankton
 }
+\note{
+this function uses tidy paths, see fs::path_tidy() for more info
+}

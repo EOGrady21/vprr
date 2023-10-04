@@ -331,6 +331,8 @@ return(data_all)
 #'     copying images based on automated classifications, only images below this
 #'     threshold of confidence will be copied for manual classification
 #'
+#' @note this function uses tidy paths, see fs::path_tidy() for more info
+#'
 #' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
 #' inside your autoid folder
 #'
