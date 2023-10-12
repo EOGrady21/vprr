@@ -55,10 +55,10 @@ vpr_pred_read <- function(filename){
 
 #' Save VPR data as an \link[oce]{as.oce} object
 #'
-#' @details This function will pass a VPR data frame object to an `oce` object.
+#' @details This function will pass a VPR data frame to an `oce` object.
 #'   Using an `oce` object as the default export format for VPR data allows for
 #'   metadata and data to be kept in the same, space efficient file, and avoid
-#'   redundancy in the data frame. The function check for data parameters that
+#'   redundancy in the data frame. The function checks for data parameters that
 #'   may actually be metadata parameters (rows which have the same value
 #'   repeated for every observation). These parameters will automatically be
 #'   copied into the metadata slot of the `oce` object. The function will also
@@ -67,7 +67,7 @@ vpr_pred_read <- function(filename){
 #'   updated by providing the argument `metadata`.
 #'
 #'   Default metadata parameters include 'deploymentType', 'waterDepth',
-#'   'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
+#'   'serialNumber', 'latitudeStart', 'longitudeStart', 'castDate', 'castStartTime',
 #'   'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
 #'
 #'
@@ -83,8 +83,8 @@ vpr_pred_read <- function(filename){
 #' @examples
 #' data("category_conc_n")
 #' metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
-#' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitude' = 47,
-#' 'longitude' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
+#' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitudeStart' = 47,
+#' 'longitudeStart' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
 #' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
 #' 'S2', 'imageVolume' = 83663, 'comment' = 'test data')
 #'
@@ -113,7 +113,7 @@ vpr_save <- function(data, metadata){
 
   # check for other metadata and ask user to supply
 if(missing(metadata)){
-  req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
+  req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitudeStart', 'longitudeStart', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
 # TODO include metadata examples or skip
   # clarify serial number, water depth?
 
@@ -488,6 +488,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
   . <- NA # avoid CRAN notes
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
+  # TODO remove hardcoding and instead use reference to ctd col_list or use reverse of categories
   noncategory <-
     c(
       'time_ms',
@@ -722,7 +723,7 @@ if(length(ctd_files) == 0){
 vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 
   # avoid CRAN notes
-  . <- roi <- NA
+  . <- roi <- time_ms <- NA
   # First subset ctd data by roi id
   ctd_time <- ctd_dat_combine$time_ms
   roi_time <- as.numeric(roi_dat_combine$time_ms)
@@ -748,7 +749,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
   ctd_roi_merge[is.na(ctd_roi_merge)] <- 0
 
   ctd_roi_merge <- ctd_roi_merge %>%
-    dplyr::mutate(., roi = ifelse(roi == 0, NA, roi))
+    dplyr::mutate(., roi = ifelse(roi == 0, NA, roi)) %>%
+    dplyr::arrange(., time_ms) # ensure that data is sorted by time to avoid processing errors
 
   return (ctd_roi_merge)
 }
