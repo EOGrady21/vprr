@@ -125,27 +125,27 @@ vpr_save <- function(data, metadata) {
         'opticalSetting',
         'imageVolume',
         'comment')
-# TODO include metadata examples or skip
-  # clarify serial number, water depth?
+# TODO include metadata examples or skip # nolint
+  # clarify serial number, water depth? # nolint
 
-  for(rm in req_meta) {
-    if(is.null(oce_data@metadata[[rm]])) {
+    for (rm in req_meta) {
+    if (is.null(oce_data@metadata[[rm]])) {
       print(paste('Please provide value for Metadata parameter', rm))
       rm_val <- readline(paste('Metadata slot, ', rm, ': '))
       oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
     }
 
     }
-}else {
-# if metadata names and values are provided as list
-    for(rm in names(metadata)) {
+  }else {
+# if metadata names and values are provided as list # nolint
+    for (rm in names(metadata)) {
 
       rm_val <- metadata[[rm]]
       oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
 
 
     }
-}
+  }
 
   return(oce_data)
 }
@@ -174,7 +174,7 @@ vpr_ctd_ymd <- function(data, year, offset) {
   . <- time_ms <- NA
 
   d <- grep(names(data), pattern = 'time_hr')
-  if(length(d) == 0) {
+  if (length(d) == 0) {
     data <- data %>%
       dplyr::mutate(., time_hr = time_ms / 3.6e+06)
   }
@@ -189,7 +189,7 @@ vpr_ctd_ymd <- function(data, year, offset) {
 
   ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
 
-  if(!missing(offset)) {
+  if (!missing(offset)) {
 
     ymdhms_obj <- ymdhms_obj + offset * 3600 # convert hour offset to seconds and adjust times
 
@@ -287,11 +287,11 @@ vpr_size_bin <- function(data_all, bin_mea) {
 vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
 
   # avoid CRAN notes
-  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
+. <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
 
-data <- data[!duplicated(data$time_ms),]
+data <- data[!duplicated(data$time_ms), ]
 
-#get CTD data
+#get CTD data and format
 data_ctd <- data %>%
   dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
   dplyr::mutate(., day_hour = paste(day, hour, sep = ".")) %>%
@@ -309,10 +309,6 @@ data_all <- right_join(data_ctd, data_mea) %>%
   dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
   dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
   dplyr::filter(., category %in% category_of_interest)
-
-#cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
-#data_all <- data_all %>%
-  #dplyr::filter(., pressure <= max_pressure)
 
 return(data_all)
 
@@ -362,7 +358,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
       }else {
         empty_ind[[ii]] <- FALSE
       }
-    }
+  }
 
   aid_fns <- aid_fns[unlist(empty_ind) == FALSE]
 
@@ -371,15 +367,15 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
     if (missing(threshold)) {
       aid_dat <- read.table(aid_fns[ii])
     }else {
-          aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
-          aid_dat <- subset(aid_dat, aid_dat$V2 < threshold)
+      aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
+      aid_dat <- subset(aid_dat, aid_dat$V2 < threshold)
         }
     category <- unlist(vprr::vpr_category(aid_fns[ii],
-                                            categories = list.files(path = new_autoid, include.dirs = TRUE)))
+               categories = list.files(path = new_autoid, include.dirs = TRUE)))
 
 
     # fix file paths so they will copy
-      if (!missing(roi_path)) {
+    if (!missing(roi_path)) {
       tt <- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
       sub_roi_path <- substr(aid_dat$V1, tt[1], nchar(aid_dat$V1))
       new_roi_path <- paste0(roi_path, sub_roi_path)
@@ -388,7 +384,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
       }
 
     # tidy path strings
-      new_roi_path <- fs::path_tidy(new_roi_path)
+    new_roi_path <- fs::path_tidy(new_roi_path)
 
     # copy images in batches
 
@@ -400,11 +396,11 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
         copy_path <- file.path(new_autoid, category,
                                paste0("aid.", dh, "_ROIS"))
     }
-    fs::dir_create(copy_path, recurse = TRUE)
+  fs::dir_create(copy_path, recurse = TRUE)
 
-    fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
+  fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
 
-    cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
+  cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
     }
 }
 
@@ -435,7 +431,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 #'@export
 #'
 #'
-vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume){
+vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume) {
 
   # avoid CRAN notes
   . <- NA
@@ -452,7 +448,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
       dplyr::mutate(., category = valid_category[ii])
   }
 
-  names(conc_dat) <- valid_category
+  names(conc_dat)<- valid_category
 
   category_conc <- do.call(rbind, conc_dat)
 
@@ -484,7 +480,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 #' @author E. Chisholm
 #'
 #' @export
-concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE){
+concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE) {
   . <- NA # avoid CRAN notes
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
@@ -493,7 +489,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
  # copilot suggestion
   noncategory <- setdiff(names(data), category)
 
-  dt <- data %>%
+   dt <- data %>%
     dplyr::select(., noncategory, category)
 
   # get n_roi of only one category
@@ -536,7 +532,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 #'
 bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE) {
 
-. <- conc_m3 <- NA
+  . <- conc_m3 <- NA
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
@@ -581,7 +577,7 @@ vpr_oce_create <- function(data) {
   # compare oce vars to df vars
   oce_names <- names(ctd_roi_oce@data)
   df_names <- colnames(data)
-  if(length(oce_names) < length(df_names)) {
+  if (length(oce_names) < length(df_names)) {
     warning("oce-ctd object may be missing some data columns!")
   }
 
@@ -624,7 +620,7 @@ vpr_oce_create <- function(data) {
 vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list) {
 
   # avoid CRAN notes
-  . <- NA
+. <- NA
 
 if (length(ctd_files) == 0) {
   stop('No CTD files provided!')
@@ -633,13 +629,13 @@ if (length(ctd_files) == 0) {
   for (i in seq_len(length(ctd_files))) {
 
     if (missing(day)) {
-    day_id <- unlist(vpr_day(ctd_files[i]))
+      day_id <- unlist(vpr_day(ctd_files[i]))
     }else {
       day_id <- day
     }
 
     if (missing(hour)) {
-    hour_id <- unlist(vpr_hour(ctd_files[i]))
+      hour_id <- unlist(vpr_hour(ctd_files[i]))
     }else {
       hour_id <- hour
     }
@@ -650,7 +646,7 @@ if (length(ctd_files) == 0) {
     if (missing(col_list)) {
       ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
     }else {
-        ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
+      ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
     }
 
     ctd_dat[[i]] <- data.frame(ctd_dat_tmp,
@@ -674,7 +670,7 @@ if (length(ctd_files) == 0) {
       ctd_dat_combine$temperature,
       ctd_dat_combine$pressure
     )) %>%
-  dplyr::mutate(., depth = oce::swDepth(ctd_dat_combine$pressure)) # note that default latitude is used (45)
+    dplyr::mutate(., depth = oce::swDepth(ctd_dat_combine$pressure)) # note that default latitude is used (45)
 
 
   return(ctd_dat_combine)
@@ -700,7 +696,7 @@ if (length(ctd_files) == 0) {
 #' ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
 #'@export
 #'
-vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
+vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine) {
 
   # avoid CRAN notes
   . <- roi <- time_ms <- NA
@@ -715,7 +711,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
   # Get total number of rois per frame
   categorys <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
   category_col_id <- which(colnames(roi_dat_combine) %in% categorys)
-  category_subset <- roi_dat_combine[,category_col_id]
+  category_subset <- roi_dat_combine[, category_col_id]
   n_roi_total <- base::rowSums(category_subset)
   roi_dat_2 <- data.frame(roi_dat_combine, n_roi_total)
 
@@ -814,18 +810,20 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 #'  )
 #'
 #' @export
-vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE, categories){
+vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE, categories) {
 
   # set-up for only processing aid data
-  if(missing(file_list_aidmeas)){export <- 'aid'}
-  # avoid CRAN notes
-  . <- roi <- category <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
-if( export == 'aidmeas'){
-  if (missing(opticalSetting)){
+  if (missing(file_list_aidmeas)) {
+    export <- 'aid'
+  }
+# avoid CRAN notes
+. <- roi <- category <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
+if ( export == 'aidmeas') {
+  if (missing(opticalSetting)) {
     opticalSetting <- NA
-    if(warn != FALSE){
-    warning('No optical setting provided, size data output in pixels!!!')
-    }
+    if (warn != FALSE) {
+        warning('No optical setting provided, size data output in pixels!!!')
+      }
   }
 }
 # aid
@@ -833,13 +831,13 @@ if( export == 'aidmeas'){
 
   # check for empty files
   empty_files <- list()
-  for(j in seq_len(length(file_list_aid))){
+  for (j in seq_len(length(file_list_aid))) {
     mtry <- try(read.table(file_list_aid[j], sep = ",", header = TRUE),
                 silent = TRUE)
 
-    if( inherits(mtry, 'try-error')){
+    if (inherits(mtry, 'try-error')) {
       empty_files[j] <- TRUE
-    } else{
+    } else {
       empty_files[j] <- FALSE
     }
 
@@ -849,7 +847,7 @@ if( export == 'aidmeas'){
   col_names <- "roi"
   dat <- list()
 
-  for(i in seq_len(length(file_list_aid))) {
+  for (i in seq_len(length(file_list_aid))) {
 
     data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
 
@@ -861,18 +859,16 @@ if( export == 'aidmeas'){
     data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i], categories)[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
-    if(length(day) >1 | length(hour) >1){
+    if (length(day) > 1 | length(hour) > 1) {
       stop('Problem detecting day/hour values!')
     }
     data_tmp$day_hour <- paste(day, hour, sep = ".")
-    dat[[i]]<- data_tmp
+    dat[[i]] <- data_tmp
 
   }
 
 
   dat_combine_aid <- do.call(rbind, dat)
-
-  #browser()
   remove(dat, data_tmp, day, hour)
 
   # format
@@ -894,21 +890,20 @@ if( export == 'aidmeas'){
 
 # aidmeas
 # TODO: update code so it can run without measurement input
-if(export == 'aidmeas'){
+if (export == 'aidmeas') {
 
   # check for empty files
   empty_files <- list()
-  for(j in seq_len(length(file_list_aidmeas))){
+  for (j in seq_len(length(file_list_aidmeas))) {
     mtry <- try(read.table(file_list_aidmeas[j], sep = ",", header = TRUE),
                 silent = TRUE)
 
-    if( inherits(mtry, 'try-error')){
+      if (inherits(mtry, 'try-error')) {
       empty_files[j] <- TRUE
-    } else{
+    } else {
       empty_files[j] <- FALSE
     }
-
-  }
+    }
   file_list_aidmeas <- file_list_aidmeas[empty_files == FALSE]
 
   dat <- list()
