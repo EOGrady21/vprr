@@ -627,7 +627,7 @@ vpr_oce_create <- function(data){
 #' @param station_of_interest VPR station name
 #' @param day Day of interest, if not provided will be pulled from file path
 #' @param hour Hour of interest, if not provided will be pulled from file path
-#' @param col_list Optional list of CTD data column names
+#' @param col_list Optional chr vector of CTD data column names
 #'
 #' @examples
 #'
@@ -1037,7 +1037,7 @@ px_to_mm <- function(x, opticalSetting) {
 }
 
 
-#'Read CTD data (SBE49) and Fluorometer data from CTD- VPR package
+#'Read CTD data (SBE49) from CTD- VPR package
 #'
 #'Internal use \code{\link{vpr_ctd_read}}
 #'
@@ -1048,8 +1048,7 @@ px_to_mm <- function(x, opticalSetting) {
 #'
 #'Text file format .dat file
 #'Outputs ctd dataframe with variables time_ms, conductivity, temperature,
-#'pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
-#'turbidity_mv, altitude_NA
+#'pressure, salinity
 #' @author K. Sorochan, E. Chisholm
 #'
 #'
@@ -1061,10 +1060,11 @@ px_to_mm <- function(x, opticalSetting) {
 ctd_df_cols <- function(x, col_list) {
 
   if(missing(col_list)){
-    col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
-      "turbidity_ref", "turbidity_mv", "altitude_NA")
+    col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity")
     warning('CTD data columns named based on defaults!')
   }
+
+
 
 
   data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
@@ -1073,6 +1073,12 @@ ctd_df_cols <- function(x, col_list) {
 
 
   data2 <- cbind(time, data[,-1])
+
+  # check that provided names are right length
+  if(length(col_list) > ncol(data2)){
+    stop('Column name vector does not match data! Too many column names!')
+  }
+
   colnames(data2) <- col_list
   data2 <- data2[!duplicated(data2), ]
   data2
@@ -1682,11 +1688,9 @@ insertRow <- function(existingDF, newrow, r) {
 
 #' Checks manually created aid files for errors
 #'
-#' Removes any empty aid files after manual reclassification, checks for tow
-#' numbers and other metadata to match. Performs check to ensure measurement and
-#' ROI files are the same length
-#'
-#' WARNING: This function will delete empty aid and aidmeas files, permanently changing your directory. Consider making a back up copy before running this function.
+#' Checks for empty files, with an option to delete them. Then checks all the
+#' data for duplicated or missing ROIs which would indicate a problem with
+#' `vpr_autoid_create()`
 #'
 #' @author E Chisholm
 #'

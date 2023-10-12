@@ -19,12 +19,9 @@ vpr_autoid_check(new_autoid, original_autoid, cruise, dayhours)
 text file (saved in working directory) named CRUISENAME_aid_file_check.txt
 }
 \description{
-Removes any empty aid files after manual reclassification, checks for tow
-numbers and other metadata to match. Performs check to ensure measurement and
-ROI files are the same length
-}
-\details{
-WARNING: This function will delete empty aid and aidmeas files, permanently changing your directory. Consider making a back up copy before running this function.
+Checks for empty files, with an option to delete them. Then checks all the
+data for duplicated or missing ROIs which would indicate a problem with
+\code{vpr_autoid_create()}
 }
 \author{
 E Chisholm

@@ -2,7 +2,7 @@
 % Please edit documentation in R/EC_functions.R
 \name{ctd_df_cols}
 \alias{ctd_df_cols}
-\title{Read CTD data (SBE49) and Fluorometer data from CTD- VPR package}
+\title{Read CTD data (SBE49) from CTD- VPR package}
 \usage{
 ctd_df_cols(x, col_list)
 }
@@ -22,8 +22,7 @@ from a new VPR.
 
 Text file format .dat file
 Outputs ctd dataframe with variables time_ms, conductivity, temperature,
-pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
-turbidity_mv, altitude_NA
+pressure, salinity
 }
 \author{
 K. Sorochan, E. Chisholm

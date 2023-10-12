@@ -58,8 +58,10 @@ auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = T)
 #ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
 
 ##### READ CTD DATA ----------------------------------------------------------------------------------------------------------------------------
+col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
+              "turbidity_ref", "turbidity_mv", "altitude_NA")
 
-  ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
+  ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest, col_list = col_list)
 
  # subset data for size concerns
 ctd_dat_combine <- ctd_dat_combine[1:1000,]
