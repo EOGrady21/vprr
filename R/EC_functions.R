@@ -123,7 +123,6 @@ if(missing(metadata)){
       rm_val <- readline(paste('Metadata slot, ', rm, ': '))
       oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
     }
-    # TODO : add possibility of value existing as 'unknown or some other placeholder which should be overwritten
 
   }
 }else{
@@ -600,10 +599,6 @@ vpr_oce_create <- function(data){
   if(length(oce_names) < length(df_names)){
     warning("oce-ctd object may be missing some data columns!")
   }
-  # otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'time_hr') # TODO edit to avoid hard coding variable names
-  # for ( o in otherVars){
-  #   eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
-  # }
 
   return(ctd_roi_oce)
 }
@@ -2357,7 +2352,7 @@ vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL
   # avoid CRAN notes
   Var1 <- Var2 <- Freq <- NA
 
-  # TODO check that this function runs , removed require(stringr), cant find stringr function
+  # removed require(stringr), cant find stringr function
 
   dimcm <- dim(cm)
   if (dimcm[1] != length(classes) +1){
