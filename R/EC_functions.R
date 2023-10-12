@@ -44,8 +44,8 @@ vpr_pred_read <- function(filename){
   dat$metadata <- as.list(all_lines[seq_len(dat_index -1)])
   dat$data <- dat_tb
 
-  md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,1]
-  md_values <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,2]
+  md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[, 1]
+  md_values <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[, 2]
 
   dat$metadata <- md_values
   names(dat$metadata) <- md_names
@@ -91,7 +91,7 @@ vpr_pred_read <- function(filename){
 #' oce_dat <- vpr_save(category_conc_n, metadata)
 #' # save(oce_dat, file = vpr_save.RData') # save data
 #'
-vpr_save <- function(data, metadata){
+vpr_save <- function(data, metadata) {
 
   # create oce objects
 
@@ -99,8 +99,8 @@ vpr_save <- function(data, metadata){
 
   # check for metadata in dataframe
   rem_list <- list()
-  for(i in seq_len(length(oce_data@data))){
-    if(length(unique(oce_data@data[[i]])) == 1){
+  for(i in seq_len(length(oce_data@data))) {
+    if(length(unique(oce_data@data[[i]])) == 1) {
       print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of' , unique(oce_data@data[[i]]), 'moved to metadata slot. '))
       # add as metadtaa parameter
       oce_data <- oceSetMetadata(oce_data, name = names(oce_data@data)[[i]], value = unique(oce_data@data[[i]]))
@@ -112,28 +112,39 @@ vpr_save <- function(data, metadata){
   oce_data@data <- oce_data@data[-unlist(rem_list)]
 
   # check for other metadata and ask user to supply
-if(missing(metadata)){
-  req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitudeStart', 'longitudeStart', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
+  if(missing(metadata)) {
+    req_meta <- c('deploymentType',
+        'waterDepth',
+        'serialNumber',
+       'latitudeStart',
+        'longitudeStart',
+        'castDate',
+        'castStartTime',
+        'castEndTime',
+        'processedBy',
+        'opticalSetting',
+        'imageVolume',
+        'comment')
 # TODO include metadata examples or skip
   # clarify serial number, water depth?
 
-  for(rm in req_meta){
-    if(is.null(oce_data@metadata[[rm]])){
+  for(rm in req_meta) {
+    if(is.null(oce_data@metadata[[rm]])) {
       print(paste('Please provide value for Metadata parameter', rm))
       rm_val <- readline(paste('Metadata slot, ', rm, ': '))
-      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
+      oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
     }
 
-  }
-}else{
+    }
+}else {
 # if metadata names and values are provided as list
-  for(rm in names(metadata)){
+    for(rm in names(metadata)) {
 
       rm_val <- metadata[[rm]]
-      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
+      oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
 
 
-  }
+    }
 }
 
   return(oce_data)
@@ -158,32 +169,29 @@ if(missing(metadata)){
 #'
 #' @export
 
-vpr_ctd_ymd <- function(data, year, offset){
+vpr_ctd_ymd <- function(data, year, offset) {
   # avoid CRAN notes
   . <- time_ms <- NA
 
   d <- grep(names(data), pattern = 'time_hr')
-  if(length(d) == 0){
+  if(length(d) == 0) {
     data <- data %>%
       dplyr::mutate(., time_hr = time_ms / 3.6e+06)
   }
 
-
   day_num <- substr(data$day, 2, 4)
 
-  hour_num <- substr(data$hour, 2, 3)
-
-  ymdd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
+  ymdd <- as.Date(as.numeric(day_num), origin = paste0(year, '-01-01'))
 
 
-  l_per <- round(lubridate::seconds_to_period(data$time_ms/1000),0)
+  l_per <- round(lubridate::seconds_to_period(data$time_ms / 1000), 0)
 
 
   ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
 
-  if(!missing(offset)){
+  if(!missing(offset)) {
 
-    ymdhms_obj <- ymdhms_obj + offset*3600 # convert hour offset to seconds and adjust times
+    ymdhms_obj <- ymdhms_obj + offset * 3600 # convert hour offset to seconds and adjust times
 
   }
 
@@ -213,7 +221,7 @@ vpr_ctd_ymd <- function(data, year, offset){
 #'
 #'
 #'
-vpr_size_bin <- function(data_all, bin_mea){
+vpr_size_bin <- function(data_all, bin_mea) {
 
   #Bin by depth
   p <- data_all$pressure
@@ -242,12 +250,9 @@ vpr_size_bin <- function(data_all, bin_mea){
     #if you have a lot of NA bins, think about increasing your binSize
     print(paste('Removed bins at', pressure[idx_rm]))
 
-    lp <- length(pressure)
     pressure <- pressure[-idx_rm]
 
   }
-
-  station_id <- unique(data$station)
 
   dfs <- data.frame('median' = med, 'IQR1' = iqr1,
                     'IQR3' = iqr3, 'n_obs' = n_obs,
@@ -279,7 +284,7 @@ vpr_size_bin <- function(data_all, bin_mea){
 #'
 #' @export
 #'
-vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest){
+vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
 
   # avoid CRAN notes
   . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
@@ -339,72 +344,68 @@ return(data_all)
 #' inside your autoid folder
 #'
 #' @export
-vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour'){
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour') {
 
   #TODO update to use withr::with_dir to avoid CRAN complaints
 
-    # for each dh check which station it should be in
+      # for each dh check which station it should be in
     dh <- paste0('d', day, '.h', hour)
     # pull new_aids per station
     aid_fns <- list.files(new_autoid, pattern = dh, recursive = TRUE, full.names = TRUE)
     # remove empty files
     empty_ind <- list()
-    for(ii in seq_len(length(aid_fns))){
+    for (ii in seq_len(length(aid_fns))) {
       mtry <- try(read.table(aid_fns[ii], sep = ",", header = TRUE),
                   silent = TRUE)
-      if(inherits(mtry, 'try-error')){
+    if (inherits(mtry, 'try-error')) {
         empty_ind[[ii]] <- TRUE
-      }else{
+      }else {
         empty_ind[[ii]] <- FALSE
       }
     }
 
-    aid_fns <- aid_fns[unlist(empty_ind) == FALSE]
+  aid_fns <- aid_fns[unlist(empty_ind) == FALSE]
 
-    # read aid files
-    for(ii in seq_len(length(aid_fns))){
-        if(missing(threshold)){
+  # read aid files
+    for (ii in seq_len(length(aid_fns))) {
+    if (missing(threshold)) {
       aid_dat <- read.table(aid_fns[ii])
-        }else{
+    }else {
           aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
           aid_dat <- subset(aid_dat, aid_dat$V2 < threshold)
         }
-      category <- unlist(vprr::vpr_category(aid_fns[ii],
+    category <- unlist(vprr::vpr_category(aid_fns[ii],
                                             categories = list.files(path = new_autoid, include.dirs = TRUE)))
 
 
-      # fix file paths so they will copy
-      if(!missing(roi_path)){
-      tt<- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
+    # fix file paths so they will copy
+      if (!missing(roi_path)) {
+      tt <- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
       sub_roi_path <- substr(aid_dat$V1, tt[1], nchar(aid_dat$V1))
       new_roi_path <- paste0(roi_path, sub_roi_path)
-      } else{
+    } else {
         new_roi_path <- aid_dat$V1
       }
 
-      # tidy path strings
+    # tidy path strings
       new_roi_path <- fs::path_tidy(new_roi_path)
 
-      # copy images in batches
+    # copy images in batches
 
-      if(org == 'station'){
+    if (org == 'station') {
       copy_path <- file.path(new_autoid, category,
                              paste0('vpr', cast, '_', station, '_ROIS'))
-      }
-      if(org == 'dayhour'){
+    }
+      if (org == 'dayhour') {
         copy_path <- file.path(new_autoid, category,
                                paste0("aid.", dh, "_ROIS"))
-      }
-      # if(!exists(copy_path)){stop('No valid path to copy files to!')}
-
-      fs::dir_create(copy_path, recurse = TRUE)
-
-      fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
-
-      cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
     }
+    fs::dir_create(copy_path, recurse = TRUE)
 
+    fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
 
+    cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
+    }
 }
 
 
@@ -533,9 +534,9 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 #' @export
 #'
 #'
-bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
+bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE) {
 
-. <- time_hr <- conc_m3 <- NA
+. <- conc_m3 <- NA
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
@@ -573,14 +574,14 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 #' oce_dat <- vpr_oce_create(ctd_roi_merge)
 #'
 #' @export
-vpr_oce_create <- function(data){
+vpr_oce_create <- function(data) {
 
   # create oce objects
   ctd_roi_oce <- oce::as.ctd(data)
   # compare oce vars to df vars
   oce_names <- names(ctd_roi_oce@data)
   df_names <- colnames(data)
-  if(length(oce_names) < length(df_names)){
+  if(length(oce_names) < length(df_names)) {
     warning("oce-ctd object may be missing some data columns!")
   }
 
@@ -620,35 +621,35 @@ vpr_oce_create <- function(data){
 #'
 #' @export
 
-vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
+vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list) {
 
   # avoid CRAN notes
   . <- NA
 
-if(length(ctd_files) == 0){
+if (length(ctd_files) == 0) {
   stop('No CTD files provided!')
 }
   ctd_dat <- list()
-  for (i in seq_len(length(ctd_files))){
+  for (i in seq_len(length(ctd_files))) {
 
-    if(missing(day)){
+    if (missing(day)) {
     day_id <- unlist(vpr_day(ctd_files[i]))
-    }else{
+    }else {
       day_id <- day
     }
 
-    if(missing(hour)){
+    if (missing(hour)) {
     hour_id <- unlist(vpr_hour(ctd_files[i]))
-    }else{
+    }else {
       hour_id <- hour
     }
 
 
     station_id <- station_of_interest
 
-    if(missing(col_list)){
+    if (missing(col_list)) {
       ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
-    }else{
+    }else {
         ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
     }
 
@@ -1327,7 +1328,6 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
     data <- cast[[i]]
 
     n_obs <- length(data@data$pressure)
-    cast_number <- i
     cast_id <- paste(cast_direction, i, sep = "_")
     cast_id_vec <- rep(cast_id, n_obs)
 
@@ -1737,7 +1737,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
     # check for and remove empty files
     empty_files <- list()
-    for(j in 1:length(new_aids$fn)){
+    for(j in seq_along(new_aids$fn)){
       mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
                   silent = TRUE)
 
@@ -1751,7 +1751,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
     new_aids <- new_aids[empty_files == FALSE,]
 
 
-    for(i in 1:length(dayhours)){
+    for(i in seq_along(dayhours)){
 
       dh <- dayhours[i]
 
@@ -1765,7 +1765,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
         all_cnn_aid <- list.files(original_autoid, pattern = dh,
                                   full.names = TRUE, recursive = TRUE)
         aid_dat_cnn <- list()
-        for(l in 1:length(all_cnn_aid)){
+        for(l in seq_along(all_cnn_aid)){
           aid_dat_cnn[[l]] <- read_aid_cnn(all_cnn_aid[l])
           cn <- stringr::str_split(all_cnn_aid[l], pattern = '/')
           cn <- cn[[1]][6]
@@ -1781,7 +1781,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
         # read all aid files in
         aid_dat <- list()
-        for(l in 1:length(aid_fns)){
+        for(l in seq_along(aid_fns)){
           aid_dat[[l]] <- read.table(aid_fns[l], sep = " ")
           names(aid_dat[[l]]) <- 'file_path'
           names(aid_dat)[l] <- vpr_category(aid_fns[l], categories)
@@ -2699,7 +2699,7 @@ vpr_plot_profile <- function(category_conc_n, category_to_plot, plot_conc){
   }
 
   # avoid CRAN notes
-  temperature <- depth <- salinity <- fluorescence <- density <- conc_m3 <- pressure <- NA
+  temperature <- depth <- salinity <- fluorescence <- density <- conc_m3  <- NA
 # plot temp
 p <- ggplot(category_conc_n) +
   geom_point(aes(x = temperature, y = depth), col = 'red') +
