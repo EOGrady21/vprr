@@ -488,26 +488,10 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   # TODO remove hardcoding and instead use reference to ctd col_list or use reverse of categories
-  noncategory <-
-    c(
-      'time_ms',
-      'conductivity',
-      'temperature',
-      'pressure',
-      'salinity',
-      'sigmaT',
-      'fluor_ref',
-      'fluorescence_mv',
-      'turbidity_ref',
-      'turbidity_mv',
-      'altitude_NA',
-      'day',
-      'hour',
-      'station',
-      'time_hr',
-      'roi',
-      'depth'
-    )
+ # dynamically generate list of non-category columns 
+ # copilot suggestion
+  noncategory <- setdiff(names(data), category)
+
   dt <- data %>%
     dplyr::select(., noncategory, category)
 
