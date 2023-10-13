@@ -1114,14 +1114,15 @@ vpr_trrois_size <- function(directory, category, opticalSetting) {
 
     #Get info
     #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = FALSE)
-    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE,
+     col.names = c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length'))
 
     eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
 
 
   }
   #returns a data frame with size information and named columns
-  eval(parse(text = paste0('return(auto_measure_', t,'_mm)')))
+  eval(parse(text = paste0('return(auto_measure_', t, '_mm)')))
 }
 
 
@@ -1158,7 +1159,7 @@ vpr_trrois_size <- function(directory, category, opticalSetting) {
 #'
 #' @export
 #'
-bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
+bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
 
 # browser()
   cast_id <- unique(data$cast_id)
@@ -1173,7 +1174,7 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   max_depth <- max(p, na.rm = TRUE)
   min_depth <- min(p, na.rm = TRUE)
   x_breaks <- seq(from = floor(min_depth), to = ceiling(max_depth), by = binSize)
-  if (rev == TRUE){
+  if (rev == TRUE) {
     x_breaks <- seq(from = ceiling(max_depth), to = floor(min_depth), by = - binSize) #reversed by KS
   }
 
@@ -1186,8 +1187,8 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
   # Get variables of interest using oce bin functions
 
-  min_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, min)$result
-  max_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, max)$result
+  min_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, min)$result
+  max_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, max)$result
   min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
   max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
   n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
@@ -1197,7 +1198,7 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
   turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
   time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
-  time_hr <- oce::binApply1D(p, data$time_ms/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
+  time_hr <- oce::binApply1D(p, data$time_ms / (1000 * 3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
 if (rev == TRUE) {
 
   depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
@@ -1258,8 +1259,8 @@ if (rev == TRUE) {
   # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s)) #
 
   # "New way" of calculating concentration by summing volume associated with frames over depth bin
-  vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
-  conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) # KS edit 10/9/19
+  vol_sampled_bin_m3 <- (imageVolume / 1e09) * n_frames
+  conc_m3 <- n_roi_bin / (vol_sampled_bin_m3) # KS edit 10/9/19
 
   depth_diff <- max_depth - min_depth
 
@@ -1269,7 +1270,7 @@ if (rev == TRUE) {
              temperature, salinity, density, fluorescence, turbidity,
              time_hr, n_frames, vol_sampled_bin_m3, time_ms,
              towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
-} # end else loop for size error
+  } # end else loop for size error
 }
 
 
@@ -1398,13 +1399,12 @@ vpr_ctd_files <- function(castdir, cruise, day_hour) {
   # ADDED BY KS
   vpr_cast_folders <- list.files(castdir, pattern = '')
 
-  # find right vpr cast -- subset by tow number #
-  # folder <- grep(vpr_cast_folders, pattern = paste0('AD_', vprnum,'.VPR.', cruise,'*'), value = T) #ADDED BY KS, AD PATTERN IS NOT CONSISTENT?
-
   # not subset by tow number
   folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
 
-  if (length(folder) == 0){stop("No CTD files found!")}
+  if (length(folder) == 0) {
+    stop("No CTD files found!")
+    }
   folder_path <- paste0(castdir, folder)
 
   # grab all days
