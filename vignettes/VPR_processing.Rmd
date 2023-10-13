@@ -53,7 +53,8 @@ ROIs have been extracted from the raw files they may be sorted into
 categories manually or by an automated classification procedure. In
 vprr, file naming conventions and directory structures are inherited
 from a VPR image classification and analysis software, Visual Plankton.
-However, the functionality of vprr is not dependent on the use of VP.
+However, the functionality of vprr is not dependent on the use of Visual
+Plankton.
 
 The data inputs for processing in vprr consist of the following file
 types: aid (.txt), aidmeas (.txt), and CTD (.dat). The aid and aidmeas
@@ -77,7 +78,7 @@ box in Figure 1 are detailed in Figure 2.
 section of processing, green ovals represent sub steps or routines
 within each step.](r_flowchart.png)
 
-## Section 2.1: Processing Environment
+#### Processing Environment
 
 Before beginning data processing with vprr, it is recommended that a
 processing environment be created containing commonly used variables and
@@ -134,7 +135,7 @@ details on the required directory structure.
     dir.create(stdir, showWarnings = FALSE, recursive = TRUE)
 
     # BIN SIZE FOR COMPUTING DEPTH AVERAGED PLANKTON CONCENTRATION ALONG PATH OF THE VPR
-    binSize <- 3
+    binSize <- 3 # metres
 
     # CATEGORY OF INTEREST (PLANKTON CATEGORIES TO BE PROCESSED AND VISUALIZED)
     category_of_interest <-
@@ -168,7 +169,7 @@ the environment variables separate (outside of the git project) will
 allow collaboration while avoiding inconsistencies in file paths or
 folder names.
 
-## Section 2.2: Image Copying (optional):
+#### Image Copying (optional):
 
 ROIs are organized into folders corresponding to their assigned
 classification categories from automated image classification. The
@@ -177,7 +178,7 @@ have been classified to that category. This step is only required if
 manual re-classification (see Section 2.2) is intended. Further details
 on image copying are provided in Section 3.
 
-## Section 2.3: Manual re-classification (optional):
+#### Manual re-classification (optional):
 
 
 Automated classifications from are manually checked, which allows for
@@ -186,9 +187,9 @@ automated classification. ROIs that have been copied in Section 2.1 are
 manually sorted to correct for misclassifications. Updated aid and aidmeas files are produced. 
 Further details on manual re-classification are provided in Section 4.
 
-## Section 2.4: Processing:
+#### Data Processing:
 
-Data outputs from Autodeck (ctd .dat files), automatic classifications (aid files)
+Data outputs from Autodeck (ctd .dat files), automated classifications (aid files)
 and measurements (aidmeas files) are joined together. The aid and aidmeas files, which may have been updated
 (see Section 2.3) are joined with CTD text files by the 8 digit time
 stamp. The data are then averaged in user-defined vertical bins to
@@ -202,7 +203,7 @@ analysis. Further details on data processing are provided in Section 5.
 
 In this step, ROIs are copied to folders that are organized based on the
 day and hour of data collection and classification category assigned
-from automatic classification (see Appendix 1: 'Image Folders'). The
+from automated classification (see Appendix 1: 'Image Folders'). The
 images are organized by AutoDeck into day and hour; however,
 reorganizing them based on classification allows easier human
 interaction with the data and visual inspection of classifications.
@@ -233,7 +234,7 @@ standards. In this step, ROIs are displayed on the screen one at a time
 for manual verification. If an image has been misclassified or if it
 falls into a new user-defined category (described below), the image can
 be re-classified. This is especially useful for classification of rare
-categories that were not defined prior to automatic classification.
+categories that were not defined prior to automated classification.
 After completing manual re-classification for a day-hour set, new aid
 and aidmeas files are created for new categories, which are identical in
 format to original aid and aidmeas files.
@@ -859,11 +860,11 @@ group. Unit is pixels and columns are 'Perimeter', 'Area', 'width1',
 **Auto Deck** - software which pulls plankton images from Video Plankton
 Recorder frames based on specific settings
 
-**Auto ID** - The automatic classification given to an image from Visual
+**Auto ID** - The automated classification given to an image from Visual
 Plankton machine learning algorithm
 
 **AutoID files** - Includes both Aid and AidMeas files as part of Visual
-Plankton's automatic classifications
+Plankton's automated classifications
 
 **BIO** - Bedford Institute of Oceanography, a research institute in
 Halifax NS, Canada
