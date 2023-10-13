@@ -937,7 +937,7 @@ if (export == 'aidmeas') {
   dat_combine_selected <- dat_combine_aidmeas %>%
     dplyr::select(., category, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
 
-  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('category', 'day_hour', 'id') ) %>%
+  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('category', 'day_hour', 'id')) %>%
     dplyr::select(., - id) %>%
     dplyr::mutate(., station = station_of_interest) %>%
     dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
@@ -1103,23 +1103,11 @@ vpr_trrois_size <- function(directory, category, opticalSetting) {
 
   #loop for each category of interest
   for (t in category) {
-    #check
-    # g <- grep(category_names, pattern = t)
-    # if (length(g) == 0){
-    #   stop(paste('category of interest, ', t, 'not found in data provided!'))
-    # }
-    #
-    size_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('mea.', t))
-    #roi_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('hid.v0.',t))
-
+    size_file <- list.files(path = paste0(directory, '/idsize'), pattern = paste0('mea.', t))
     #Get info
-    #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = FALSE)
     auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE,
-     col.names = c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length'))
-
+    col.names = c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length'))
     eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
-
-
   }
   #returns a data frame with size information and named columns
   eval(parse(text = paste0('return(auto_measure_', t, '_mm)')))
@@ -1160,13 +1148,6 @@ vpr_trrois_size <- function(directory, category, opticalSetting) {
 #' @export
 #'
 bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
-
-# browser()
-  cast_id <- unique(data$cast_id)
-
-
-
-
   cast_id <- unique(data$cast_id)
   max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
@@ -1303,7 +1284,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
   if (is.null(breaks)) {
     cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
-  }else{
+  }else {
     cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
 
   }
@@ -1479,8 +1460,7 @@ vpr_category <- function(x, categories) {
     m_tmp <- gregexpr(category, x)
     if (m_tmp[[1]][1] > 0) {
       m <- m_tmp
-    }
-    else {
+    }else {
     }
   }
   y <- regmatches(x, m)
@@ -1546,7 +1526,7 @@ vpr_hour <- function(x) {
 
 
 
-vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
+vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour) {
   #'  Data Summary Report
   #'
   #'  Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
@@ -1564,7 +1544,9 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   #' @export
 
   #prints a data summary report, part of VP easyPlot
-  if(!missing(fn)){sink(fn)} # TODO: update to use withr conventions
+  if (!missing(fn)) {
+    sink(fn)
+    } # TODO: update to use withr conventions
 
   cat('                  Data Summary Report \n')
   cat('Report processed:', as.character(Sys.time()), '\n')
@@ -1572,58 +1554,60 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
   cat('\n')
   cat('\n')
   cat(' >>>>  Time \n')
-  cat('Data points: ', length(all_dat$time_ms),'\n')
-  cat('Range: ', min(all_dat$time_ms),' - ', max(all_dat$time_ms), ' (ms) \n')
-  cat('Range: ', min(all_dat$time_hr),' - ', max(all_dat$time_hr), ' (hr) \n')
+  cat('Data points: ', length(all_dat$time_ms), '\n')
+  cat('Range: ', min(all_dat$time_ms), ' - ', max(all_dat$time_ms), ' (ms) \n')
+  cat('Range: ', min(all_dat$time_hr), ' - ', max(all_dat$time_hr), ' (hr) \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Conductivity \n')
-  cat('Data points: ', length(all_dat$conductivity),'\n')
-  cat('Range: ', min(all_dat$conductivity),' - ', max(all_dat$conductivity), '  \n')
+  cat('Data points: ', length(all_dat$conductivity), '\n')
+  cat('Range: ', min(all_dat$conductivity), ' - ', max(all_dat$conductivity), '  \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Temperature \n')
-  cat('Data points: ', length(all_dat$temperature),'\n')
-  cat('Range: ', min(all_dat$temperature),' - ', max(all_dat$temperature), ' (c) \n')
+  cat('Data points: ', length(all_dat$temperature), '\n')
+  cat('Range: ', min(all_dat$temperature), ' - ', max(all_dat$temperature), ' (c) \n')
   cat('QC: ', length(all_dat[all_dat$temperature < 0 ]), 'points below zero deg c \n')
   cat('QC: ', length(all_dat[all_dat$temperature > 10]), 'points above ten deg c \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Pressure \n')
-  cat('Data points: ', length(all_dat$pressure),'\n')
-  cat('Range: ', min(all_dat$pressure),' - ', max(all_dat$pressure), ' (db) \n')
-  cat('QC: ', length(all_dat[all_dat$pressure < 0 ]), 'below zero db \n')
+  cat('Data points: ', length(all_dat$pressure), '\n')
+  cat('Range: ', min(all_dat$pressure), ' - ', max(all_dat$pressure), ' (db) \n')
+  cat('QC: ', length(all_dat[all_dat$pressure < 0]), 'below zero db \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Salinity \n')
-  cat('Data points: ', length(all_dat$salinity),'\n')
-  cat('Range: ', min(all_dat$salinity),' - ', max(all_dat$salinity), ' (PSU) \n')
-  cat('QC: ', length(all_dat[all_dat$salinity < 28 ]), 'points below twenty-eight PSU \n')
-  cat('QC: ', length(all_dat[all_dat$salinity > 34 ]), 'points above thirty-four PSU \n')
+  cat('Data points: ', length(all_dat$salinity), '\n')
+  cat('Range: ', min(all_dat$salinity), ' - ', max(all_dat$salinity), ' (PSU) \n')
+  cat('QC: ', length(all_dat[all_dat$salinity < 28]), 'points below twenty-eight PSU \n')
+  cat('QC: ', length(all_dat[all_dat$salinity > 34]), 'points above thirty-four PSU \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Fluorescence \n')
   cat('Data points: ', length(all_dat$fluorescence_mv),'\n')
-  cat('Range: ', min(all_dat$fluorescence_mv),' - ', max(all_dat$fluorescence_mv), ' (mv) \n')
+  cat('Range: ', min(all_dat$fluorescence_mv), ' - ', max(all_dat$fluorescence_mv), ' (mv) \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Turbidity \n')
   cat('Data points: ', length(all_dat$turbidity_mv),'\n')
-  cat('Range: ', min(all_dat$turbidity_mv),' - ', max(all_dat$turbidity_mv), ' (mv) \n')
+  cat('Range: ', min(all_dat$turbidity_mv), ' - ', max(all_dat$turbidity_mv), ' (mv) \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  ROI count \n')
-  cat('Data points: ', length(all_dat$n_roi),'\n')
-  cat('Range: ', min(all_dat$n_roi),' - ', max(all_dat$n_roi), ' (counts) \n')
+  cat('Data points: ', length(all_dat$n_roi), '\n')
+  cat('Range: ', min(all_dat$n_roi), ' - ', max(all_dat$n_roi), ' (counts) \n')
   cat('\n')
   cat('\n')
   cat(' >>>>  Sigma T \n')
-  cat('Data points: ', length(all_dat$sigmaT),'\n')
-  cat('Range: ', min(all_dat$sigmaT),' - ', max(all_dat$sigmaT), '  \n')
-  cat('QC: ', length(all_dat[all_dat$sigmaT < 22 ]), 'points below twenty-two  \n')
-  cat('QC: ', length(all_dat[all_dat$sigmaT > 28 ]), 'points above twenty-eight  \n')
+  cat('Data points: ', length(all_dat$sigmaT), '\n')
+  cat('Range: ', min(all_dat$sigmaT), ' - ', max(all_dat$sigmaT), '  \n')
+  cat('QC: ', length(all_dat[all_dat$sigmaT < 22]), 'points below twenty-two  \n')
+  cat('QC: ', length(all_dat[all_dat$sigmaT > 28]), 'points above twenty-eight  \n')
 
-  if(!missing(fn)){sink()}
+  if (!missing(fn)) {
+    sink()
+    }
 
 }
 
@@ -1640,8 +1624,8 @@ vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
 insertRow <- function(existingDF, newrow, r) {
 
 
-  existingDF[seq(r+1,nrow(existingDF)+1),] <- existingDF[seq(r,nrow(existingDF)),]
-  existingDF[r,] <- newrow
+  existingDF[seq(r + 1, nrow(existingDF) + 1), ] <- existingDF[seq(r, nrow(existingDF)), ]
+  existingDF[r, ] <- newrow
   existingDF
 }
 
@@ -1672,7 +1656,7 @@ insertRow <- function(existingDF, newrow, r) {
 #' @export
 #'
 #'
-vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
+vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
 
   . <- category <- roi <- NA # remove global variable warnings
 
@@ -1681,10 +1665,10 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
   category_folders <- list.files(new_autoid, full.names = TRUE)
 
-  withr::with_output_sink(paste0(cruise,'_aid_file_check.txt'), code = {
+  withr::with_output_sink(paste0(cruise, '_aid_file_check.txt'), code = {
   # loop through each day.hour
 
-  for (i in seq_len(length(category_folders))){
+  for (i in seq_len(length(category_folders))) {
     path <- category_folders[i]
 
     # get all files (aid )
@@ -1695,14 +1679,14 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
     empty_ind <- list()
     for (ii in seq_len(length(aid_fns))){
       fn <- readLines(aid_fns[ii])
-      if(length(fn) == 0){
+      if (length(fn) == 0) {
         cat('\n')
         cat(aid_fns[ii], '\n')
         cat('File is empty! \n')
         cat('\n')
 
         empty_ind[ii] <- TRUE
-      }else{
+      }else {
         empty_ind[ii] <- FALSE
       }
     }
@@ -1727,31 +1711,30 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
       mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
                   silent = TRUE)
 
-      if( inherits(mtry, 'try-error')){
+      if ( inherits(mtry, 'try-error')) {
         empty_files[j] <- TRUE
-      } else{
+      } else {
         empty_files[j] <- FALSE
       }
-
     }
-    new_aids <- new_aids[empty_files == FALSE,]
+    new_aids <- new_aids[empty_files == FALSE, ]
 
 
-    for(i in seq_along(dayhours)){
+    for (i in seq_along(dayhours)) {
 
       dh <- dayhours[i]
 
-      aid_fns <- new_aids$fn[paste0(new_aids$day,".", new_aids$hour) == dh]
+      aid_fns <- new_aids$fn[paste0(new_aids$day, ".", new_aids$hour) == dh]
 
-      if(length(aid_fns) == 0){
+      if (length(aid_fns) == 0) {
         cat('WARNING: ', dh, 'skipped, no valid data found! \n')
-      }else{
+      }else {
 
         # get test dh  aid cnn data into single table
         all_cnn_aid <- list.files(original_autoid, pattern = dh,
                                   full.names = TRUE, recursive = TRUE)
         aid_dat_cnn <- list()
-        for(l in seq_along(all_cnn_aid)){
+        for (l in seq_along(all_cnn_aid)) {
           aid_dat_cnn[[l]] <- read_aid_cnn(all_cnn_aid[l])
           cn <- stringr::str_split(all_cnn_aid[l], pattern = '/')
           cn <- cn[[1]][6]
@@ -1767,7 +1750,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 
         # read all aid files in
         aid_dat <- list()
-        for(l in seq_along(aid_fns)){
+        for (l in seq_along(aid_fns)) {
           aid_dat[[l]] <- read.table(aid_fns[l], sep = " ")
           names(aid_dat[[l]]) <- 'file_path'
           names(aid_dat)[l] <- vpr_category(aid_fns[l], categories)
@@ -1797,7 +1780,6 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
       }
     }
 
-  # sink()
   }) # end sink output
 
 }
@@ -1810,7 +1792,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours){
 #' @return ROI path and probability values in a table
 #' @export
 #'
-read_aid_cnn <- function(aid_file){
+read_aid_cnn <- function(aid_file) {
 
   aid_table <- read.table(aid_file, sep = " ")
   names(aid_table) <- c('roi', 'confidence')
@@ -1847,15 +1829,15 @@ getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', optica
   for (i in seq_len(length(categoryfolder))) {
     # print(paste( 'i = ',i))
     #find files
-    sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = TRUE)
-    roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=TRUE)
+    sizefiles <- list.files(paste(categoryfolder[i], 'aidmea', sep = '\\'), full.names = TRUE)
+    roifiles <- list.files(paste(categoryfolder[i], 'aid', sep = '\\'), full.names = TRUE)
 
     #remove dummy files for vpr_manual_classification
     #check for dummy files
     sfd <-  grep(sizefiles, pattern = 'dummy')
     rfd <-  grep(roifiles, pattern = 'dummy')
 
-    if (length(rfd) != 0){
+    if (length(rfd) != 0) {
       # print('dummy files removed')
       #remove dummy files from meas consideration to avoid error
       sizefiles <- sizefiles[-sfd]
@@ -1873,16 +1855,15 @@ getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', optica
       # sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = T)
       # roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=T)
 
-    } else{
-      SKIP = FALSE
+    } else {
+      SKIP <- FALSE
       # print(paste(i, 'SKIP == FALSE'))
 
       #prevent mixing of category in same list where some hours were not properly being overwirtten
       auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
 
 
-      for(j in seq_len(length(sizefiles))) {
-        #print(paste('j = ', j))
+      for (j in seq_len(length(sizefiles))) {
         sizefile <- sizefiles[j]
         roifile <- roifiles[j]
 
@@ -1891,21 +1872,19 @@ getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', optica
                     silent = TRUE)
 
         if (inherits(mtry, what = 'try-error')) {
-          # print('try error == FALSE')
           #Get info
           roi_ID <- read.table(roifile, stringsAsFactors = FALSE)
-          auto_measure_px <- read.table(sizefile, stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
+          auto_measure_px <- read.table(sizefile, stringsAsFactors = FALSE,
+           col.names = c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length'))
 
         } else {
-          # print(paste('cannot open roi file from ', categoryfolder[i]))
-          #      print(roifiles)
           stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
         }
 
         #convert to mm
-        if (unit == 'mm'){
+        if (unit == 'mm') {
           auto_measure_mm_tmp <- px_to_mm(auto_measure_px, opticalSetting) #Convert to mm
-        }else{
+        }else {
           #or leave in pixels
           auto_measure_mm_tmp <- auto_measure_px
         }
@@ -1993,18 +1972,14 @@ getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', optica
 #'
 vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
-  #oldpar <- par(no.readonly = TRUE)
-  #on.exit(par(oldpar))
-
   # avoid CRAN notes
   . <- NA
   data <- x
   category <- unique(data$category)
 
-  for(i in seq_len(length(category))) {
+  for (i in seq_len(length(category))) {
 
-    # par(mfrow = c(1,2))
-    withr::with_par(mfrow = c(1,2), code = {
+    withr::with_par(mfrow = c(1, 2), code = {
 
     category_id <- category[i]
 
@@ -2015,7 +1990,7 @@ vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 
     hist(data_hist2, nclass = number_of_classes, col = colour_of_bar, xlab = "Long axis of bug (mm)", main = category_id) #Eventually you will want to loop through category
 
-    if(length(category) == 1) {
+    if (length(category) == 1) {
 
       plot.new()
 
@@ -2030,7 +2005,7 @@ vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
 #balloon plot with isopycnals final
 
 #create TS data frame
-isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
+isopycnal_calculate <- function(sal, pot.temp, reference.p = 0) {
   #' Get vector to draw isopycnal lines on TS plot
   #' Used internally to create TS plots
   #' @author E. Chisholm
@@ -2056,25 +2031,25 @@ isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
   # +- horizontal isopycnals
   h.isopycnals <- subset(TS,
                          sal == ceiling(max(TS$sal)) & # selects all rows where "sal" is the max limit of the x axis
-                           round(density,1) %in% seq(min(round(TS$density*2)/2, na.rm = TRUE),
-                                                     max(round(TS$density*2)/2, na.rm = TRUE),
+                           round(density, 1) %in% seq(min(round(TS$density * 2) / 2, na.rm = TRUE),
+                                                     max(round(TS$density * 2) / 2, na.rm = TRUE),
                                                      by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
-  if(nrow(h.isopycnals)>0){
+  if (nrow(h.isopycnals) > 0) {
     h.isopycnals$density <- round(h.isopycnals$density, 1) # rounds the density
-    h.isopycnals <- aggregate(pot.temp~density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+    h.isopycnals <- aggregate(pot.temp ~ density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
   }
 
   # +- vertical isopycnals
-  if(nrow(h.isopycnals)==0){ # if the isopycnals are not +- horizontal then the df will have no rows
+  if (nrow(h.isopycnals) == 0) { # if the isopycnals are not +- horizontal then the df will have no rows
     rm(h.isopycnals) # remove the no-line df
 
     v.isopycnals <- subset(TS, # make a df for labeling vertical isopycnals
                            pot.temp == ceiling(max(TS$pot.temp)) & # selects all rows where "sal" is the max limit of the x axis
-                             round(density,1) %in% seq(min(round(TS$density*2)/2),
-                                                       max(round(TS$density*2)/2),
+                             round(density, 1) %in% seq(min(round(TS$density * 2) / 2),
+                                                       max(round(TS$density * 2) / 2),
                                                        by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
     v.isopycnals$density <- round(v.isopycnals$density, 1) # rounds the density
-    v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+    v.isopycnals <- aggregate(sal ~ density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
   }
 
 
