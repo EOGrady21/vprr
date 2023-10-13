@@ -907,15 +907,15 @@ if (export == 'aidmeas') {
   file_list_aidmeas <- file_list_aidmeas[empty_files == FALSE]
 
   dat <- list()
-  col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
-  for(i in seq_len(length(file_list_aidmeas))) {
+  col_names <- c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length')
+  for (i in seq_len(length(file_list_aidmeas))) {
 
-    data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
+      data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
 
 
-if(!is.na(opticalSetting)){
-      data_tmp <- px_to_mm(data_tmp, opticalSetting)
-}
+      if (!is.na(opticalSetting)) {
+        data_tmp <- px_to_mm(data_tmp, opticalSetting)
+      }
 
 
 
@@ -947,19 +947,14 @@ if(!is.na(opticalSetting)){
 
 
 
-  #  browser()
 # export
-  if (export == 'aid'){
+  if (export == 'aid') {
     return(roi_dat)
   }
 
-  if (export == 'aidmeas'){
+  if (export == 'aidmeas') {
      return(roimeas_dat_combine)
-
   }
-
-
-
 }
 
 
@@ -981,33 +976,30 @@ px_to_mm <- function(x, opticalSetting) {
 
 
   #find correct conversion factor based on VPR optical setting
-  if (opticalSetting == 'S0'){
+  if (opticalSetting == 'S0') {
     #px to mm conversion factor
     frame_mm <- 7
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
   }
-  if (opticalSetting == 'S1'){
+  if (opticalSetting == 'S1') {
     #px to mm conversion factor
     frame_mm <- 14
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
   }
-  if (opticalSetting == 'S2'){
+  if (opticalSetting == 'S2') {
     #px to mm conversion factor
     frame_mm <- 24
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
   }
-  if (opticalSetting == 'S3'){
+  if (opticalSetting == 'S3') {
     #px to mm conversion factor
     frame_mm <- 48
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
   }
-  #original default to S2 setting
-  #mm_px <- 24/1024 #mm/pixel
-
   mm2_px2 <- (mm_px)^2
 
-  x[, c(1, 3:7)] <- x[, c(1, 3:7)]*mm_px
-  x[,2] <- x[,2]*mm2_px2
+  x[, c(1, 3:7)] <- x[, c(1, 3:7)] * mm_px
+  x[, 2] <- x[, 2] * mm2_px2
 
   return(x)
 
@@ -1036,7 +1028,7 @@ px_to_mm <- function(x, opticalSetting) {
 #'@export
 ctd_df_cols <- function(x, col_list) {
 
-  if(missing(col_list)){
+  if (missing(col_list)) {
     col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity")
     warning('CTD data columns named based on defaults!')
   }
@@ -1045,14 +1037,14 @@ ctd_df_cols <- function(x, col_list) {
 
 
   data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
-  time <- data[,1]
+  time <- data[, 1]
   time <- as.numeric(gsub("[^[:digit:]]", "", time))
 
 
-  data2 <- cbind(time, data[,-1])
+  data2 <- cbind(time, data[, -1])
 
   # check that provided names are right length
-  if(length(col_list) > ncol(data2)){
+  if (length(col_list) > ncol(data2)) {
     stop('Column name vector does not match data! Too many column names!')
   }
 
@@ -1074,13 +1066,13 @@ ctd_df_cols <- function(x, col_list) {
 #' @param mat a matrix to normalize
 #'
 #'
-normalize_matrix <- function(mat){
+normalize_matrix <- function(mat) {
 
 
   nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
-  for(i in seq_len(length(nm[,1]))){ # 1:length(nm[,1])
-    for (j in seq_len(length(nm[1,]))){ # 1:length(nm[1,])
-      nm[i,j] <- mat[i,j]/colSums(mat)[j]
+  for (i in seq_len(length(nm[, 1]))) { # 1:length(nm[,1])
+    for (j in seq_len(length(nm[1, ]))) { # 1:length(nm[1,])
+      nm[i, j] <- mat[i, j] / colSums(mat)[j]
     }
   }
   return(nm)
@@ -1107,10 +1099,10 @@ normalize_matrix <- function(mat){
 #
 # }
 
-vpr_trrois_size <- function(directory, category, opticalSetting){
+vpr_trrois_size <- function(directory, category, opticalSetting) {
 
   #loop for each category of interest
-  for (t in category){
+  for (t in category) {
     #check
     # g <- grep(category_names, pattern = t)
     # if (length(g) == 0){
@@ -1169,12 +1161,12 @@ vpr_trrois_size <- function(directory, category, opticalSetting){
 bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
 
 # browser()
-  cast_id <-unique(data$cast_id)
+  cast_id <- unique(data$cast_id)
 
 
 
 
-  cast_id <-unique(data$cast_id)
+  cast_id <- unique(data$cast_id)
   max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
   p <- data$depth
@@ -1186,10 +1178,10 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   }
 
   # error when cast is too small
-  if(max_depth - min_depth < binSize){
+  if (max_depth - min_depth < binSize) {
     warning(paste('Cast', cast_id, 'is too small to calculate information for bins of size', binSize))
     data.frame(NULL)
-  }else{
+  } else {
 
 
   # Get variables of interest using oce bin functions
@@ -1206,11 +1198,11 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
   turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
   time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
   time_hr <- oce::binApply1D(p, data$time_ms/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
-if (rev == TRUE){
+if (rev == TRUE) {
 
   depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
 
-}else{ # simplify?
+} else { # simplify?
 
     depth <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
 
@@ -1241,19 +1233,19 @@ if (rev == TRUE){
 
     lp <- length(depth)
     depth <- depth[-idx_rm]
-    if (length(n_frames) == lp){
+    if (length(n_frames) == lp) {
       n_frames <- n_frames[-idx_rm]
     }
 
   }
   # make sure n_frames matches the length of other data frame rows
-  if (length(n_frames) > length(depth)){
+  if (length(n_frames) > length(depth)) {
     n_frames <- n_frames[-length(n_frames)]
   }
-  if( length(n_frames) < length(depth)){
+  if (length(n_frames) < length(depth)) {
     n_frames <- c(n_frames, 0)
   }
-  if (length(n_frames) != length(depth)){
+  if (length(n_frames) != length(depth)) {
     length(n_frames) <- length(depth)
   }
   # Get derived variables
@@ -1308,7 +1300,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
   cast_updated <- list()
 
 
-  if (is.null(breaks)){
+  if (is.null(breaks)) {
     cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
   }else{
     cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
@@ -1318,7 +1310,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 
   # append data with 'cast_id' to be able to identify/ combine data frames
-  for(i in seq_len(length(cast))) {
+  for (i in seq_len(length(cast))) {
 
     data <- cast[[i]]
 
@@ -1331,18 +1323,17 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
   }
 
   # output in oce format
-  if(data_type == "oce") {
+  if (data_type == "oce") {
 
     cast_updated
 
   }
 
   # output in dataframe
-  if(data_type == "df") {
+  if (data_type == "df") {
 
     getDf <- function(x) {
-
-      data.frame(x@data, stringsAsFactors = FALSE)
+    data.frame(x@data, stringsAsFactors = FALSE)
 
     }
 
