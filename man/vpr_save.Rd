@@ -37,7 +37,7 @@ Default metadata parameters include 'deploymentType', 'waterDepth',
 }
 \examples{
 data("category_conc_n")
-metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
+metadata <- list('deploymentType' = 'towyo', 'waterDepth' =
 max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitudeStart' = 47,
 'longitudeStart' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =

@@ -15,7 +15,7 @@ vpr_roi_concentration(
 \arguments{
 \item{data}{a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}}
 
-\item{category_list}{a list of character strings representing category present in the station being processed}
+\item{category_list}{a vector of character strings representing category present in the station being processed}
 
 \item{station_of_interest}{The station being processed}
 
