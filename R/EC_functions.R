@@ -11,6 +11,7 @@
 #' @importFrom usethis use_data
 #' @importFrom data.table rbindlist
 #' @importFrom fs file_copy dir_create
+#' @importFrom tools file_ext
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
@@ -31,17 +32,30 @@ options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 #' @export
 #'
 #'
-vpr_pred_read <- function(filename){
-  # do some checks on the file
-  # check for .txt file
-  # check that data index exists
+vpr_pred_read <- function(filename) {
+  # Check that the file exists
+  if (!file.exists(filename)) {
+    stop("File not found")
+  }
+
+  # Check that the file is a .txt file
+  if (tolower(tools::file_ext(filename)) != "txt") {
+    stop("File must be a .txt file")
+  }
+
+  # Check that the data index exists
+  all_lines <- readLines(filename)
+  dat_index <- grep(all_lines, pattern = 'DATA ----')
+  if (length(dat_index) == 0) {
+    stop("Data index not found")
+  }
 
   all_lines <- readLines(filename)
   dat_index <- grep(all_lines, pattern = 'DATA ----')
   dat_tb <- read.table(filename, header = TRUE, sep = ',', skip = dat_index)
 
   dat <- list()
-  dat$metadata <- as.list(all_lines[seq_len(dat_index -1)])
+  dat$metadata <- as.list(all_lines[seq_len(dat_index - 1)])
   dat$data <- dat_tb
 
   md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[, 1]
@@ -92,16 +106,24 @@ vpr_pred_read <- function(filename){
 #' # save(oce_dat, file = vpr_save.RData') # save data
 #'
 vpr_save <- function(data, metadata) {
+  # Check that the data is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
 
+  # Check that the metadata is a named list
+  if (!is.null(metadata) && !is.list(metadata)) {
+    stop("Metadata must be a named list")
+  }
   # create oce objects
 
   oce_data <- as.oce(data)
 
   # check for metadata in dataframe
   rem_list <- list()
-  for(i in seq_len(length(oce_data@data))) {
-    if(length(unique(oce_data@data[[i]])) == 1) {
-      print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of' , unique(oce_data@data[[i]]), 'moved to metadata slot. '))
+  for (i in seq_len(length(oce_data@data))) {
+    if (length(unique(oce_data@data[[i]])) == 1) {
+      print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of', unique(oce_data@data[[i]]), 'moved to metadata slot. '))
       # add as metadtaa parameter
       oce_data <- oceSetMetadata(oce_data, name = names(oce_data@data)[[i]], value = unique(oce_data@data[[i]]))
       rem_list[[i]] <- i
@@ -112,7 +134,7 @@ vpr_save <- function(data, metadata) {
   oce_data@data <- oce_data@data[-unlist(rem_list)]
 
   # check for other metadata and ask user to supply
-  if(missing(metadata)) {
+  if (missing(metadata)) {
     req_meta <- c('deploymentType',
         'waterDepth',
         'serialNumber',
@@ -137,7 +159,7 @@ vpr_save <- function(data, metadata) {
 
     }
   }else {
-# if metadata names and values are provided as list # nolint
+# if metadata names and values are provided as list
     for (rm in names(metadata)) {
 
       rm_val <- metadata[[rm]]
@@ -285,6 +307,33 @@ vpr_size_bin <- function(data_all, bin_mea) {
 #' @export
 #'
 vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
+  # INPUT VALIDATION
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the data_mea argument is a data frame
+  if (!is.data.frame(data_mea)) {
+    stop("Data_mea must be a data frame")
+  }
+
+  # Check that the category_of_interest argument is a character vector
+  if (!is.character(category_of_interest)) {
+    stop("Category_of_interest must be a character vector")
+  }
+
+  # Check that the category_of_interest argument is not empty
+  if (length(category_of_interest) == 0) {
+    stop("Category_of_interest cannot be empty")
+  }
+
+  # Check that the category_of_interest argument contains valid categories
+  valid_categories <- unique(data_mea$category)
+  invalid_categories <- setdiff(category_of_interest, valid_categories)
+  if (length(invalid_categories) > 0) {
+    stop(paste("Invalid categories:", paste(invalid_categories, collapse = ", ")))
+  }
 
   # avoid CRAN notes
 . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
@@ -342,6 +391,47 @@ return(data_all)
 #' @export
 vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour') {
 
+
+# INPUT VALIDATION
+  # Check that the day argument is a character string of length 3
+  if (!is.character(day) || nchar(day) != 3) {
+    stop("day must be a character string of length 3")
+  }
+
+  # Check that the hour argument is a character string of length 2
+  if (!is.character(hour) || nchar(hour) != 2) {
+    stop("hour must be a character string of length 2")
+  }
+
+  # Check that the cast argument is a character string of length 3
+  if (!is.character(cast) || nchar(cast) != 3) {
+    stop("cast must be a character string of length 3")
+  }
+
+  # Check that the new_autoid argument is a directory
+  if (!is.dir(new_autoid)) {
+    stop("new_autoid must be a directory")
+  }
+
+  # Check that the roi_path argument is a directory
+  if (!is.dir(roi_path)) {
+    stop("roi_path must be a directory")
+  }
+
+  # Check that the station argument is a character vector
+  if (!is.character(station)) {
+    stop("station must be a character vector")
+  }
+
+  # Check that the threshold argument is a numeric value between 0 and 1 (if not NULL)
+  if (!is.null(threshold) && (!is.numeric(threshold) || threshold < 0 || threshold > 1)) {
+    stop("threshold must be a numeric value between 0 and 1")
+  }
+
+  # Check that the org argument is either 'station' or 'dayhour' (if not NULL)
+  if (!is.null(org) && org != 'station' && org != 'dayhour') {
+    stop("org must be either 'station' or 'dayhour'")
+  }
   #TODO update to use withr::with_dir to avoid CRAN complaints
 
       # for each dh check which station it should be in
@@ -410,7 +500,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 #' Calculates concentrations for each named category in dataframe
 #'
 #' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
-#' @param category_list a list of character strings representing category present in the station being processed
+#' @param category_list a vector of character strings representing category present in the station being processed
 #' @param station_of_interest The station being processed
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
@@ -433,6 +523,32 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 #'
 vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume) {
 
+# input validation
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the categories in category_list are valid and contained in the names of data
+  valid_categories <- intersect(names(data), unlist(category_list))
+  if (length(valid_categories) == 0) {
+    stop("Category_list contains no valid categories")
+  }
+
+  # Check that the station_of_interest argument is a character vector
+  if (!is.character(station_of_interest)) {
+    stop("Station_of_interest must be a character vector")
+  }
+
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("BinSize must be a numeric value greater than 0")
+  }
+
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("ImageVolume must be a numeric value greater than 0")
+  }
   # avoid CRAN notes
   . <- NA
   # check that category exist for this station
@@ -448,7 +564,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
       dplyr::mutate(., category = valid_category[ii])
   }
 
-  names(conc_dat)<- valid_category
+  names(conc_dat) <- valid_category
 
   category_conc <- do.call(rbind, conc_dat)
 
@@ -481,16 +597,61 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 #'
 #' @export
 concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE) {
+
+  #input validation
+    # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the category argument is a character string
+  if (!is.character(category)) {
+    stop("Category must be a character string")
+  }
+
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("BinSize must be a numeric value greater than 0")
+  }
+
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("ImageVolume must be a numeric value greater than 0")
+  }
+
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("Rev must be a logical value")
+  }
+
   . <- NA # avoid CRAN notes
 
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   # TODO remove hardcoding and instead use reference to ctd col_list or use reverse of categories
- # dynamically generate list of non-category columns 
- # copilot suggestion
-  noncategory <- setdiff(names(data), category)
+   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
+  noncategory <-
+    c(
+      'time_ms',
+      'conductivity',
+      'temperature',
+      'pressure',
+      'salinity',
+      'sigmaT',
+      'fluor_ref',
+      'fluorescence_mv',
+      'turbidity_ref',
+      'turbidity_mv',
+      'altitude_NA',
+      'day',
+      'hour',
+      'station',
+      'time_hr',
+      'roi',
+      'depth'
+    )
+  dt <- data %>%
+    dplyr::select(., any_of(noncategory), all_of(category))
 
-   dt <- data %>%
-    dplyr::select(., noncategory, category)
 
   # get n_roi of only one category
   names(dt) <-
@@ -532,6 +693,25 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 #'
 bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE) {
 
+# input validation
+if (!inherits(ctd_roi_oce, "ctd")) {
+    stop("ctd_roi_oce must be an object of class 'ctd'")
+  }
+
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("imageVolume must be a numeric value greater than 0")
+  }
+
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("binSize must be a numeric value greater than 0")
+  }
+
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("rev must be a logical value")
+  }
   . <- conc_m3 <- NA
   #find upcasts
   upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
@@ -563,7 +743,7 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE) {
 #'
 #' @author E. Chisholm
 #'
-#' @param data data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}
+#' @param data data frame of vpr data
 #'
 #' @examples
 #' data('ctd_roi_merge')
@@ -697,6 +877,26 @@ if (length(ctd_files) == 0) {
 #'@export
 #'
 vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine) {
+  # input validation
+    # Check that the ctd_dat_combine argument is a data frame
+  if (!is.data.frame(ctd_dat_combine)) {
+    stop("ctd_dat_combine must be a data frame")
+  }
+
+  # Check that the roi_dat_combine argument is a data frame
+  if (!is.data.frame(roi_dat_combine)) {
+    stop("roi_dat_combine must be a data frame")
+  }
+
+  # Check that the ctd_dat_combine argument has a "time_ms" column
+  if (!"time_ms" %in% colnames(ctd_dat_combine)) {
+    stop("ctd_dat_combine must have a 'time_ms' column")
+  }
+
+  # Check that the roi_dat_combine argument has a "time_ms" column
+  if (!"time_ms" %in% colnames(roi_dat_combine)) {
+    stop("roi_dat_combine must have a 'time_ms' column")
+  }
 
   # avoid CRAN notes
   . <- roi <- time_ms <- NA
@@ -728,7 +928,7 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine) {
     dplyr::mutate(., roi = ifelse(roi == 0, NA, roi)) %>%
     dplyr::arrange(., time_ms) # ensure that data is sorted by time to avoid processing errors
 
-  return (ctd_roi_merge)
+  return(ctd_roi_merge)
 }
 
 
@@ -924,7 +1124,7 @@ if (export == 'aidmeas') {
   day <- unlist(vpr_day(file_list_aidmeas[i]))
   hour <- unlist(vpr_hour(file_list_aidmeas[i]))
   data_tmp$day_hour <- paste(day, hour, sep = ".")
-  dat[[i]]<- data_tmp
+  dat[[i]] <- data_tmp
 
   }
 
@@ -1148,6 +1348,38 @@ vpr_trrois_size <- function(directory, category, opticalSetting) {
 #' @export
 #'
 bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
+
+  # input validation
+    # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("data must be a data frame")
+  }
+
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("binSize must be a numeric value greater than 0")
+  }
+
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("imageVolume must be a numeric value greater than 0")
+  }
+
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("rev must be a logical value")
+  }
+
+  # Check that the data argument has a "depth" column
+  if (!"depth" %in% colnames(data)) {
+    stop("data must have a 'depth' column")
+  }
+
+  # Check that the data argument has a "cast_id" column
+  if (!"cast_id" %in% colnames(data)) {
+    stop("data must have a 'cast_id' column")
+  }
+
   cast_id <- unique(data$cast_id)
   max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
@@ -1279,11 +1511,22 @@ if (rev == TRUE) {
 #'
 ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1, breaks = NULL) {
 
+# input validation
+# Check that the data argument is a valid ctd object
+  if (!inherits(data, "ctd")) {
+    stop("data must be a valid ctd object")
+  }
+  
+  # Check that the data slot (data@data) is not empty
+  if (nrow(data@data) == 0) {
+    stop("data cannot be empty")
+  }
+  
   cast_updated <- list()
 
 
   if (is.null(breaks)) {
-    cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
+    cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff, breaks = breaks)
   }else {
     cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
 
@@ -1381,7 +1624,7 @@ vpr_ctd_files <- function(castdir, cruise, day_hour) {
   vpr_cast_folders <- list.files(castdir, pattern = '')
 
   # not subset by tow number
-  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
+  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise, '*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
 
   if (length(folder) == 0) {
     stop("No CTD files found!")
