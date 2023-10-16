@@ -370,11 +370,7 @@ not manually checked and re-classified should also be added to this new auto_id_
 if they are to be included in further processing (e.g., computation of concentration
 in user-specified depth bins). After the updated aid and aidmeas files have been
 manually reorganized they can be quality controlled using vprr::vpr_autoid_check().
-The user could also manually check the files. The automated check function removes
-any empty aid files created.  Empty files can cause errors in processing down the line.
-This function also checks that (1) aid and aidmeas files are aligned within an hour of data;
-(2) aid and aidmeas files include the same number of ROIs; and (3) the
-VPR tow number for all files is the same.
+The user could also manually check the files. 
 
 
     #### FILE CHECK
@@ -382,7 +378,6 @@ VPR tow number for all files is the same.
 
 
     # aid check step
-    # removes empty aid files, and checks for errors in writing
 
     vpr_autoid_check(basepath, cruise) #OUTPUT: text log 'CRUISE_aid_file_check.txt’ in working directory
 
@@ -540,16 +535,9 @@ using the function `vpr_ctd_ymd`.
         dplyr::mutate(., time_hr = time_ms / 3.6e+06) 
      
         data <- vpr_ctd_ymd(data, year)
-        
-      # ensure that data is sorted by time to avoid processing errors
-        data <- data %>%
-        dplyr::arrange(., time_ms)
       
       cat('Initial processing complete! \n')
       cat('\n')
-      
-      # clean environment
-      remove(ctd_roi_merge)
 
 
 Average plankton concentration and environmental variables (e.g.,
@@ -646,28 +634,12 @@ tow-yo pattern VPR deployments.
     fn_all_bin <- list.files(paste0(cruise,"_data_files/"), pattern = 'bin_dat', full.names = T)
 
 Once files are loaded, plots for all stations in a mission can be
-generated using a loop, in order to efficiently generate comparable
-plots. The example below uses a loop to run through a list of stations
-described by a csv file. This loop also isolates two specific
+generated using a loop. This example isolates two specific
 classification categories to plot (eg. "Calanus" and "krill").
 
-    ####START STATION LOOP ---------------------------------------------------------------------------------------------------------------------------
-
-    setwd(wd)
-
-    all_stations <- read.csv(station_names_file, stringsAsFactors = FALSE)
-    all_stations_of_interest <- unique(all_stations$station)
-
     category_to_plot <- c("Calanus", "krill")
+    station <- "example"
 
-
-    for (j in 1:length(all_stations_of_interest)){
-      
-      setwd(wd)
-      station <- all_stations_of_interest[j]
-      
-      cat('station', station ,'starting to plot.... \n')
-      cat('\n')
 
 Data files are loaded for the specific station of interest. This loads
 in all relevant RData files as well as the concentration data saved as a
@@ -770,8 +742,6 @@ ggplot2 package for more information).
       
       cat('station', station, 'complete! \n')
       cat('\n')
-      
-    } # end station loop
 
 # Section 7: Disclaimer
 
@@ -780,18 +750,13 @@ been tested on a broad range of field mission data. It is possible that
 deviations in data format and directory structure from that described
 herein may result in errors when using vprr. The vprr package was
 developed for the purpose of processing data collected during tow-yo VPR
-deployments and image classification using VP. The purpose of this
+deployments and image classification. The purpose of this
 document is to provide a template for processing and visualizing VPR
 data that can be adapted by other users for their own objectives.
 
 # Appendix 1: Directory Structure
 
-Visual Plankton (Matlab image classification software) requires a very
-specific directory structure in order to function. Since this processing
-is meant to directly follow this image classification, the VP directory
-structure is used for consistency. This allows a smooth transition
-between the Matlab classifications and the completion of processing in
-R. The directory structure required is described below
+The directory structure required is described below
 
 -   C:/
     -   data
@@ -911,7 +876,7 @@ to sample over both depth and distance
 **TRROIS** - Training set of images used to train machine learning
 algorithm in Visual Plankton
 
-**VP** - Visual Plankton program run in Matlab
+**VP** - Visual Plankton program, written in MAtlab to classify VPR images
 
 **VPR** - Video Plankton Recorder, oceanographic instrument used to
 image small volumes of water for the purpose of capturing images of
