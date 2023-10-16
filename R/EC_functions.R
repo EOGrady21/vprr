@@ -96,7 +96,7 @@ vpr_pred_read <- function(filename) {
 #'
 #' @examples
 #' data("category_conc_n")
-#' metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
+#' metadata <- list('deploymentType' = 'towyo', 'waterDepth' =
 #' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitudeStart' = 47,
 #' 'longitudeStart' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
 #' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
@@ -406,16 +406,6 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
   # Check that the cast argument is a character string of length 3
   if (!is.character(cast) || nchar(cast) != 3) {
     stop("cast must be a character string of length 3")
-  }
-
-  # Check that the new_autoid argument is a directory
-  if (!is.dir(new_autoid)) {
-    stop("new_autoid must be a directory")
-  }
-
-  # Check that the roi_path argument is a directory
-  if (!is.dir(roi_path)) {
-    stop("roi_path must be a directory")
   }
 
   # Check that the station argument is a character vector
@@ -1517,11 +1507,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
     stop("data must be a valid ctd object")
   }
   
-  # Check that the data slot (data@data) is not empty
-  if (nrow(data@data) == 0) {
-    stop("data cannot be empty")
-  }
-  
+
   cast_updated <- list()
 
 
