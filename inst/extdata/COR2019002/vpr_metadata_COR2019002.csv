@@ -1,0 +1,3 @@
+﻿folder_name,max_sample_depth,station,event,consecutive,day,hour,day_hour,optical_setting,latitudeStart,latitudeStop,longitudeStart,longitudeStop,dateStart,dateStop,timeStart,timeStop,soundingStart,soundingStop,comment
+vpr5,300,Example,5,0,222,3,d222.h03,S2,47.141367,47.162783,-63.301167,-63.275383,1/1/2019,1/1/2019,12:34:56,12:34:56,300,300,NA
+vpr5,300,Example,5,0,222,4,d222.h04,S2,47.141367,47.162783,-63.301167,-63.275383,1/1/2019,1/1/2019,12:34:56,12:34:56,300,300,NA
