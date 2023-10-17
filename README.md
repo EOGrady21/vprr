@@ -3,7 +3,7 @@
 
 
 <!-- badges: start -->
-[![CRAN status](https://www.r-pkg.org/badges/version/dplyr)](https://cran.r-project.org/package=vprr)
+[![CRAN status](https://www.r-pkg.org/badges/version/vprr)](https://cran.r-project.org/package=vprr)
 [![R-CMD-check](https://github.com/EOgrady21/vprr/actions/workflows/r.yml/badge.svg)](https://github.com/EOGrady21/vprr/actions/workflows/r.yml)
 <!-- badges: end -->
 
