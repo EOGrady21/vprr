@@ -36,7 +36,7 @@ image classification software designed for VPR datasets; however, vprr
 is not dependent on any specific elements of VP.
 
 All the technical details of vprr can be found in the package vignette,
-available through Rstudio or at <https://eogrady21.github.io/vprr/>
+available through your IDE or at <https://eogrady21.github.io/vprr/>
 (under Articles).
 
 ![](vignettes/vp_flowchart.PNG)
