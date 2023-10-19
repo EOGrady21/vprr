@@ -29,6 +29,8 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("EOGrady21/vprr")
 ```
+## Cheatsheet
+<img width="660" alt="vprr_cheatsheet" src="https://github.com/EOGrady21/vprr/assets/38440373/4e622f6c-bca9-4fa6-a899-2e581c74fd5b">
 
 ## Details
 
