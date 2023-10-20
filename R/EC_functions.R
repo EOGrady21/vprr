@@ -67,6 +67,109 @@ vpr_pred_read <- function(filename) {
   return(dat)
 }
 
+#' Format and export VPR data for publication (IN DEVELOPMENT)
+#' Exports a csv file with standard column names based on BODC::P01 and DwC naming conventions,
+#'  and a JSON metadata file for station level metadata
+#'
+#'
+#' @param data a VPR data frame
+#' @param metadata (optional) a named list of character values giving metadata to be included in JSON file
+#' @param columnNames (optional) a named list of character values giving relationships between existing names
+#' of data columns and standard names
+#'
+#' @example
+#' data(category_conc_n)
+#' metadata <- list("station_level" = list(
+#'      "title" = list("en" = "VPR data from the Scotian Shelf"),
+#'                      "fr" = "Données VPR de l'étagère néo-écossaise"),
+#'      "dataset_ID" = 1,
+#'      "decimalLatitudeStart" = 44.5,
+#'      "decimalLongitudeStart" = -64.5,
+#'      "decimalLatitudeEnd" = 45.5,
+#'      "decimalLongitudeEnd" = -65.5,
+#'      "maximumDepthInMeters" = 1000,
+#'      "eventDate" = "2019-08-11",
+#'      "eventTime" = "00:00:00",
+#'      "basisOfRecord" = "MachineObservation",
+#'      "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
+#'      "identificationReferences" = "Iv3 model v3.3",
+#'      "instrument" = list( "opticalSetting" = "S2",
+#'                            "imageVolume" = 83663),
+#'      "resources" = list("name" = "vpr123_station25_data.csv",
+#'                          "creationDate" = "2020-01-01"),
+#'      "dataAttributes" = list("eventID" = list(
+#'                                    "dataType" = "string",
+#'                                    "definition" = "An identifier for the set of information associated with a dwc:Event
+#'                                                   (something that occurs at a place and time). May be a global unique
+#'                                                   identifier or an identifier specific to the data set.",
+#'                                     "vocabulary" = "dwc"),
+#'                               "minimumDepthInMeters" = list(
+#'                                     "dataType" = "float",
+#'                                     "definition" = "The lesser depth of a range of depth below the local",
+#'                                     "vocabulary" = "dwc"),
+#'    ))
+#' columnNames = list("station" = "eventID",
+#'                   "min_depth" = "minimumDepthInMeters",
+#'                   "max_depth" = "maximumDepthInMeters",
+#'                   "n_roi_bin" = "individualCount",
+#'                   "conc_m3" = "SDBIOL01",
+#'                    "temperature" = "TEMPST01",
+#'                    "salinity" = "PSALST01",
+#'                    "density" = "POTDENS0",
+#'                    "fluorescence" = "FLUOZZZZ",
+#'                    "turbidity" = "TURBXXXX",
+#'                    "vol_sampled_bin_m3" = "sampleSizeValue",
+#'                   )
+#' # add any new data columns required (eg. sampleSizeUnit, scientificName, identifiedBy, identificationVerificationStatus)
+#'
+#'
+#' vpr_export(data, metadata, columnNames)
+vpr_export <- function(data, metadata, columnNames) {
+
+## input validation
+# check that data is a dataframe
+if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+# check that metadata is a named list
+if (!is.null(metadata) && !is.list(metadata)) {
+    stop("Metadata must be a named list")
+  }
+# check that columnNames is a named list
+if (!is.null(columnNames) && !is.list(columnNames)) {
+    stop("columnNames must be a named list")
+  }
+
+# check that columnNames matches data
+if (!is.null(columnNames)) {
+    if (!all(names(columnNames) %in% names(data))) {
+      stop("columnNames must contain all column names in data")
+    }
+  }
+
+## update column names in dataframe based on columnNames
+new_data <- setNames(data, unlist(metadata))
+
+
+## do some data checks
+  # check for repeating values in data
+  # check for null/NA values
+  # check column names are included in metadata
+  # check that datatypes match metadata
+  # check gloablly impossible ranges
+
+## check that metadata is complete
+
+## write data to csv
+  # naming convention?
+
+## write metadata to json
+  # naming convention?
+
+
+}
+
 #' Save VPR data as an \link[oce]{as.oce} object
 #'
 #' @details This function will pass a VPR data frame to an `oce` object.
@@ -1049,7 +1152,7 @@ if ( export == 'aidmeas') {
     data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i], categories)[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
-    if (length(day) > 1 | length(hour) > 1) {
+    if (length(day) > 1 || length(hour) > 1) {
       stop('Problem detecting day/hour values!')
     }
     data_tmp$day_hour <- paste(day, hour, sep = ".")
@@ -1506,7 +1609,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
   if (!inherits(data, "ctd")) {
     stop("data must be a valid ctd object")
   }
-  
+
 
   cast_updated <- list()
 
