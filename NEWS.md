@@ -1,3 +1,4 @@
+vprr 0.3.0
 ### BUG FIXES AND ENHANCEMENTS
 * [ENHANCEMENT] Generalize vpr_category to better handle duplicate category names
 * [BUG FIX] Check for missing category values can accept a list
@@ -10,6 +11,7 @@
 * [ENHANCEMENT] Update CTD column naming flexibility and defaults, and include input validation for column names
 * [ENHANCEMENT] Update required metadata in vpr_save() to specify start & stop latitude and longitude to match start & end time values
 * [ENHANCEMENT] Lintr clean up of formatting
+* [ENHANCEMENT] add input validation to all functions
 
 ### CHANGES
 * taxa replaced with category in all objects & instances
@@ -19,6 +21,8 @@
 * add read_aid_cnn() function to smooth reading of automated classification output
 * Removed references to Visual Plankton, no longer relevant
 * implement tidy paths
+* update processing vignette to simplify example workflow, run with data contained in package, and improve flowchart figures.
+* removed deprecated function (getROIMeasurments)
 
 
 # vprr 0.2.0
