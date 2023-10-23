@@ -64,19 +64,14 @@ paths to individual ROIs that have been classified to the category of
 interest. The corresponding "aidmeas" file contains morphological data
 for the ROIs (e.g., long axis length, perimeter, etc.).
 
-![Figure 1. VPR data processing flow chart. Blue boxes represent
-software, green and yellow boxes represent data sets, where yellow is
-visual data and green is text format data. This document outlines the
-processes within 'Processing and Visualization (R).](vp_flowchart.PNG)
+![Figure 1. VPR data processing flow chart. Blue boxes represent software and processes, green ovals represent data products. Starting at the top left, data flows through multiple workflows, with the final product being,  ecologically significant data.](vprr_figure1.PNG){width=100%}
 
 # Section 2: Summary of vprr data processing steps
 
-The processing steps in R from the 'Post Processing and Visualization
-box in Figure 1 are detailed in Figure 2.
+The processing steps performed in vprr are detailed in Figure 2, along with the 
+associated data outputs.
 
-![Figure 2. Processing steps in R using vprr. Blue boxes represent each
-section of processing, green ovals represent sub steps or routines
-within each step.](r_flowchart.png)
+![Figure 2. Processing steps in R using vprr. Data flows from the top, through multiple layers of processing, including image copying, manual classification and processing calculations.](vprr_figure2.PNG){width=100%}
 
 #### Processing Environment
 
