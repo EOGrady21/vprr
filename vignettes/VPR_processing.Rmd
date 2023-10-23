@@ -155,16 +155,16 @@ on image copying are provided in Section 3.
 
 Automated classifications from are manually checked, which allows for
 manual correction and addition of categories not previously used for
-automated classification. ROIs that have been copied in Section 2.1 are 
+automated classification. ROIs that have been copied are 
 manually sorted to correct for misclassifications. Updated aid and aidmeas files are produced. 
 Further details on manual re-classification are provided in Section 4.
 
 #### Data Processing:
 
-Data outputs from Autodeck (ctd .dat files), automated classifications (aid files)
-and measurements (aidmeas files) are joined together. The aid and aidmeas files, which may have been updated
-(see Section 2.3) are joined with CTD text files by the 8 digit time
-stamp. The data are then averaged in user-defined vertical bins to
+Data outputs including CTD (.dat files), automated classifications (aid files)
+and measurements (aidmeas files) are joined together. The aid and aidmeas files,
+which may have been updated, are joined with CTD text files by the 8 digit time
+stamp (ROI number). The data are then averaged in user-defined vertical bins to
 produce a time series of plankton concentrations and environmental
 variables. Quality controlled data products (before and after binning)
 are then exported in simple formats (csv, RData, oce) for plotting and
@@ -262,14 +262,16 @@ format to original aid and aidmeas files.
 
 ## Section 4.2: Generate new aid and aidmeas files
 
-The function`vprr::vpr_manual_classification()` produces two files
+The function `vprr::vpr_manual_classification()` produces two files
 ('misclassified' and 're-classified' text files) as a record of manual
 re-classification, which are found in the R project working directory in
 folders named by the day and hour that the data were collected. The
-function`vprr::vpr_autoid_create()`takes these files and outputs new aid
+function `vprr::vpr_autoid_create()` takes these files and outputs new aid
 and aidmeas files in the R working directory in folders named by
 classification category. This step should be run after each hour of data
-is manually re-classified.
+is manually re-classified. If aidmeas files have not been created (through a 
+separate measurement workflow), these functions will run on just the aid files
+without issue.
 
     #### REORGANIZE ROI AND ROIMEAS DATA ---------------------------------------
     # get mis/re classified files
@@ -286,9 +288,12 @@ is manually re-classified.
 
 The aid and aidmeas files are both text files which are
 specifically formatted to record classification outputs for further
-processing. The format and naming conventions of these files has been inherited from a VPR image classification and data processing tool called Visual Plankton (written in Matlab); however, the functionality of vprr is independent from that of Visual Plankton. The aid files are text records of image paths,
-where each individual text file represents a classification category. Each line of
-the aid file is the full path to an image which was classified into the
+processing. The format and naming conventions of these files has been inherited 
+from a VPR image classification and data processing tool called Visual Plankton 
+(written in Matlab); however, the functionality of vprr is independent from that
+of Visual Plankton. The aid files are text records of image paths,
+where each individual text file represents a classification category. Each line 
+of the aid file is the full path to an image which was classified into the
 designated category. Note that the naming scheme of aid files does not
 include the category name in the file title and the category is only
 identifiable by the folder in which it is located. For example the 'krill'
@@ -299,7 +304,7 @@ The columns of the aidmeas files are
 c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length').
 The aidmeas files were originally created during processing with Visual Plankton
 but are not created or required for processing with `vprr`. We have begun 
-development of an ImageJ workflow which will create an equivalent prodct.
+development of an ImageJ workflow which will create an equivalent product.
 
 Examples of each of these files can be found below.
 
@@ -357,12 +362,11 @@ processing environment, described in Section 2.4 should be loaded.
     load('COR2019002_env.RData')
 
 
-CTD data are loaded in using `vprr::vpr_ctd_files` to find files and
-`vprr::vpr_ctd_read` to read in files. During CTD data read in, a
+CTD data are loaded in using `vprr::vpr_ctd_read`. During CTD data read in, a
 seawater density variable `sigmaT` is derived using the function
 `oce::swSigmaT`, and `depth` (in meters) is derived from pressure using
 the function `oce::swDepth`. For more information on the `oce` package,
-see dankelley/oce on GitHub.
+see `dankelley/oce` on GitHub.
 
     #### READ CTD DATA --------------------------------------------------------
     ctd_files <- list.files(castdir, pattern = '.dat', full.names = TRUE)
@@ -612,17 +616,17 @@ will be stored:
 
         -   category
 
-        -   aid
+          -   aid
 
-        -   aidmea
+          -   aidmea
 
     -   manual_reclassification_record
 
         -   day/hour
 
-        -   misclassified
+          -   misclassified
 
-        -   reclassified
+          -   reclassified
 
     -   figures
 
@@ -630,10 +634,10 @@ will be stored:
 
 # Appendix 2: Glossary
 
-**Aid files** - Visual Plankton file output text file, listing file path
+**Aid files** - Visual Plankton style file output text file, listing file path
 information for ROI's of a specific classification group
 
-**AidMeas files (AutoID measurements)** - Visual Plankton output text
+**AidMeas files (AutoID measurements)** - Visual Plankton style output text
 file, listing measurement data for ROI's of a specific classification
 group. Unit is pixels and columns are 'Perimeter', 'Area', 'width1',
 'width2', 'width3', 'short_axis_length', 'long_axis_length'
@@ -641,11 +645,11 @@ group. Unit is pixels and columns are 'Perimeter', 'Area', 'width1',
 **Auto Deck** - software which pulls plankton images from Video Plankton
 Recorder frames based on specific settings
 
-**Auto ID** - The automated classification given to an image from Visual
-Plankton machine learning algorithm
+**Auto ID** - The automated classification given to an image from a
+machine learning algorithm
 
-**AutoID files** - Includes both Aid and AidMeas files as part of Visual
-Plankton's automated classifications
+**AutoID files** - Includes both Aid and AidMeas files as part of 
+automated classifications
 
 **BIO** - Bedford Institute of Oceanography, a research institute in
 Halifax NS, Canada
@@ -655,8 +659,6 @@ images can be classified, often represents a taxonomic group (e.g.
 Krill), but can also be defined by image type (e.g. 'bad_image_blurry'),
 or other (e.g. 'marine_snow'), should be one continuous string (no
 spaces)
-
-**CPU** - Central processing unit (computer processor)
 
 **CTD** - Conductivity, Temperature and depth sensor instrument
 
@@ -690,9 +692,9 @@ vessel while being raised and lowered through the water column in order
 to sample over both depth and distance
 
 **TRROIS** - Training set of images used to train machine learning
-algorithm in Visual Plankton
+algorithm
 
-**VP** - Visual Plankton program, written in MAtlab to classify VPR images
+**VP** - Visual Plankton program, written in Matlab to classify VPR images
 
 **VPR** - Video Plankton Recorder, oceanographic instrument used to
 image small volumes of water for the purpose of capturing images of
