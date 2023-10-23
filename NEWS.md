@@ -14,7 +14,7 @@
 ### CHANGES
 * taxa replaced with category in all objects & instances
 * update to v2 of pkgdown workflow in GH actions
-* Remove unessecary hardcoding of variables to be added to oce-ctd object in vpr_oce_create()
+* Remove unnecessary hard coding of variables to be added to oce-ctd object in vpr_oce_create()
 * added data.table dependency for quicker handling of large tables
 * add read_aid_cnn() function to smooth reading of automated classification output
 * Removed references to Visual Plankton, no longer relevant

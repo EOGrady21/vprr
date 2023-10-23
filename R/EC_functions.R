@@ -68,7 +68,8 @@ vpr_pred_read <- function(filename) {
 }
 
 #' Format and export VPR data for publication (IN DEVELOPMENT)
-#' Exports a csv file with standard column names based on BODC::P01 and DwC naming conventions,
+#' Exports a csv file with standard column names based on British Oceanographic
+#' Data Centre, BODC::P01 and DarwinCore (DwC) naming conventions,
 #'  and a JSON metadata file for station level metadata
 #'
 #'
@@ -1003,8 +1004,8 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine) {
 
 
   # Get total number of rois per frame
-  categorys <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
-  category_col_id <- which(colnames(roi_dat_combine) %in% categorys)
+  categories <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
+  category_col_id <- which(colnames(roi_dat_combine) %in% categories)
   category_subset <- roi_dat_combine[, category_col_id]
   n_roi_total <- base::rowSums(category_subset)
   roi_dat_2 <- data.frame(roi_dat_combine, n_roi_total)
@@ -2407,7 +2408,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
   #initialize category
   #WARNING HARD CODING, 5 category
   cols <- c('t1' = 'darkorchid3', 't2' = 'deeppink3', 't3' = 'dodgerblue3', 't4' = 'tomato3', 't5' = 'gold3')
-  categorys <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
+  categories <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
   #plot
   p <- ggplot()+
     #isopycnal lines
@@ -2423,7 +2424,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
     geom_point(data = x, aes(x = salinity, y = temperature, size = small_copepod, col = 't3'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = krill, col = 't4'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = echinoderm_larvae, col = 't5'), shape = 21) +
-    scale_colour_manual(name = 'categorys', values = cols, guide = guide_legend(), labels = categorys) +
+    scale_colour_manual(name = 'categories', values = cols, guide = guide_legend(), labels = categories) +
     scale_size_area(max_size=10)+ #make balloons bigger
     #label legends
     labs(size = 'Number of \n ROIs') +
@@ -2570,7 +2571,7 @@ vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL)
   #'
   #'@author E. Chisholm
   #' @param param size parameter of interest (corresponds to sub lists within data argument)
-  #' @param data  size data from auto_measure_mm subset into categorys
+  #' @param data  size data from auto_measure_mm subset into categories
   #' @param title main title for plot, if left null will default based on parameter and category
   #' @param bw bin width, defines width of bars on histogram, defaults to 0.1, decrease for more detail
   #' @param xlim plot xlimit, defaults to min max of data if not provided
@@ -2621,7 +2622,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
   #' @export
 
   # avoid CRAN notes
-  Var1 <- Var2 <- Freq <- categorys <- NA
+  Var1 <- Var2 <- Freq <- categories <- NA
   dimcm <- dim(cm)
   #remove total columns
   conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
@@ -2677,7 +2678,7 @@ vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size
       c(
         'Sample Size' = sample_size , #update for different sizes
         'Total Disagreement' = sum(confusion$Freq),
-        'Average loss per category' = round(sum(confusion$Freq)/length(categorys), digits = 0)
+        'Average loss per category' = round(sum(confusion$Freq)/length(categories), digits = 0)
       )
     )
 
@@ -3215,17 +3216,19 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
 }
 
 
-vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
+vpr_img_copy <- function(auto_id_folder, categories.of.interest, day, hour){
   #' Image copying function for specific category of interest
   #'
-  #' This function can be used to copy images from a particular category, day and hour into distinct folders within the auto id directory
-  #' This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
+  #' This function can be used to copy images from a particular category, day
+  #' and hour into distinct folders within the auto id directory
+  #' This is useful for visualizing the ROIs of a particular classification
+  #' group or for performing manual tertiary checks to remove
   #' images not matching classification group descriptions.
   #'
   #'
   #'
   #' @param auto_id_folder eg "D:/VP_data/IML2018051/autoid"
-  #' @param categorys.of.interest eg. categorys.of.interest <- c('Calanus')
+  #' @param categories.of.interest eg. categories.of.interest <- c('Calanus')
   #' @param day character, day of interest
   #' @param hour character, hour of interest
   #'
@@ -3238,29 +3241,12 @@ vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
   folder_names <- list.files(auto_id_folder)
 
 
-  folder_names <- folder_names[folder_names %in% categorys.of.interest]
+  folder_names <- folder_names[folder_names %in% categories.of.interest]
 
 
 
   day_hour <- paste0('d', day, '.h', hour)
   aid_day_hour <- paste0('aid.', day_hour)
-
-  #read all days and hours
-
-  # st_dat <- read.csv('C:/VPR_PROJECT/vp_info/station_names_IML2018051.csv')
-  #
-  # day_list <- st_dat$day
-  # hour_list <- st_dat$hour
-  #
-
-  #
-  # for(j in 1:length(day_list)){
-  #
-  #   day <- day_list[[j]]
-  #   hour <- hour_list[[j]]
-  #
-  #   day_hour <- paste0('d', day, '.h', hour)
-  #   aid_day_hour <- paste0('aid.', day_hour)
 
 
   for (i in folder_names) {
@@ -3275,12 +3261,8 @@ vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
     subtxt <- grep(txt_roi, pattern = aid_day_hour, value = TRUE)
     txt_roi <- subtxt
 
-    #subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
-    #txt_roi <- subtxt2
-
     for(ii in txt_roi) {
 
-      # setwd(dir_roi)
       withr::with_dir(dir_roi, code = {
 
       roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
