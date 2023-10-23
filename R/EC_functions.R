@@ -154,20 +154,77 @@ new_data <- setNames(data, unlist(metadata))
 
 
 ## do some data checks
-  # check for repeating values in data
-  # check for null/NA values
-  # check column names are included in metadata
-  # check that datatypes match metadata
-  # check gloablly impossible ranges
+# check for repeating values in data
+# Check for columns with only one unique value
+cols_with_one_value <- sapply(new_data, function(x) length(unique(x))) == 1
 
+# Print column names with only one unique value
+if (any(cols_with_one_value)) {
+  warning("The following columns have only one unique value:\n")
+  print(names(new_data)[cols_with_one_value])
+}
+# check for null/NA values
+# Check for null or NA values in data
+cols_with_null_or_na <- sapply(new_data, function(x) any(is.null(x) | is.na(x)))
+
+# Print column names with null or NA values
+if (any(cols_with_null_or_na)) {
+  warning("The following columns have null or NA values:\n")
+  print(names(new_data)[cols_with_null_or_na])
+}
+# check column names are included in metadata
+# warning that this is succeptible to false positives,
+# if column name is mentioned anywhere in metadata this test will pass
+# this is a trade off to reduce sensitivity to naming conventions of metadata structure
+metadata_str <- paste(unlist(metadata), collapse = " ")
+cols_not_in_metadata <- setdiff(names(new_data), grep(names(new_data), metadata_str, value = TRUE))
+
+# Print column names not included in metadata
+if (length(cols_not_in_metadata) > 0) {
+  warning("The following columns are not included in metadata:\n")
+  print(cols_not_in_metadata)
+}
+
+# check gloablly impossible ranges
+# Define globally possible ranges
+ranges <- list(
+  TEMPST01 = c(-30, 30),
+  PSALST01 = c(0, 40),
+  POTDENS0 = c(0, 100),
+  sampleSizeValue = c(0, Inf),
+  minimumDepthInMetres = c(0, 5000),
+  maximumDepthInMetres = c(0, 5000),
+  individualCount = c(0, Inf),
+  SDBIOL01 = c(0, Inf)
+)
+
+# Check for values outside of globally possible ranges
+out_of_range <- apply(new_data, 1, function(row) {
+  any(sapply(names(row), function(col) {
+    if (col %in% names(ranges)) {
+      val <- row[[col]]
+      !is.na(val) && (val < ranges[[col]][1] || val > ranges[[col]][2])
+    } else {
+      FALSE
+    }
+  }))
+})
+
+# Print rows with values outside of globally possible ranges
+if (any(out_of_range)) {
+  warning("The following rows have values outside of globally possible ranges:\n")
+  print(new_data[out_of_range, ])
+}
 ## check that metadata is complete
 
 ## write data to csv
-  # naming convention?
-  # BE SURE ROW NAMES ARE FALSE
+# naming convention?
+# BE SURE ROW NAMES ARE FALSE
+write.csv(new_data, file = "new_data.csv", row.names = FALSE)
+
 
 ## write metadata to json
-  # naming convention?
+# naming convention?
 
 
 }
