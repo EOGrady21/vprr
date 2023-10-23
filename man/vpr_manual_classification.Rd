@@ -64,7 +64,6 @@ reference
 \itemize{
 \item Add "undo" functionality to go back on a typing mistake
 \item  Fix scaling/ size issue so images are consistently sized
-\item show ROI number for image somewhere for reference when in doubt of classification
 }
 }
 
