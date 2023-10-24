@@ -77,55 +77,187 @@ vpr_pred_read <- function(filename) {
 #' @param metadata (optional) a named list of character values giving metadata to be included in JSON file
 #' @param columnNames (optional) a named list of character values giving relationships between existing names
 #' of data columns and standard names
+#' @param datFile a file name for the data.csv
 #'
 #' @example
+#' \dontrun{
 #' data(category_conc_n)
 #' metadata <- list("station_level" = list(
-#'      "title" = list("en" = "VPR data from the Scotian Shelf"),
-#'                      "fr" = "Données VPR de l'étagère néo-écossaise"),
-#'      "dataset_ID" = 1,
-#'      "decimalLatitudeStart" = 44.5,
-#'      "decimalLongitudeStart" = -64.5,
-#'      "decimalLatitudeEnd" = 45.5,
-#'      "decimalLongitudeEnd" = -65.5,
-#'      "maximumDepthInMeters" = 1000,
-#'      "eventDate" = "2019-08-11",
-#'      "eventTime" = "00:00:00",
-#'      "basisOfRecord" = "MachineObservation",
-#'      "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
-#'      "identificationReferences" = "Iv3 model v3.3",
-#'      "instrument" = list( "opticalSetting" = "S2",
-#'                            "imageVolume" = 83663),
-#'      "resources" = list("name" = "vpr123_station25_data.csv",
-#'                          "creationDate" = "2020-01-01"),
-#'      "dataAttributes" = list("eventID" = list(
-#'                                    "dataType" = "string",
-#'                                    "definition" = "An identifier for the set of information associated with a dwc:Event
-#'                                                   (something that occurs at a place and time). May be a global unique
-#'                                                   identifier or an identifier specific to the data set.",
-#'                                     "vocabulary" = "dwc"),
-#'                               "minimumDepthInMeters" = list(
-#'                                     "dataType" = "float",
-#'                                     "definition" = "The lesser depth of a range of depth below the local",
-#'                                     "vocabulary" = "dwc"),
-#'    ))
-#' columnNames = list("station" = "eventID",
-#'                   "min_depth" = "minimumDepthInMeters",
-#'                   "max_depth" = "maximumDepthInMeters",
-#'                   "n_roi_bin" = "individualCount",
-#'                   "conc_m3" = "SDBIOL01",
-#'                    "temperature" = "TEMPST01",
-#'                    "salinity" = "PSALST01",
-#'                    "density" = "POTDENS0",
-#'                    "fluorescence" = "FLUOZZZZ",
-#'                    "turbidity" = "TURBXXXX",
-#'                    "vol_sampled_bin_m3" = "sampleSizeValue",
-#'                   )
-#' # add any new data columns required (eg. sampleSizeUnit, scientificName, identifiedBy, identificationVerificationStatus)
+#'   "title" = list("en" = "VPR data from the Scotian Shelf",
+#'                  "fr" = "Données VPR de l'étagère néo-écossaise"),
+#'   "dataset_ID" = 1,
+#'   "decimalLatitudeStart" = 44.5,
+#'   "decimalLongitudeStart" = -64.5,
+#'   "decimalLatitudeEnd" = 45.5,
+#'   "decimalLongitudeEnd" = -65.5,
+#'   "maximumDepthInMeters" = 1000,
+#'   "eventDate" = "2019-08-11",
+#'   "eventTime" = "00:00:00",
+#'   "basisOfRecord" = "MachineObservation",
+#'   "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
+#'   "identificationReferences" = "Iv3 model v3.3",
+#'   "instrument" = list( "opticalSetting" = "S2",
+#'                        "imageVolume" = 83663),
+#'   "resources" = list("data" = list("name" = "vpr123_station25.csv",
+#'                                    "creationDate" = "2023-01-01"),
+#'                      "metadata" = list("name" = "vpr123_station25-metadata.json",
+#'                                        "creationDate" = "2023-01-01")),
+#'   "dataAttributes" = list("eventID" = list(
+#'     "dataType" = "chr",
+#'     "definition" = "An identifier for the set of information associated with a dwc:Event (something that occurs at a place and time). May be a global unique identifier or an identifier specific to the data set.",
+#'     "vocabulary" = "dwc"),
+#'     "minimumDepthInMeters" = list(
+#'       "dataType" = "float",
+#'       "definition" = "The lesser depth of a range of depth below the local",
+#'       "vocabulary" = "dwc"),
+#'     "maximumDepthInMeters" = list(
+#'       "dataType" = "float",
+#'       "definition" = "The greater depth of a range of depth below the local",
+#'       "vocabulary" = "dwc"),
+#'     "DEPHPRST" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Depth (spatial coordinate) of sampling event start relative to water surface in the water body by profiling pressure sensor and conversion to depth using unspecified algorithm",
+#'       "vocabulary" = "BODC::P01"),
+#'     "individualCount" = list(
+#'       "dataType" = "float",
+#'       "definition" = "The number of individuals present at the time of the dwc:Occurrence.",
+#'       "vocabulary" = "dwc"),
+#'     "verbatimIdentification" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "A string representing the taxonomic identification as it appeared in the original record.",
+#'       "vocabulary" = "dwc"),
+#'     "SDBIOL01" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Abundance of biological entity specified elsewhere per unit volume of the water body",
+#'       "vocabulary" = "BODC::P01"),
+#'     "TEMPST01" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Temperature of the water body by CTD or STD",
+#'       "vocabulary" = "BODC::P01"),
+#'     "PSALST01" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Practical salinity of the water body by CTD and computation using UNESCO 1983 algorithm",
+#'       "vocabulary" = "BODC::P01"),
+#'     "POTDENS0" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Density (potential) of the water body by computation from salinity and potential temperature using UNESCO algorithm with 0 decibar reference pressure",
+#'       "vocabulary" = "BODC::P01"),
+#'     "FLUOZZZZ" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Fluorescence of the water body",
+#'       "vocabulary" = "BODC::P01"),
+#'     "TURBXXXX" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Turbidity of water in the water body",
+#'       "vocabulary" = "BODC::P01"),
+#'     "sampleSizeValue" = list(
+#'       "dataType" = "float",
+#'       "definition" = "A numeric value for a measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
+#'       "vocabulary" = "dwc"),
+#'     "sampleSizeUnit" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "The unit of measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
+#'       "vocabulary" = "dwc"),
+#'     "scientificName" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "The full scientific name, with authorship and date information if known. When forming part of a dwc:Identification, this should be the name in lowest level taxonomic rank that can be determined. This term should not contain identification qualifications, which should instead be supplied in the dwc:identificationQualifier term.",
+#'       "vocabulary" = "dwc"),
+#'     "identifiedBy" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "A list (concatenated and separated) of names of people, groups, or organisations who assigned the Taxon to the subject.",
+#'       "vocabulary" = "dwc"),
+#'     "identificationVerificationStatus" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "A categorical indicator of the extent to which the taxonomic identification has been verified to be correct.",
+#'       "vocabulary" = "dwc"),
+#'     "depthDifferenceMeters" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Difference between maximumDepthInMeters and minimumDepthInMeters of an individual data bin, in meters",
+#'       "vocabulary" = "BIO"),
+#'     "minimumTimeSeconds" = list(
+#'       "dataType" = "float",
+#'       "definition" = "minimum time value in a data bin, measured in seconds from the start of the day of sampling",
+#'       "vocabulary" = "BIO"),
+#'     "maximumTimeSeconds" = list(
+#'       "dataType" = "float",
+#'       "definition" = "maximum time value in a data bin, measured in seconds from the start of the day of sampling",
+#'       "vocabulary" = "BIO"),
+#'     "timeDifferenceSeconds" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Difference between maximumTimeSeconds and minimumTimeSeconds of an individual data bin, in seconds",
+#'       "vocabulary" = "BIO"),
+#'     "numberOfFrames" = list(
+#'       "dataType" = "float",
+#'      "definition" = "number of VPR frames captured within an individual data bin",
+#'       "vocabulary" = "BIO"),
+#'     "timeMilliseconds" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Time measured in milliseconds since the start of the sampling day",
+#'       "vocabulary" = "BIO"),
+#'     "towyoID" = list(
+#'       "dataType" = "chr",
+#'       "definition" = "A string identifying the section of the cast to which the data point belongs",
+#'      "vocabulary" = "BIO"),
+#'    "maximumCastDepthInMeters" = list(
+#'       "dataType" = "float",
+#'       "definition" = "Maximum depth in Meters of the cast dataset",
+#'       "vocabulary" = "BIO")
+#'   )))
 #'
+#' # new_name = old_name
+#' columnNames = list( "DEPHPRST" = "depth" ,
+#'                     "verbatimIdentification" = "category",
+#'                     "eventID" = "station",
+#'                    "minimumDepthInMeters" = "min_depth",
+#'                     "maximumDepthInMeters" = "max_depth",
+#'                     "individualCount" = "n_roi_bin",
+#'                     "SDBIOL01" = "conc_m3",
+#'                     "TEMPST01" = "temperature",
+#'                     "PSALST01" = "salinity",
+#'                     "POTDENS0" = "density",
+#'                     "FLUOZZZZ" = "fluorescence",
+#'                     "TURBXXXX" = "turbidity",
+#'                     "sampleSizeValue" = "vol_sampled_bin_m3",
+#'                     "depthDifferenceMeters" = "depth_diff",
+#'                     "minimumTimeSeconds" = "min_time_s",
+#'                     "maximumTimeSeconds" = "max_time_s",
+#'                     "timeDifferenceSeconds" = "time_diff_s",
+#'                     "numberOfFrames" = "n_frames",
+#'                     "timeMilliseconds" = "time_ms",
+#'                     "towyoID" = "towyo",
+#'                     "maximumCastDepthInMeters" = "max_cast_depth"
+#')
 #'
-#' vpr_export(data, metadata, columnNames)
-vpr_export <- function(data, metadata, columnNames) {
+#' # add any new data columns required
+#' # (eg. sampleSizeUnit, scientificName, identifiedBy, identificationVerificationStatus)
+#' sampleSizeUnit <- "cubic metre"
+#' identifiedBy <- "K. Sorochan"
+#' identificationVerificationStatus <- "ValidatedByHuman"
+#'
+#' data <- category_conc_n %>%
+#'   mutate(., identifiedBy = identifiedBy,
+#'          sampleSizeUnit = sampleSizeUnit,
+#'          identificationVerificationStatus = identificationVerificationStatus)
+#'
+#' # Define the mapping between category and scientific name
+#' # scientific names based ecotaxa taxonomic system
+#' scientificName <- list("blurry" = "bad_image_blurry",
+#'                       "artefact" = c("bad_image_malfunction", "bad_image_strobe"),
+#'                       "Calanus" = "Calanus")
+#'
+#' # Create a new column of data called scientificName based on matches to category
+#' data <- data %>%
+#'   dplyr::mutate(., scientificName = case_when(
+#'     category %in% scientificName[["blurry"]] ~ "blurry",
+#'     category %in% scientificName[["artefact"]] ~ "artefact",
+#'     category == scientificName[["Calanus"]] ~ "Calanus",
+#'     TRUE ~ NA
+#'   ))
+#'
+#' vpr_export(data, metadata, columnNames, file = "vpr123_station25")
+#' }
+#'
+vpr_export <- function(data, metadata, columnNames, file) {
 
 ## input validation
 # check that data is a dataframe
@@ -144,87 +276,37 @@ if (!is.null(columnNames) && !is.list(columnNames)) {
 
 # check that columnNames matches data
 if (!is.null(columnNames)) {
-    if (!all(names(columnNames) %in% names(data))) {
+    if (!all(unlist(columnNames) %in% names(data))) {
       stop("columnNames must contain all column names in data")
     }
   }
 
 ## update column names in dataframe based on columnNames
-new_data <- setNames(data, unlist(metadata))
+new_data <- dplyr::rename(data, all_of(unlist(columnNames)))
 
 
 ## do some data checks
-# check for repeating values in data
-# Check for columns with only one unique value
-cols_with_one_value <- sapply(new_data, function(x) length(unique(x))) == 1
-
-# Print column names with only one unique value
-if (any(cols_with_one_value)) {
-  warning("The following columns have only one unique value:\n")
-  print(names(new_data)[cols_with_one_value])
-}
 # check for null/NA values
 # Check for null or NA values in data
 cols_with_null_or_na <- sapply(new_data, function(x) any(is.null(x) | is.na(x)))
 
 # Print column names with null or NA values
 if (any(cols_with_null_or_na)) {
-  warning("The following columns have null or NA values:\n")
-  print(names(new_data)[cols_with_null_or_na])
-}
-# check column names are included in metadata
-# warning that this is succeptible to false positives,
-# if column name is mentioned anywhere in metadata this test will pass
-# this is a trade off to reduce sensitivity to naming conventions of metadata structure
-metadata_str <- paste(unlist(metadata), collapse = " ")
-cols_not_in_metadata <- setdiff(names(new_data), grep(names(new_data), metadata_str, value = TRUE))
-
-# Print column names not included in metadata
-if (length(cols_not_in_metadata) > 0) {
-  warning("The following columns are not included in metadata:\n")
-  print(cols_not_in_metadata)
+  warning("The following columns have null or NA values:\n ", names(new_data)[cols_with_null_or_na])
 }
 
-# check gloablly impossible ranges
-# Define globally possible ranges
-ranges <- list(
-  TEMPST01 = c(-30, 30),
-  PSALST01 = c(0, 40),
-  POTDENS0 = c(0, 100),
-  sampleSizeValue = c(0, Inf),
-  minimumDepthInMetres = c(0, 5000),
-  maximumDepthInMetres = c(0, 5000),
-  individualCount = c(0, Inf),
-  SDBIOL01 = c(0, Inf)
-)
-
-# Check for values outside of globally possible ranges
-out_of_range <- apply(new_data, 1, function(row) {
-  any(sapply(names(row), function(col) {
-    if (col %in% names(ranges)) {
-      val <- row[[col]]
-      !is.na(val) && (val < ranges[[col]][1] || val > ranges[[col]][2])
-    } else {
-      FALSE
-    }
-  }))
-})
-
-# Print rows with values outside of globally possible ranges
-if (any(out_of_range)) {
-  warning("The following rows have values outside of globally possible ranges:\n")
-  print(new_data[out_of_range, ])
-}
-## check that metadata is complete
+# remove file extension from file name if required
+# so that file name is generic and applicable to data and metadata strings
+file <- gsub(".csv", "", file)
 
 ## write data to csv
-# naming convention?
 # BE SURE ROW NAMES ARE FALSE
-write.csv(new_data, file = "new_data.csv", row.names = FALSE)
+write.csv(new_data, file = paste0(file, '.csv'), row.names = FALSE)
 
 
 ## write metadata to json
-# naming convention?
+exstr <- rjson::toJSON(metadata, indent = 1) # indent makes pretty formatting
+cat(exstr, file = paste0(file, '-metadata.json'))
 
 
 }
