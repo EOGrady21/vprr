@@ -256,7 +256,7 @@ vpr_pred_read <- function(filename) {
 #'
 #' vpr_export(data, metadata, columnNames, file = "vpr123_station25")
 #' }
-#'
+#' @export
 vpr_export <- function(data, metadata, columnNames, file) {
 
 ## input validation

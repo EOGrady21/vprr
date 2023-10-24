@@ -7,7 +7,7 @@ Exports a csv file with standard column names based on British Oceanographic
 Data Centre, BODC::P01 and DarwinCore (DwC) naming conventions,
 and a JSON metadata file for station level metadata}
 \usage{
-vpr_export(data, metadata, columnNames)
+vpr_export(data, metadata, columnNames, file)
 }
 \arguments{
 \item{data}{a VPR data frame}
@@ -16,6 +16,8 @@ vpr_export(data, metadata, columnNames)
 
 \item{columnNames}{(optional) a named list of character values giving relationships between existing names
 of data columns and standard names}
+
+\item{datFile}{a file name for the data.csv}
 }
 \description{
 Format and export VPR data for publication (IN DEVELOPMENT)
