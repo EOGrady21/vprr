@@ -5,8 +5,8 @@ library(testthat)
 # required metadata and data
 
 
-ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat', package = 'vprr', mustWork = TRUE)
-ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat', package = 'vprr', mustWork = TRUE)
+ctd_files[[1]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h03ctd.dat.gz', package = 'vprr', mustWork = TRUE)
+ctd_files[[2]] <- system.file('extdata/COR2019002/rois/vpr5/d222', 'h04ctd.dat.gz', package = 'vprr', mustWork = TRUE)
 
 
 station_of_interest <- 'test'
