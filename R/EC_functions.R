@@ -12,6 +12,7 @@
 #' @importFrom data.table rbindlist
 #' @importFrom fs file_copy dir_create
 #' @importFrom tools file_ext
+#' @importFrom rjson toJSON
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
