@@ -17,7 +17,7 @@ vpr_export(data, metadata, columnNames, file)
 \item{columnNames}{(optional) a named list of character values giving relationships between existing names
 of data columns and standard names}
 
-\item{datFile}{a file name for the data.csv}
+\item{file}{a file name for the data.csv}
 }
 \description{
 Format and export VPR data for publication (IN DEVELOPMENT)

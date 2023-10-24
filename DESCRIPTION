@@ -28,12 +28,14 @@ Imports: ggplot2,
     withr,
     usethis,
     data.table,
-    fs
+    fs,
+    rjson
 Suggests: 
     knitr,
     rmarkdown,
     testthat,
-    markdown
+    markdown,
+    readxl
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)

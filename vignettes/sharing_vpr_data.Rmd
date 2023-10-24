@@ -4,7 +4,7 @@ author: "E. O'Grady"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{VPR_processing}
+  %\VignetteIndexEntry{Sharing VPR data}
   \usepackage[utf8]{inputenc}
   %\VignetteEngine{knitr::knitr}
 editor_options: 
@@ -14,6 +14,9 @@ editor_options:
 
 ```{r setup}
 library(vprr)
+library(dplyr)
+library(rjson)
+library(readxl)
 ```
 
 # Introduction
@@ -85,7 +88,8 @@ single VPR deployment. Each level has unique requirements but it should be
 ensured that the metadata files have a connection (in this example: dataset_ID).
 
 ```{r}
-vpr_metadata_template <- "extdata/vpr_metadata_template.xlsx"
+vpr_metadata_template <- system.file("extdata", "vpr_metadata_template.xlsx",
+                                     package = "vprr")
 
 metadata_temp_ds <- readxl::read_xlsx(vpr_metadata_template, sheet = 1)
 
@@ -266,7 +270,7 @@ identifiedBy <- "K. Sorochan"
 identificationVerificationStatus <- "ValidatedByHuman"
 
 data <- category_conc_n %>%
-  mutate(., identifiedBy = identifiedBy,
+  dplyr::mutate(., identifiedBy = identifiedBy,
    sampleSizeUnit = sampleSizeUnit,
    identificationVerificationStatus = identificationVerificationStatus)
 
@@ -285,7 +289,7 @@ data <- data %>%
     TRUE ~ NA
   ))
 
-vpr_export(data, metadata, columnNames, file = "vpr123_station25")
+# vpr_export(data, metadata, columnNames, file = "vpr123_station25")
 
 ```
 
@@ -293,10 +297,12 @@ vpr_export(data, metadata, columnNames, file = "vpr123_station25")
 Here are the outputs from the above example.
 
 ```{r}
-data <- read.csv("extdata/vpr123_station25.csv")
+data <- read.csv(system.file(
+  "extdata", "vpr123_station25.csv", package = "vprr"))
 head(data)
 
-metadata <- rjson::fromJSON(file = "extdata/vpr123_station25-metadata.json")
+metadata <- rjson::fromJSON(file = system.file(
+  "extdata", "vpr123_station25-metadata.json", package = "vprr"))
 ```
 
 

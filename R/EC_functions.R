@@ -78,7 +78,7 @@ vpr_pred_read <- function(filename) {
 #' @param metadata (optional) a named list of character values giving metadata to be included in JSON file
 #' @param columnNames (optional) a named list of character values giving relationships between existing names
 #' of data columns and standard names
-#' @param datFile a file name for the data.csv
+#' @param file a file name for the data.csv
 #'
 #' @example
 #' \dontrun{
@@ -258,6 +258,7 @@ vpr_pred_read <- function(filename) {
 #' vpr_export(data, metadata, columnNames, file = "vpr123_station25")
 #' }
 #' @export
+#' @importFrom utils write.csv
 vpr_export <- function(data, metadata, columnNames, file) {
 
 ## input validation
