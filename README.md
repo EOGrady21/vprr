@@ -1,7 +1,10 @@
 
-# vprr
+# vprr <a href="https://eogrady21.github.io/vprr/"><img src="man/figures/vprr_hex.png" align="right" height="138" /></a>
+
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/vprr)](https://cran.r-project.org/package=vprr)
+[![R-CMD-check](https://github.com/EOgrady21/vprr/actions/workflows/r.yml/badge.svg)](https://github.com/EOGrady21/vprr/actions/workflows/r.yml)
 <!-- badges: end -->
 
 The goal of vprr is to process Video Plankton Recorder (VPR) data in R.
@@ -26,6 +29,8 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("EOGrady21/vprr")
 ```
+## Cheatsheet
+<img width="660" alt="vprr_cheatsheet" src="https://github.com/EOGrady21/vprr/assets/38440373/4e622f6c-bca9-4fa6-a899-2e581c74fd5b">
 
 ## Details
 
@@ -36,7 +41,7 @@ image classification software designed for VPR datasets; however, vprr
 is not dependent on any specific elements of VP.
 
 All the technical details of vprr can be found in the package vignette,
-available through Rstudio or at <https://eogrady21.github.io/vprr/>
+available through your IDE or at <https://eogrady21.github.io/vprr/>
 (under Articles).
 
 ![](vignettes/vp_flowchart.PNG)
