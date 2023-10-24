@@ -1,0 +1,313 @@
+---
+title: "Sharing VPR Data"
+author: "E. O'Grady"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{VPR_processing}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::knitr}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+library(vprr)
+```
+
+# Introduction
+This document describes the process of saving and exporting VPR data in a format
+which is easy to produce, and meets international data expectations of being, 
+open source and accessible. It will describe the process of saving data outputs,
+cover recommended formats, metadata and data naming suggestions, and more. Note 
+that this is specific to data produced and shared by researchers at Bedford 
+Institute of Oceanography (BIO), but the references may be helpful to a wider
+audience. 
+
+
+# Core Concepts
+- FAIR
+  A set of modern data sharing principles published by Wilkinson, et.al in 2016. 
+  Findable, Accessible, Interoperable, Reproducible. 
+  These principles mean that data should be shared widely and in formats which
+  are straight-forward for others to access. These principles guide all the 
+  decisions made in this vignette.
+- Open Source formats
+  Open source file formats do not require proprietary software in order to
+  download, open or manipulate the files
+- DarwinCore
+  A data and metadata vocabulary which sets standard names for variables 
+  relevant to biological diversity. (https://dwc.tdwg.org/)
+- British Oceanographic Data Centre Vocabularies (BODC::P01)
+  A data vocabulary which sets standard names for oceanographic variables. 
+  (https://www.bodc.ac.uk/resources/vocabularies/parameter_codes/)
+  
+
+# Data products
+VPR data can be represented in many forms. In this document we will focus on two
+formats of final data products, which include environmental & abundance data, in
+wide and long tables. In both forms, abundance has been calculated by
+classification category and some relevant metadata has been added. 
+
+The long format of data looks like
+```{r}
+data(category_conc_n)
+head(category_conc_n)
+```
+
+The wide format looks like
+```{r}
+data(ctd_roi_merge)
+head(ctd_roi_merge)
+```
+
+# Reccommended formats
+During data processing and for internal work purposes, .Rdata files make a 
+great storage option. They are easy to export with `save()`. You can capture 
+the data in a variety of formats but most relevant might be a data frame or
+an `oce` object. The advantage of the `oce` object is that it contains a 
+metadata slot which can be useful for preserving self-contained metadata. 
+
+When considering sharing the data, more accessible and generic formats should be
+considered. During a review of file format options, researchers at BIO have
+decided to utilize a combination of .csv files (for data storage) and .json
+files (for metadata storage). This combination of files has the advantage of 
+maintaining very simple file formats while capturing a wealth of associated 
+metadata. The files are both very portable and easily accessed through a 
+simple text editor, by users who are not data-experts.
+
+
+# Metadata conventions
+Metadata can be stored at a data set level, representing a 'cruise' or series of 
+VPR deployments, as well as at an event (station, or cast) level, representing a
+single VPR deployment. Each level has unique requirements but it should be
+ensured that the metadata files have a connection (in this example: dataset_ID).
+
+```{r}
+vpr_metadata_template <- "extdata/vpr_metadata_template.xlsx"
+
+metadata_temp_ds <- readxl::read_xlsx(vpr_metadata_template, sheet = 1)
+
+metadata_temp_st <- readxl::read_xlsx(vpr_metadata_template, sheet = 2)
+
+```
+
+The recommended format for preserving metadata is JSON A simple, easy to read,
+file with a well documented structure. To generate a json file from R is very 
+straightforward and can be done through `rjson::toJSON()`. This function will 
+accept a nested list object and format it into a JSON string which can then be 
+written to an external file. 
+
+# Data conventions
+Columns in VPR data outputs (from `vprr`) should be renamed for standardization.
+This example uses a combination of DarwinCore (DwC) and British Oceanographic 
+Data Centre (BODC) P01 vocabularies. Since VPR data contains a unique mix of 
+biological and oceanographic environmental data, it was necessary to use both 
+vocabularies to capture the full scope of the data. Data column names, as well
+as units and definitions should be included in the metadata (shown in the 
+example below in the 'dataAttributes' field). 
+
+
+# Example using package data 
+
+```{r}
+data(category_conc_n)
+metadata <- list("station_level" = list(
+     "title" = list("en" = "VPR data from the Scotian Shelf",
+                     "fr" = "Données VPR de l'étagère néo-écossaise"),
+     "dataset_ID" = 1,
+     "decimalLatitudeStart" = 44.5,
+     "decimalLongitudeStart" = -64.5,
+     "decimalLatitudeEnd" = 45.5,
+     "decimalLongitudeEnd" = -65.5,
+     "maximumDepthInMeters" = 1000,
+     "eventDate" = "2019-08-11",
+     "eventTime" = "00:00:00",
+     "basisOfRecord" = "MachineObservation",
+     "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
+     "identificationReferences" = "Iv3 model v3.3",
+     "instrument" = list( "opticalSetting" = "S2",
+                           "imageVolume" = 83663),
+     "resources" = list("data" = list("name" = "vpr123_station25.csv",
+                         "creationDate" = "2023-01-01"),
+                         "metadata" = list("name" = "vpr123_station25-metadata.json",
+                         "creationDate" = "2023-01-01")),
+     "dataAttributes" = list("eventID" = list(
+                                   "dataType" = "chr",
+                                   "definition" = "An identifier for the set of information associated with a dwc:Event (something that occurs at a place and time). May be a global unique identifier or an identifier specific to the data set.",
+                                    "vocabulary" = "dwc"),
+                              "minimumDepthInMeters" = list(
+                                    "dataType" = "float",
+                                    "definition" = "The lesser depth of a range of depth below the local",
+                                    "vocabulary" = "dwc"),
+                              "maximumDepthInMeters" = list(
+                                    "dataType" = "float",
+                                    "definition" = "The greater depth of a range of depth below the local",
+                                    "vocabulary" = "dwc"),
+                              "DEPHPRST" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Depth (spatial coordinate) of sampling event start relative to water surface in the water body by profiling pressure sensor and conversion to depth using unspecified algorithm",
+                                    "vocabulary" = "BODC::P01"),
+                               "individualCount" = list(
+                                    "dataType" = "float",
+                                    "definition" = "The number of individuals present at the time of the dwc:Occurrence.",
+                                    "vocabulary" = "dwc"),
+                               "verbatimIdentification" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "A string representing the taxonomic identification as it appeared in the original record.",
+                                    "vocabulary" = "dwc"),
+                               "SDBIOL01" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Abundance of biological entity specified elsewhere per unit volume of the water body",
+                                    "vocabulary" = "BODC::P01"),
+                               "TEMPST01" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Temperature of the water body by CTD or STD",
+                                    "vocabulary" = "BODC::P01"),
+                               "PSALST01" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Practical salinity of the water body by CTD and computation using UNESCO 1983 algorithm",
+                                    "vocabulary" = "BODC::P01"),
+                               "POTDENS0" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Density (potential) of the water body by computation from salinity and potential temperature using UNESCO algorithm with 0 decibar reference pressure",
+                                    "vocabulary" = "BODC::P01"),
+                               "FLUOZZZZ" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Fluorescence of the water body",
+                                    "vocabulary" = "BODC::P01"),
+                               "TURBXXXX" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Turbidity of water in the water body",
+                                    "vocabulary" = "BODC::P01"),
+                               "sampleSizeValue" = list(
+                                    "dataType" = "float",
+                                    "definition" = "A numeric value for a measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
+                                    "vocabulary" = "dwc"),
+                               "sampleSizeUnit" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "The unit of measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
+                                    "vocabulary" = "dwc"),
+                               "scientificName" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "The full scientific name, with authorship and date information if known. When forming part of a dwc:Identification, this should be the name in lowest level taxonomic rank that can be determined. This term should not contain identification qualifications, which should instead be supplied in the dwc:identificationQualifier term.",
+                                    "vocabulary" = "dwc"),
+                               "identifiedBy" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "A list (concatenated and separated) of names of people, groups, or organisations who assigned the Taxon to the subject.",
+                                    "vocabulary" = "dwc"),
+                               "identificationVerificationStatus" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "A categorical indicator of the extent to which the taxonomic identification has been verified to be correct.",
+                                    "vocabulary" = "dwc"),
+                               "depthDifferenceMeters" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Difference between maximumDepthInMeters and minimumDepthInMeters of an individual data bin, in meters",
+                                    "vocabulary" = "BIO"),
+                               "minimumTimeSeconds" = list(
+                                    "dataType" = "float",
+                                    "definition" = "minimum time value in a data bin, measured in seconds from the start of the day of sampling",
+                                    "vocabulary" = "BIO"),
+                               "maximumTimeSeconds" = list(
+                                    "dataType" = "float",
+                                    "definition" = "maximum time value in a data bin, measured in seconds from the start of the day of sampling",
+                                    "vocabulary" = "BIO"),
+                               "timeDifferenceSeconds" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Difference between maximumTimeSeconds and minimumTimeSeconds of an individual data bin, in seconds",
+                                    "vocabulary" = "BIO"),
+                               "numberOfFrames" = list(
+                                    "dataType" = "float",
+                                    "definition" = "number of VPR frames captured within an individual data bin",
+                                    "vocabulary" = "BIO"),
+                               "timeMilliseconds" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Time measured in milliseconds since the start of the sampling day",
+                                    "vocabulary" = "BIO"),
+                               "towyoID" = list(
+                                    "dataType" = "chr",
+                                    "definition" = "A string identifying the section of the cast to which the data point belongs",
+                                    "vocabulary" = "BIO"),
+                               "maximumCastDepthInMeters" = list(
+                                    "dataType" = "float",
+                                    "definition" = "Maximum depth in Meters of the cast dataset",
+                                    "vocabulary" = "BIO")
+   )))
+
+   # new_name = old_name
+columnNames = list( "DEPHPRST" = "depth" ,
+   "verbatimIdentification" = "category",
+   "eventID" = "station",
+   "minimumDepthInMeters" = "min_depth",
+   "maximumDepthInMeters" = "max_depth",
+   "individualCount" = "n_roi_bin",
+   "SDBIOL01" = "conc_m3",
+   "TEMPST01" = "temperature",
+   "PSALST01" = "salinity",
+   "POTDENS0" = "density",
+   "FLUOZZZZ" = "fluorescence",
+   "TURBXXXX" = "turbidity",
+   "sampleSizeValue" = "vol_sampled_bin_m3",
+   "depthDifferenceMeters" = "depth_diff",
+   "minimumTimeSeconds" = "min_time_s",
+   "maximumTimeSeconds" = "max_time_s",
+   "timeDifferenceSeconds" = "time_diff_s",
+   "numberOfFrames" = "n_frames",
+   "timeMilliseconds" = "time_ms",
+   "towyoID" = "towyo",
+   "maximumCastDepthInMeters" = "max_cast_depth"
+   )
+
+# add any new data columns required
+# (eg. sampleSizeUnit, scientificName, identifiedBy, identificationVerificationStatus)
+sampleSizeUnit <- "cubic metre"
+identifiedBy <- "K. Sorochan"
+identificationVerificationStatus <- "ValidatedByHuman"
+
+data <- category_conc_n %>%
+  mutate(., identifiedBy = identifiedBy,
+   sampleSizeUnit = sampleSizeUnit,
+   identificationVerificationStatus = identificationVerificationStatus)
+
+ # Define the mapping between category and scientific name
+ # scientific names based ecotaxa taxonomic system
+scientificName <- list("blurry" = "bad_image_blurry",
+                       "artefact" = c("bad_image_malfunction", "bad_image_strobe"),
+                       "Calanus" = "Calanus")
+
+# Create a new column of data called scientificName based on matches to category
+data <- data %>%
+  dplyr::mutate(., scientificName = case_when(
+    category %in% scientificName[["blurry"]] ~ "blurry",
+    category %in% scientificName[["artefact"]] ~ "artefact",
+    category == scientificName[["Calanus"]] ~ "Calanus",
+    TRUE ~ NA
+  ))
+
+vpr_export(data, metadata, columnNames, file = "vpr123_station25")
+
+```
+
+# Example of outputs
+Here are the outputs from the above example.
+
+```{r}
+data <- read.csv("extdata/vpr123_station25.csv")
+head(data)
+
+metadata <- rjson::fromJSON(file = "extdata/vpr123_station25-metadata.json")
+```
+
+
+# Conclusion
+This document has summarized some of the reasoning behind creating and sharing
+generic, easily accessible versions of VPR data products, as well as some 
+methodology which could be used to produce standardized data and metadata 
+products. Hopefully this will encourage wide spread sharing of VPR data products
+and help future research aims.
+
+
+# References
+
+Wilkinson, M., Dumontier, M., Aalbersberg, I. et al. The FAIR Guiding Principles for scientific data management and stewardship. Sci Data 3, 160018 (2016). https://doi.org/10.1038/sdata.2016.18
