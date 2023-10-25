@@ -80,7 +80,9 @@ vpr_pred_read <- function(filename) {
 #' of data columns and standard names
 #' @param file a file name for the data.csv
 #'
-#' @example
+#' @examples
+#'
+#'
 #' \dontrun{
 #' data(category_conc_n)
 #' metadata <- list("station_level" = list(
