@@ -12,10 +12,11 @@ vpr_export(data, metadata, columnNames, file)
 \arguments{
 \item{data}{a VPR data frame}
 
-\item{metadata}{(optional) a named list of character values giving metadata to be included in JSON file}
+\item{metadata}{(optional) a named list of character values giving metadata
+to be included in JSON file}
 
-\item{columnNames}{(optional) a named list of character values giving relationships between existing names
-of data columns and standard names}
+\item{columnNames}{(optional) a named list of character values giving
+relationships between existing names of data columns and standard names}
 
 \item{file}{a file name for the data.csv}
 }
@@ -30,127 +31,182 @@ and a JSON metadata file for station level metadata
 
 \dontrun{
 data(category_conc_n)
-metadata <- list("station_level" = list(
-  "title" = list("en" = "VPR data from the Scotian Shelf",
-                 "fr" = "Données VPR de l'étagère néo-écossaise"),
-  "dataset_ID" = 1,
-  "decimalLatitudeStart" = 44.5,
-  "decimalLongitudeStart" = -64.5,
-  "decimalLatitudeEnd" = 45.5,
-  "decimalLongitudeEnd" = -65.5,
-  "maximumDepthInMeters" = 1000,
-  "eventDate" = "2019-08-11",
-  "eventTime" = "00:00:00",
-  "basisOfRecord" = "MachineObservation",
-  "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
-  "identificationReferences" = "Iv3 model v3.3",
-  "instrument" = list( "opticalSetting" = "S2",
+metadata <- list(
+  "station_level" = list(
+    "title" = list("en" = "VPR data from the Scotian Shelf",
+                   "fr" = "Données VPR de l'étagère néo-écossaise"),
+    "dataset_ID" = 1,
+    "decimalLatitudeStart" = 44.5,
+    "decimalLongitudeStart" = -64.5,
+    "decimalLatitudeEnd" = 45.5,
+    "decimalLongitudeEnd" = -65.5,
+    "maximumDepthInMeters" = 1000,
+    "eventDate" = "2019-08-11",
+    "eventTime" = "00:00:00",
+    "basisOfRecord" = "MachineObservation",
+   "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
+   "identificationReferences" = "Iv3 model v3.3",
+   "instrument" = list("opticalSetting" = "S2",
                        "imageVolume" = 83663),
-  "resources" = list("data" = list("name" = "vpr123_station25.csv",
-                                   "creationDate" = "2023-01-01"),
-                     "metadata" = list("name" = "vpr123_station25-metadata.json",
-                                       "creationDate" = "2023-01-01")),
-  "dataAttributes" = list("eventID" = list(
-    "dataType" = "chr",
-    "definition" = "An identifier for the set of information associated with a dwc:Event (something that occurs at a place and time). May be a global unique identifier or an identifier specific to the data set.",
-    "vocabulary" = "dwc"),
-    "minimumDepthInMeters" = list(
-      "dataType" = "float",
-      "definition" = "The lesser depth of a range of depth below the local",
-      "vocabulary" = "dwc"),
-    "maximumDepthInMeters" = list(
-      "dataType" = "float",
-      "definition" = "The greater depth of a range of depth below the local",
-      "vocabulary" = "dwc"),
-    "DEPHPRST" = list(
-      "dataType" = "float",
-      "definition" = "Depth (spatial coordinate) of sampling event start relative to water surface in the water body by profiling pressure sensor and conversion to depth using unspecified algorithm",
-      "vocabulary" = "BODC::P01"),
-    "individualCount" = list(
-      "dataType" = "float",
-      "definition" = "The number of individuals present at the time of the dwc:Occurrence.",
-      "vocabulary" = "dwc"),
-    "verbatimIdentification" = list(
-      "dataType" = "chr",
-      "definition" = "A string representing the taxonomic identification as it appeared in the original record.",
-      "vocabulary" = "dwc"),
-    "SDBIOL01" = list(
-      "dataType" = "float",
-      "definition" = "Abundance of biological entity specified elsewhere per unit volume of the water body",
-      "vocabulary" = "BODC::P01"),
-    "TEMPST01" = list(
-      "dataType" = "float",
-      "definition" = "Temperature of the water body by CTD or STD",
-      "vocabulary" = "BODC::P01"),
-    "PSALST01" = list(
-      "dataType" = "float",
-      "definition" = "Practical salinity of the water body by CTD and computation using UNESCO 1983 algorithm",
-      "vocabulary" = "BODC::P01"),
-    "POTDENS0" = list(
-      "dataType" = "float",
-      "definition" = "Density (potential) of the water body by computation from salinity and potential temperature using UNESCO algorithm with 0 decibar reference pressure",
-      "vocabulary" = "BODC::P01"),
-    "FLUOZZZZ" = list(
-      "dataType" = "float",
-      "definition" = "Fluorescence of the water body",
-      "vocabulary" = "BODC::P01"),
-    "TURBXXXX" = list(
-      "dataType" = "float",
-      "definition" = "Turbidity of water in the water body",
-      "vocabulary" = "BODC::P01"),
-    "sampleSizeValue" = list(
-      "dataType" = "float",
-      "definition" = "A numeric value for a measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
-      "vocabulary" = "dwc"),
-    "sampleSizeUnit" = list(
-      "dataType" = "chr",
-      "definition" = "The unit of measurement of the size (time duration, length, area, or volume) of a sample in a sampling dwc:Event.",
-      "vocabulary" = "dwc"),
-    "scientificName" = list(
-      "dataType" = "chr",
-      "definition" = "The full scientific name, with authorship and date information if known. When forming part of a dwc:Identification, this should be the name in lowest level taxonomic rank that can be determined. This term should not contain identification qualifications, which should instead be supplied in the dwc:identificationQualifier term.",
-      "vocabulary" = "dwc"),
-    "identifiedBy" = list(
-      "dataType" = "chr",
-      "definition" = "A list (concatenated and separated) of names of people, groups, or organisations who assigned the Taxon to the subject.",
-      "vocabulary" = "dwc"),
-    "identificationVerificationStatus" = list(
-      "dataType" = "chr",
-      "definition" = "A categorical indicator of the extent to which the taxonomic identification has been verified to be correct.",
-      "vocabulary" = "dwc"),
-    "depthDifferenceMeters" = list(
-      "dataType" = "float",
-      "definition" = "Difference between maximumDepthInMeters and minimumDepthInMeters of an individual data bin, in meters",
-      "vocabulary" = "BIO"),
-    "minimumTimeSeconds" = list(
-      "dataType" = "float",
-      "definition" = "minimum time value in a data bin, measured in seconds from the start of the day of sampling",
-      "vocabulary" = "BIO"),
-    "maximumTimeSeconds" = list(
-      "dataType" = "float",
-      "definition" = "maximum time value in a data bin, measured in seconds from the start of the day of sampling",
-      "vocabulary" = "BIO"),
-    "timeDifferenceSeconds" = list(
-      "dataType" = "float",
-      "definition" = "Difference between maximumTimeSeconds and minimumTimeSeconds of an individual data bin, in seconds",
-      "vocabulary" = "BIO"),
-    "numberOfFrames" = list(
-      "dataType" = "float",
-     "definition" = "number of VPR frames captured within an individual data bin",
-      "vocabulary" = "BIO"),
-    "timeMilliseconds" = list(
-      "dataType" = "float",
-      "definition" = "Time measured in milliseconds since the start of the sampling day",
-      "vocabulary" = "BIO"),
-    "towyoID" = list(
-      "dataType" = "chr",
-      "definition" = "A string identifying the section of the cast to which the data point belongs",
-     "vocabulary" = "BIO"),
-   "maximumCastDepthInMeters" = list(
-      "dataType" = "float",
-      "definition" = "Maximum depth in Meters of the cast dataset",
-      "vocabulary" = "BIO")
-  )))
+   "resources" = list(
+      "data" = list("name" = "vpr123_station25.csv",
+                    "creationDate" = "2023-01-01"),
+      "metadata" = list("name" = "vpr123_station25-metadata.json",
+                        "creationDate" = "2023-01-01")
+    ),
+    "dataAttributes" = list(
+      "eventID" = list(
+        "dataType" = "chr",
+        "definition" = "An identifier for the set of information associated
+        with a dwc:Event (something that occurs at a place and time). May be
+        a global unique identifier or an identifier specific to the data set.",
+        "vocabulary" = "dwc"
+      ),
+      "minimumDepthInMeters" = list(
+        "dataType" = "float",
+        "definition" = "The lesser depth of a range of depth below the local",
+        "vocabulary" = "dwc"
+      ),
+      "maximumDepthInMeters" = list(
+        "dataType" = "float",
+        "definition" = "The greater depth of a range of depth below the local",
+        "vocabulary" = "dwc"
+      ),
+      "DEPHPRST" = list(
+        "dataType" = "float",
+        "definition" = "Depth (spatial coordinate) of sampling event start
+        relative to water surface in the water body by profiling pressure
+         sensor and conversion to depth using unspecified algorithm",
+        "vocabulary" = "BODC::P01"
+      ),
+      "individualCount" = list(
+        "dataType" = "float",
+        "definition" = "The number of individuals present at the time of the
+         dwc:Occurrence.",
+        "vocabulary" = "dwc"
+      ),
+      "verbatimIdentification" = list(
+        "dataType" = "chr",
+       "definition" = "A string representing the taxonomic identification as
+       it appeared in the original record.",
+        "vocabulary" = "dwc"
+      ),
+      "SDBIOL01" = list(
+        "dataType" = "float",
+        "definition" = "Abundance of biological entity specified elsewhere
+        per unit volume of the water body",
+        "vocabulary" = "BODC::P01"
+      ),
+      "TEMPST01" = list(
+        "dataType" = "float",
+        "definition" = "Temperature of the water body by CTD or STD",
+        "vocabulary" = "BODC::P01"
+      ),
+      "PSALST01" = list(
+        "dataType" = "float",
+        "definition" = "Practical salinity of the water body by CTD and
+        computation using UNESCO 1983 algorithm",
+        "vocabulary" = "BODC::P01"
+      ),
+      "POTDENS0" = list(
+        "dataType" = "float",
+        "definition" = "Density (potential) of the water body by computation
+         from salinity and potential temperature using UNESCO algorithm with
+          0 decibar reference pressure",
+        "vocabulary" = "BODC::P01"
+      ),
+      "FLUOZZZZ" = list(
+        "dataType" = "float",
+        "definition" = "Fluorescence of the water body",
+        "vocabulary" = "BODC::P01"
+      ),
+      "TURBXXXX" = list(
+        "dataType" = "float",
+        "definition" = "Turbidity of water in the water body",
+       "vocabulary" = "BODC::P01"
+     ),
+      "sampleSizeValue" = list(
+        "dataType" = "float",
+        "definition" = "A numeric value for a measurement of the size (time
+        duration, length, area, or volume) of a sample in a sampling
+        dwc:Event.",
+        "vocabulary" = "dwc"
+      ),
+      "sampleSizeUnit" = list(
+        "dataType" = "chr",
+        "definition" = "The unit of measurement of the size (time duration,
+        length, area, or volume) of a sample in a sampling dwc:Event.",
+       "vocabulary" = "dwc"
+      ),
+      "scientificName" = list(
+        "dataType" = "chr",
+        "definition" = "The full scientific name, with authorship and date
+        information if known. When forming part of a dwc:Identification, this
+         should be the name in lowest level taxonomic rank that can be
+         determined. This term should not contain identification
+         qualifications, which should instead be supplied in the
+         dwc:identificationQualifier term.",
+        "vocabulary" = "dwc"
+      ),
+      "identifiedBy" = list(
+        "dataType" = "chr",
+        "definition" = "A list (concatenated and separated) of names of
+        people, groups, or organisations who assigned the Taxon to the subject.",
+        "vocabulary" = "dwc"
+      ),
+      "identificationVerificationStatus" = list(
+        "dataType" = "chr",
+        "definition" = "A categorical indicator of the extent to which the
+        taxonomic identification has been verified to be correct.",
+        "vocabulary" = "dwc"
+      ),
+      "depthDifferenceMeters" = list(
+       "dataType" = "float",
+       "definition" = "Difference between maximumDepthInMeters and
+       minimumDepthInMeters of an individual data bin, in meters",
+        "vocabulary" = "BIO"
+      ),
+      "minimumTimeSeconds" = list(
+        "dataType" = "float",
+        "definition" = "minimum time value in a data bin, measured in seconds
+         from the start of the day of sampling",
+        "vocabulary" = "BIO"
+      ),
+      "maximumTimeSeconds" = list(
+        "dataType" = "float",
+        "definition" = "maximum time value in a data bin, measured in seconds
+         from the start of the day of sampling",
+        "vocabulary" = "BIO"
+      ),
+      "timeDifferenceSeconds" = list(
+        "dataType" = "float",
+        "definition" = "Difference between maximumTimeSeconds and
+        minimumTimeSeconds of an individual data bin, in seconds",
+        "vocabulary" = "BIO"
+      ),
+      "numberOfFrames" = list(
+        "dataType" = "float",
+        "definition" = "number of VPR frames captured within an individual data bin",
+        "vocabulary" = "BIO"
+      ),
+      "timeMilliseconds" = list(
+        "dataType" = "float",
+        "definition" = "Time measured in milliseconds since the start of the sampling day",
+        "vocabulary" = "BIO"
+      ),
+      "towyoID" = list(
+        "dataType" = "chr",
+        "definition" = "A string identifying the section of the cast to which the data point belongs",
+        "vocabulary" = "BIO"
+      ),
+      "maximumCastDepthInMeters" = list(
+        "dataType" = "float",
+        "definition" = "Maximum depth in Meters of the cast dataset",
+        "vocabulary" = "BIO"
+      )
+    )
+  )
+)
 
 # new_name = old_name
 columnNames = list( "DEPHPRST" = "depth" ,
