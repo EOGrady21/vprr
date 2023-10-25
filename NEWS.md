@@ -23,7 +23,12 @@ vprr 0.3.0
 * implement tidy paths
 * update processing vignette to simplify example workflow, run with data contained in package, and improve flowchart figures.
 * removed deprecated function (getROIMeasurments)
+* compressed extdata files to avoid NOTE on R CMD CHECK
 
+### NEW CONTENT
+* New function vpr_export() for saving standardized data products (csv & json)
+* New vignette about data sharing
+* Update README to include badges and HEX sticker
 
 # vprr 0.2.0
 ### BUG FIXES AND ENHANCEMENTS
