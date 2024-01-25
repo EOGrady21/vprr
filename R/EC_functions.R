@@ -799,6 +799,9 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 #' @param station_of_interest The station being processed
 #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
 #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+#' @param rev Logical value defining direction of binning, FALSE (default) - bins will be
+#'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
+#'   surface
 #'
 #' @examples
 #'
@@ -816,7 +819,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 #'@export
 #'
 #'
-vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume) {
+vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume, rev = FALSE) {
 
 # input validation
   # Check that the data argument is a data frame
@@ -855,7 +858,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
   # calculate concentrations
   conc_dat <- list()
   for ( ii in seq_len(length(valid_category))){
-    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume) %>%
+    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume, rev = rev) %>%
       dplyr::mutate(., category = valid_category[ii])
   }
 
