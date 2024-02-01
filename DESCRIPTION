@@ -35,4 +35,5 @@ Suggests:
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
-URL: https://eogrady21.github.io/vprr/
+URL: https://eogrady21.github.io/vprr/, https://github.com/EOGrady21/vprr
+BugReports: https://github.com/EOGrady21/vprr/issues
