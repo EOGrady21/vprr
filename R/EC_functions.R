@@ -749,7 +749,7 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 
   # read aid files
     for (ii in seq_len(length(aid_fns))) {
-    if (missing(threshold)) {
+    if (missing(threshold) | is.null(threshold) == TRUE) {
       aid_dat <- read.table(aid_fns[ii])
     }else {
       aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
