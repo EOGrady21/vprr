@@ -885,6 +885,8 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 #' @param rev Logical value defining direction of binning, FALSE - bins will be
 #'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
 #'   surface
+#' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+#' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -894,7 +896,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
 #' @author E. Chisholm
 #'
 #' @export
-concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE) {
+concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE, breaks = NULL, cutoff = 0.1) {
 
   #input validation
     # Check that the data argument is a data frame
@@ -959,7 +961,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
   ctd_roi_oce <- vpr_oce_create(dt)
 
   # bin data
-  final <- bin_cast(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev)
+  final <- bin_cast(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev, breaks = breaks, cutoff = cutoff)
 
   return(final)
 }
@@ -979,6 +981,8 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 #'   bottom, small amounts of data may be lost at the surface of each cast, if
 #'   binning begins at surface (rev = FALSE), small amounts of data may be lost
 #'   at bottom of each cast
+#' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+#' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
 #'
 #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
 #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
@@ -989,7 +993,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 #' @export
 #'
 #'
-bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE) {
+bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE, breaks = NULL, cutoff = 0.1) {
 
 # input validation
 if (!inherits(ctd_roi_oce, "ctd")) {
@@ -1011,13 +1015,14 @@ if (!inherits(ctd_roi_oce, "ctd")) {
     stop("rev must be a logical value")
   }
   . <- conc_m3 <- NA
+  #browser()
   #find upcasts
-  upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
+  upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df', breaks = breaks, cutoff = cutoff)
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   upcast_df <- do.call(rbind, upcast2)
 
   #find downcasts
-  downcast <- ctd_cast(ctd_roi_oce, cast_direction = "descending", data_type = "df")
+  downcast <- ctd_cast(ctd_roi_oce, cast_direction = "descending", data_type = "df", breaks = breaks, cutoff = cutoff)
   downcast2 <- lapply(X = downcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   downcast_df <- do.call(rbind, downcast2)
 
@@ -1817,7 +1822,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 
   cast_updated <- list()
-
+# browser()
   if (is.null(breaks)) {
     cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
   }else {
