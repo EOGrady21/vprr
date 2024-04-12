@@ -1820,9 +1820,9 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 
   if (is.null(breaks)) {
-    cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff, breaks = breaks)
+    cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
   }else {
-    cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
+    cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction, cutoff = cutoff)
 
   }
 
