@@ -1,11 +1,4 @@
-## classifier check
-# E. Chisholm
-
-# edited by K. Sorochan
-
-## January 6th, 2020
-## version 3
-
+## manual classifier check
 
 vpr_manual_classification <-
   function(day,
@@ -377,7 +370,6 @@ vpr_manual_classification <-
 
   }
 
-
 vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE, categories) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
@@ -660,24 +652,20 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   }
 }
 
-
-
-# function to create new category within data structure post VP output
-
-#' Create a new category to be considered for classification after processing with VP
-#'
-#' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
-#'
-#' @param category new category name to be added (can be a list of multiple category names)
-#' @param basepath basepath used for vpr_manual_classification
-#'
-#' @return empty directory structure using new category name inside basepath
-#' @export
-#'
-#'
-#'
-#'
 vpr_category_create <- function(category, basepath) {
+  #' Create a new category to be considered for classification after processing with VP
+  #'
+  #' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
+  #'
+  #' @param category new category name to be added (can be a list of multiple category names)
+  #' @param basepath basepath used for vpr_manual_classification
+  #'
+  #' @return empty directory structure using new category name inside basepath
+  #' @export
+  #'
+  #'
+  #'
+  #'
   for (i in seq_len(length(category))) {
     # create new category folder
     newcategorypath <- file.path(basepath, category[[i]])

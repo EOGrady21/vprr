@@ -18,10 +18,10 @@ a dataframe of binned VPR size data statistics including number of observations,
 Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
 }
 \examples{
-
+\dontrun{
 data('size_df_f')
 vpr_size_bin(size_df_f, bin_mea = 5)
-
+}
 
 
 

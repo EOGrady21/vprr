@@ -1,9 +1,6 @@
 ##### Import packages ####
 #' Packages
-#' @name VPR processing functions depend on these packages
-#'
-#'These packages are needed!
-#'
+#' @name package-imports
 #' @import dplyr ggplot2 oce
 #' @importFrom graphics hist par plot.new
 #' @importFrom stats aggregate median quantile
@@ -2054,7 +2051,7 @@ vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
   #' @return A dataframe containing VPR CTD and size data
   #'
   #' @examples
-  #'
+  #' \dontrun{
   #' data("ctd_roi_merge")
   #' data("roimeas_dat_combine")
   #' category_of_interest = 'Calanus'
@@ -2063,7 +2060,7 @@ vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
   #'
   #' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
   #'  category_of_interest = category_of_interest)
-  #'
+  #'}
   #'
   #'
   # INPUT VALIDATION
@@ -2166,10 +2163,10 @@ vpr_size_bin <- function(data_all, bin_mea) {
   #' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
   #'
   #' @examples
-  #'
+  #' \dontrun{
   #' data('size_df_f')
   #' vpr_size_bin(size_df_f, bin_mea = 5)
-  #'
+  #' }
   #'
   #'
   #'
