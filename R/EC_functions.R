@@ -1,6 +1,6 @@
 ##### Import packages ####
 #' Packages
-#'  VPR processing functions depend on these packages
+#' @name VPR processing functions depend on these packages
 #'
 #'These packages are needed!
 #'
@@ -18,7 +18,6 @@
 #' @rawNamespace import(metR, except = coriolis)
 #'
 NULL
-
 
 options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 
