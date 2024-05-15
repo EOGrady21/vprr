@@ -4,7 +4,7 @@ author: "E. O'Grady"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Sharing VPR data}
+  %\VignetteIndexEntry{Sharing VPR Data}
   \usepackage[utf8]{inputenc}
   %\VignetteEngine{knitr::knitr}
 editor_options: 
