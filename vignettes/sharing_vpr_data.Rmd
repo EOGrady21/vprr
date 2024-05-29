@@ -16,7 +16,7 @@ editor_options:
 library(vprr)
 library(dplyr)
 library(rjson)
-library(readxl)
+#library(readxl)
 ```
 
 # Introduction
@@ -88,12 +88,12 @@ single VPR deployment. Each level has unique requirements but it should be
 ensured that the metadata files have a connection (in this example: dataset_ID).
 
 ```{r}
-vpr_metadata_template <- system.file("extdata", "vpr_metadata_template.xlsx",
-                                     package = "vprr")
-
-metadata_temp_ds <- readxl::read_xlsx(vpr_metadata_template, sheet = 1)
-
-metadata_temp_st <- readxl::read_xlsx(vpr_metadata_template, sheet = 2)
+# vpr_metadata_template <- system.file("extdata", "vpr_metadata_template.xlsx",
+#                                      package = "vprr")
+# 
+# metadata_temp_ds <- readxl::read_xlsx(vpr_metadata_template, sheet = 1)
+# 
+# metadata_temp_st <- readxl::read_xlsx(vpr_metadata_template, sheet = 2)
 
 ```
 
