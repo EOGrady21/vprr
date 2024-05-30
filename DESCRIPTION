@@ -34,8 +34,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
-    markdown,
-    readxl
+    markdown
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
