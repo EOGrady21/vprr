@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -57,7 +60,15 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_autoid_create</span><span class="op">(</span><span class="va">reclassify</span>, <span class="va">misclassified</span>, <span class="va">basepath</span>, <span class="va">day</span>, <span class="va">hour</span>, mea <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_autoid_create</span><span class="op">(</span></span>
+<span>  <span class="va">reclassify</span>,</span>
+<span>  <span class="va">misclassified</span>,</span>
+<span>  <span class="va">basepath</span>,</span>
+<span>  <span class="va">day</span>,</span>
+<span>  <span class="va">hour</span>,</span>
+<span>  mea <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">categories</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -83,18 +94,11 @@
 
 
 <dt>mea</dt>
-<dd><p>logical indicating whether or not there are accompanying measurement files to be created</p><div class="section">
-<h3 id="examples">examples<a class="anchor" aria-label="anchor" href="#examples"></a></h3>
+<dd><p>logical indicating whether or not there are accompanying measurement files to be created</p></dd>
 
 
-<p>basepath &lt;- 'E:/autoID_EC_07032019/'
-day &lt;- '289'
-hr &lt;- '08'
-day_hour_files &lt;-  paste0('d', day, '.h', hr)
-misclassified &lt;- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
-reclassify &lt;- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-vpr_autoid_create(reclassify, misclassified, basepath)</p>
-</div></dd>
+<dt>categories</dt>
+<dd><p>A list object with all the potential classification categories</p></dd>
 
 </dl></div>
     <div id="author">
@@ -102,6 +106,22 @@ vpr_autoid_create(reclassify, misclassified, basepath)</p>
     <p>E. Chisholm</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="va">basepath</span> <span class="op">&lt;-</span> <span class="st">'E:/autoID_EC_07032019/'</span></span></span>
+<span class="r-in"><span><span class="va">day</span> <span class="op">&lt;-</span> <span class="st">'289'</span></span></span>
+<span class="r-in"><span><span class="va">hr</span> <span class="op">&lt;-</span> <span class="st">'08'</span></span></span>
+<span class="r-in"><span><span class="va">categories</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bad_image_blurry"</span>, <span class="st">"bad_image_malfunction"</span>, <span class="st">"bad_image_strobe"</span>, <span class="st">"Calanus"</span>, <span class="st">"chaetognaths"</span>,</span></span>
+<span class="r-in"><span><span class="st">"ctenophores"</span>, <span class="st">"krill"</span>, <span class="st">"marine_snow"</span>, <span class="st">"Other"</span>, <span class="st">"small_copepod"</span>, <span class="st">"stick"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">day_hour_files</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'d'</span>, <span class="va">day</span>, <span class="st">'.h'</span>, <span class="va">hr</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">misclassified</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">day_hour_files</span>, pattern <span class="op">=</span> <span class="st">'misclassified_'</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">reclassify</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">day_hour_files</span>, pattern <span class="op">=</span> <span class="st">'reclassify_'</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">vpr_autoid_create</span><span class="op">(</span><span class="va">reclassify</span>, <span class="va">misclassified</span>, <span class="va">basepath</span>, <span class="va">categories</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>
@@ -110,11 +130,11 @@ vpr_autoid_create(reclassify, misclassified, basepath)</p>
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

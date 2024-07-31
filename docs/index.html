@@ -36,7 +36,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -53,6 +53,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul>
@@ -74,10 +77,11 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="vprr">vprr<a class="anchor" aria-label="anchor" href="#vprr"></a>
+<div class="page-header"><h1 id="vprr-">vprr <a href="https://eogrady21.github.io/vprr/"><img src="reference/figures/vprr_hex.png" align="right" height="138"></a>
+<a class="anchor" aria-label="anchor" href="#vprr-"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- badges: end -->
+
 <p>The goal of vprr is to process Video Plankton Recorder (VPR) data in R. This package allows for manual image classification, calculation of important ecological metrics such as concentration of plankton, data visualization, and data output with self-contained metadata.</p>
 <p>Detailed information about vprr can be found in the package vignette.</p>
 <div class="section level2">
@@ -85,18 +89,18 @@
 </h2>
 <p>You can install the released version of vprr from <a href="https://CRAN.R-project.org" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"vprr"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"vprr"</span><span class="op">)</span></span></code></pre></div>
 <p>And the development version from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"EOGrady21/vprr"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"EOGrady21/vprr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a>
 </h2>
 <p>vprr is designed to be used after processing VPR data with an automated image classification system. vprr utilizes file formats and directory structures consistent with those from Visual Plankton (VP), a Matlab image classification software designed for VPR datasets; however, vprr is not dependent on any specific elements of VP.</p>
 <p>All the technical details of vprr can be found in the package vignette, available through Rstudio or at <a href="https://eogrady21.github.io/vprr/" class="uri">https://eogrady21.github.io/vprr/</a> (under Articles).</p>
-<p><img src="articles/vp_flowchart.PNG"></p>
+<p><img src="articles/vprr_figure1.PNG"></p>
 <p>Figure 1. VPR data processing flow chart. Blue boxes represent software, green and yellow boxes represent data sets, where yellow is visual data and green is text format data. This package represents ‘Processing and Visualization (R)’.</p>
 <p>The first element of processing VPR data is to classify the images collected. This can be done using machine learning techniques and then checked and manually edited in vprr. vprr uses a GUI, called through <code><a href="reference/vpr_manual_classification.html">vpr_manual_classification()</a></code> to allow a user to review and change image classifications.</p>
 <p><img src="articles/clf_check_3.png"></p>
@@ -144,13 +148,19 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Emily O'Grady <br><small class="roles"> Author, maintainer, copyright holder </small>  </li>
-<li>Kevin Sorochan dev <br><small class="roles"> Author </small>  </li>
+<li>Emily O'Grady <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Kevin Sorochan <br><small class="roles"> Author </small>  </li>
 <li>Catherine Johnson <br><small class="roles"> Author </small>  </li>
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://cran.r-project.org/package=vprr" class="external-link"><img src="https://www.r-pkg.org/badges/version/dplyr" alt="CRAN status"></a></li>
+<li><a href="https://github.com/EOGrady21/vprr/actions/workflows/r.yml" class="external-link"><img src="https://github.com/tidyverse/dplyr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </div>
 </div>
@@ -158,12 +168,12 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+<p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>

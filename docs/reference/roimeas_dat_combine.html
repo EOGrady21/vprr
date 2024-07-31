@@ -19,7 +19,7 @@ vpr_autoid_read"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -34,6 +34,9 @@ vpr_autoid_read"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -61,7 +64,7 @@ data set including long axis length, perimeter and area, produced by
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="va">roimeas_dat_combine</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="va">roimeas_dat_combine</span></span></code></pre></div>
     </div>
 
     <div id="format">
@@ -69,8 +72,8 @@ data set including long axis length, perimeter and area, produced by
     <p>A data frame with 12 variables</p><dl><dt>roi</dt>
 <dd><p>Unique ROI identifier - 10 digit</p></dd>
 
-<dt>taxa</dt>
-<dd><p>Category in which ROI has been classified by Visual Plankton</p></dd>
+<dt>category</dt>
+<dd><p>Category in which ROI has been classified</p></dd>
 
 <dt>day_hour</dt>
 <dd><p>day and hour in which data was collected (from Autodeck)</p></dd>
@@ -113,11 +116,11 @@ data set including long axis length, perimeter and area, produced by
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

@@ -43,7 +43,7 @@ All the technical details of vprr can be found in the package vignette,
 available through Rstudio or at <https://eogrady21.github.io/vprr/>
 (under Articles).
 
-![](vignettes/vp_flowchart.PNG)
+![](vignettes/vprr_figure1.PNG)
 
 Figure 1. VPR data processing flow chart. Blue boxes represent software,
 green and yellow boxes represent data sets, where yellow is visual data
