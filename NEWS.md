@@ -1,5 +1,5 @@
-vprr 0.3.0
-### BUG FIXES AND ENHANCEMENTS
+# vprr 0.3.0
+## BUG FIXES AND ENHANCEMENTS
 * [ENHANCEMENT] Generalize vpr_category to better handle duplicate category names
 * [BUG FIX] Check for missing category values can accept a list
 * [ENHANCEMENT] Update vpr_autoid_check() to reflect better data checks and not touch original files
@@ -13,7 +13,7 @@ vprr 0.3.0
 * [ENHANCEMENT] Lintr clean up of formatting
 * [ENHANCEMENT] add input validation to all functions
 
-### CHANGES
+## CHANGES
 * taxa replaced with category in all objects & instances
 * update to v2 of pkgdown workflow in GH actions
 * Remove unnecessary hard coding of variables to be added to oce-ctd object in vpr_oce_create()
@@ -25,19 +25,19 @@ vprr 0.3.0
 * removed deprecated function (getROIMeasurments)
 * compressed extdata files to avoid NOTE on R CMD CHECK
 
-### NEW CONTENT
+## NEW CONTENT
 * New function vpr_export() for saving standardized data products (csv & json)
 * New vignette about data sharing
 * Update README to include badges and HEX sticker
 
 # vprr 0.2.0
-### BUG FIXES AND ENHANCEMENTS
+## BUG FIXES AND ENHANCEMENTS
 * [ENHANCEMENT] CodeFactor suggested updates to style
 * [BUG FIX] export vpr_manual_classification (Issue #23)
 * [ENHANCEMENT] update processing method to be flexible enough to run prediction output from non-vp automated classification system
 * [BUG FIX] consistency in variable naming for plotting depth/pressure (Issue #22)
 
-### CHANGES
+## CHANGES
 * Removed all reference to akima package (due to licensing issue brought to attention by CRAN)
 * Migrate from Travis CI to GH Actions
 * clarify directory structure and contain any file output to organized folders
