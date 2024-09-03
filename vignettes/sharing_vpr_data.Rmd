@@ -15,8 +15,8 @@ editor_options:
 ```{r setup}
 library(vprr)
 library(dplyr)
-library(rjson)
-#library(readxl)
+# library(rjson)
+# library(readxl)
 ```
 
 # Introduction
@@ -297,12 +297,12 @@ data <- data %>%
 Here are the outputs from the above example.
 
 ```{r}
-data <- read.csv(system.file(
-  "extdata", "vpr123_station25.csv", package = "vprr"))
-head(data)
-
-metadata <- rjson::fromJSON(file = system.file(
-  "extdata", "vpr123_station25-metadata.json", package = "vprr"))
+# data <- read.csv(system.file(
+#   "extdata", "vpr123_station25.csv", package = "vprr"))
+# head(data)
+# 
+# metadata <- rjson::fromJSON(file = system.file(
+#   "extdata", "vpr123_station25-metadata.json", package = "vprr"))
 ```
 
 
