@@ -57,7 +57,9 @@ test_that('VPR data is properly binned',{
 
 
   # bin size data
-  expect_message(size_df_f <- vpr_ctdroisize_merge(data, data_mea = roimeas_dat_combine, category_of_interest = category_of_interest))
+  expect_message(size_df_f <- vpr_ctdroisize_merge(data,
+                                                   data_mea = roimeas_dat_combine,
+                                                   category_of_interest = category_of_interest))
   expect_true(is.data.frame(size_df_f))
   expect_true(length(size_df_f[[1]]) > 0)
   expect_identical(unique(size_df_f$category), category_of_interest)

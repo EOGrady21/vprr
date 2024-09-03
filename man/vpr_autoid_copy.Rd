@@ -5,31 +5,47 @@
 \title{Copy VPR images into folders}
 \usage{
 vpr_autoid_copy(
-  basepath,
+  new_autoid,
+  roi_path,
   day,
   hour,
-  classifier_type,
-  classifier_name,
-  category
+  cast,
+  station,
+  threshold,
+  org = "dayhour"
 )
 }
 \arguments{
-\item{basepath}{A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"}
+\item{new_autoid}{A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"}
 
-\item{day}{character string representing numeric day of interest}
+\item{roi_path}{(optional) provide if ROI data has been moved since autoid
+files were created (if path strings in aid files do not match where data
+currently exists), a file path where ROI data is stored (up to "rois"
+folder)}
 
-\item{hour}{character string representing hour of interest}
+\item{day}{character string representing numeric day of interest (3 chr)}
 
-\item{classifier_type}{character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton}
+\item{hour}{character string representing hour of interest (2 chr)}
 
-\item{classifier_name}{character string representing name of Visual Plankton classifier}
+\item{cast}{character string, VPR cast number of interest (3 chr)}
 
-\item{category}{optional list of character strings if you wish to only copy images from specific classification groups}
+\item{station}{character string, station name of interest (eg. "Shediac")}
+
+\item{threshold}{(optional) a numeric value, supplied only if you are
+copying images based on automated classifications, only images below this
+threshold of confidence will be copied for manual classification}
+
+\item{org}{chr value, if 'station', images will be output in folders labelled
+by station, if 'dayhour', images will be output in folders labelled by day
+and hour}
 }
 \value{
 organized file directory where VPR images are contained with folders, organized by day, hour and classification,
-inside your basepath/autoid folder
+inside your autoid folder
 }
 \description{
 Organize VPR images into folders based on classifications provided by visual plankton
+}
+\note{
+this function uses tidy paths, see fs::path_tidy() for more info
 }

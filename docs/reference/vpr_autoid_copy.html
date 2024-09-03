@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -57,33 +60,57 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_autoid_copy</span><span class="op">(</span><span class="va">basepath</span>, <span class="va">day</span>, <span class="va">hour</span>, <span class="va">classifier_type</span>, <span class="va">classifier_name</span>, <span class="va">taxa</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_autoid_copy</span><span class="op">(</span></span>
+<span>  <span class="va">new_autoid</span>,</span>
+<span>  <span class="va">roi_path</span>,</span>
+<span>  <span class="va">day</span>,</span>
+<span>  <span class="va">hour</span>,</span>
+<span>  <span class="va">cast</span>,</span>
+<span>  <span class="va">station</span>,</span>
+<span>  <span class="va">threshold</span>,</span>
+<span>  org <span class="op">=</span> <span class="st">"dayhour"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>basepath</dt>
-<dd><p>A file path to your autoid folder where VP data is stored eg. "C:\\data\\cruise_XXXXXXXXXXXXXXX\\autoid\\"</p></dd>
+    <dl><dt>new_autoid</dt>
+<dd><p>A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"</p></dd>
+
+
+<dt>roi_path</dt>
+<dd><p>(optional) provide if ROI data has been moved since autoid
+files were created (if path strings in aid files do not match where data
+currently exists), a file path where ROI data is stored (up to "rois"
+folder)</p></dd>
 
 
 <dt>day</dt>
-<dd><p>character string representing numeric day of interest</p></dd>
+<dd><p>character string representing numeric day of interest (3 chr)</p></dd>
 
 
 <dt>hour</dt>
-<dd><p>character string representing hour of interest</p></dd>
+<dd><p>character string representing hour of interest (2 chr)</p></dd>
 
 
-<dt>classifier_type</dt>
-<dd><p>character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton</p></dd>
+<dt>cast</dt>
+<dd><p>character string, VPR cast number of interest (3 chr)</p></dd>
 
 
-<dt>classifier_name</dt>
-<dd><p>character string representing name of Visual Plankton classifier</p></dd>
+<dt>station</dt>
+<dd><p>character string, station name of interest (eg. "Shediac")</p></dd>
 
 
-<dt>taxa</dt>
-<dd><p>optional list of character strings if you wish to only copy images from specific classification groups</p></dd>
+<dt>threshold</dt>
+<dd><p>(optional) a numeric value, supplied only if you are
+copying images based on automated classifications, only images below this
+threshold of confidence will be copied for manual classification</p></dd>
+
+
+<dt>org</dt>
+<dd><p>chr value, if 'station', images will be output in folders labelled
+by station, if 'dayhour', images will be output in folders labelled by day
+and hour</p></dd>
 
 </dl></div>
     <div id="value">
@@ -91,7 +118,11 @@
     
 
 <p>organized file directory where VPR images are contained with folders, organized by day, hour and classification,
-inside your basepath/autoid folder</p>
+inside your autoid folder</p>
+    </div>
+    <div id="note">
+    <h2>Note</h2>
+    <p>this function uses tidy paths, see fs::path_tidy() for more info</p>
     </div>
 
   </div>
@@ -102,11 +133,11 @@ inside your basepath/autoid folder</p>
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

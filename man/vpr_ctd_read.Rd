@@ -15,7 +15,7 @@ vpr_ctd_read(ctd_files, station_of_interest, day, hour, col_list)
 
 \item{hour}{Hour of interest, if not provided will be pulled from file path}
 
-\item{col_list}{Optional list of CTD data column names}
+\item{col_list}{Optional chr vector of CTD data column names}
 }
 \description{
 Acts as a wrapper for \code{\link{ctd_df_cols}}
@@ -34,7 +34,7 @@ from a new VPR.
 
 station_of_interest <- 'test'
 
-ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat",
+ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat.gz",
 package = "vprr", mustWork = TRUE)
 
 ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)

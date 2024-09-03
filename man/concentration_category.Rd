@@ -4,7 +4,15 @@
 \alias{concentration_category}
 \title{Binned concentrations}
 \usage{
-concentration_category(data, category, binSize, imageVolume, rev = FALSE)
+concentration_category(
+  data,
+  category,
+  binSize,
+  imageVolume,
+  rev = FALSE,
+  breaks = NULL,
+  cutoff = 0.1
+)
 }
 \arguments{
 \item{data}{dataframe produced by processing internal to vpr_roi_concentration}
@@ -18,6 +26,10 @@ concentration_category(data, category, binSize, imageVolume, rev = FALSE)
 \item{rev}{Logical value defining direction of binning, FALSE - bins will be
 calculated from surface to bottom, TRUE- bins will be calculated bottom to
 surface}
+
+\item{breaks}{Argument passed to \link[oce]{ctdFindProfiles}}
+
+\item{cutoff}{Argument passed to \link[oce]{ctdFindProfiles}}
 }
 \description{
 This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -57,7 +60,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_size_bin</span><span class="op">(</span><span class="va">data_all</span>, <span class="va">bin_mea</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_size_bin</span><span class="op">(</span><span class="va">data_all</span>, <span class="va">bin_mea</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -79,19 +82,14 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">'size_df_f'</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">vpr_size_bin</span><span class="op">(</span><span class="va">size_df_f</span>, bin_mea <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>data length is not a multiple of split variable</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>data length is not a multiple of split variable</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Removed bins at 10.5" "Removed bins at 15.5" "Removed bins at 20.5"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4] "Removed bins at 30.5" "Removed bins at 35.5" "Removed bins at 40.5"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [7] "Removed bins at 45.5"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     median     IQR1     IQR3 n_obs temperature salinity pressure</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2.022656 2.022656 2.022656     2  16.8294000 30.70220      5.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 4.852852 2.347031 7.358672     4   3.5086500 30.71275     25.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 2.967656 2.441895 2.989805     6   0.4229333 30.74965     50.5</span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">'size_df_f'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">vpr_size_bin</span><span class="op">(</span><span class="va">size_df_f</span>, bin_mea <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -102,11 +100,11 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

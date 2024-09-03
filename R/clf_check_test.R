@@ -1,11 +1,4 @@
-## classifier check
-# E. Chisholm
-
-# edited by K. Sorochan
-
-## January 6th, 2020
-## version 3
-
+## manual classifier check
 
 vpr_manual_classification <-
   function(day,
@@ -15,7 +8,10 @@ vpr_manual_classification <-
            gr = TRUE,
            scale = 'x300',
            opticalSetting = 'S2',
-           img_bright = TRUE) {
+           img_bright = TRUE,
+           threshold_score,
+           path_score) {
+
     #' Function to check results of classification manually
     #'
     #'
@@ -24,9 +20,9 @@ vpr_manual_classification <-
     #' If classification is denied, asks for a reclassification
     #'  value based on available category
     #'
-    #' @param day day of interest in autoid
-    #' @param hour hour of interest in autoid
-    #' @param basepath file path to auto id folder eg 'E:/autoID_EC_07032019/'
+    #' @param day day of interest in autoid (3 chr)
+    #' @param hour hour of interest in autoid (2 chr)
+    #' @param basepath file path to auto id folder eg 'E:/data/CAR2022299/autoid/'
     #' @param category_of_interest list of category folders you wish you sort through
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
@@ -36,6 +32,13 @@ vpr_manual_classification <-
     #'@param img_bright logical value indicating whether or not to include a blown
     #'  out high brightness version of image (can be helpful for viewing dark field
     #'  fine appendages)
+    #' @param threshold_score (optional) a numeric value defining the minimum confidence
+    #'   value, under which automatic classifications will be passed through
+    #'   manual reclassification. This argument should match the threshold
+    #'   provided in `vpr_autoid_copy()`
+    #' @param path_score (optional) file path to the autoid_cnn_scr folder
+    #'   (autoid files with confidence values produced by automated
+    #'   classification)
     #'
     #' @details Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
     #'   24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
@@ -47,11 +50,14 @@ vpr_manual_classification <-
     #'   \itemize{
     #'       \item Add "undo" functionality to go back on a typing mistake
     #'       \item  Fix scaling/ size issue so images are consistently sized
-    #'       \item show ROI number for image somewhere for reference when in doubt of classification
     #'       }
     #'
     #'@export
 
+    # if no threshold score is provided, check through all images
+    if(missing(threshold_score)){
+      threshold_score <- 1
+    }
 
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
@@ -98,6 +104,13 @@ vpr_manual_classification <-
       # clear existing files
       path <- categoryFolders[i]
 
+      if(!missing(path_score)){
+      #ensure that the autoid and score folders match... can mismatch if extra categories are added to autoid directory in manual re-classification step
+      path_cat <- basename(path)
+      path_scr <- paste(path_score, path_cat, sep = "/")
+      path_scr_logical <- dir.exists(path_scr) # it will not exist if it is a newly added category (after cnn classification)
+      }
+
       if (t_f[i] == FALSE) {
         print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
         SKIP = TRUE
@@ -106,6 +119,11 @@ vpr_manual_classification <-
 
         dayHrFolder <-
           grep(dayHrFolders, pattern = day_hour, value = TRUE)
+        if(!missing(path_score)){
+          Folders_scr <- list.files(path_scr, full.names = TRUE)
+          Folders_scr2 <- list.files(Folders_scr, full.names = TRUE)
+
+        }
 
         if (length(dayHrFolder) == 0) {
           print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
@@ -113,7 +131,7 @@ vpr_manual_classification <-
         } else{
           SKIP = FALSE
 
-
+        if(missing(path_score)){
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
@@ -122,7 +140,43 @@ vpr_manual_classification <-
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
+        }else{
+          SKIP = FALSE
+          aidFolder <- grep(dayHrFolders, pattern = "aid$",
+                            value = TRUE)
 
+          aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
+          aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
+          rois_all <- list.files(dayHrFolder, full.names = TRUE)
+
+          aidFile_scr <- grep(Folders_scr2, pattern = day_hour, value = TRUE)
+          if(length(aidFile_scr) == 0){
+            stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
+          }
+          aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
+          aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
+
+          aid_dat_t <- aid_dat_threshold$V1
+          aid_dat_t_roi <- basename(aid_dat_t)
+          aid_scr_t <- aid_dat_threshold$V2
+
+          rois_all_bn <- basename(rois_all)
+          # remove file extension in case of comparing .tif and .png
+            if(stringr::str_sub(rois_all_bn, start = -3, end = -1)[[1]] !=
+              stringr::str_sub(aid_dat_t_roi, start = -3, end = -1)[[1]]){
+              rois_all_bn <- stringr::str_sub(rois_all_bn, start = 1, end = -5) # remove file extension
+              aid_dat_t_roi <- stringr::str_sub(aid_dat_t_roi, start = 1, end = -5) # remove file extension
+              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi) # compare for index
+
+            }else{
+              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi)
+              }
+          rois <- rois_all[rois_threshold_idx]
+          if(length(rois) == 0){
+            stop('No ROIs found!')
+          }
+
+          }
 
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
@@ -156,6 +210,7 @@ vpr_manual_classification <-
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
+            if(missing(path_score)){
             img <- magick::image_read(rois[ii], strip = FALSE) %>%
               magick::image_scale(scale) %>%
               magick::image_annotate(categoryNames[i], color = 'red', size = 12)
@@ -176,6 +231,26 @@ vpr_manual_classification <-
                 location = '+0+10',
                 color = 'red'
               )
+            }else{
+              scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
+              if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
+                stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
+              }
+              img_tmp <- magick::image_read(rois[ii])
+              imgdat <- magick::image_info(img_tmp)
+
+
+              img <- magick::image_read(rois[ii], strip = FALSE) %>%
+                magick::image_scale(scale) %>%
+                magick::image_annotate(paste(categoryNames[i], "(roi.", unlist(vpr_roi(rois[ii])), ")"), color = "red", size = 12) %>%
+                magick::image_annotate(text = paste("scoreCNN = ", round(scr_tmp, digits = 2)),
+                                       location = "+0+20",
+                                       color = "red") %>%
+                magick::image_annotate(text = paste(round(imgdat$width/pxtomm, digits = 2), "x", round(imgdat$height/pxtomm, digits = 2), "mm"),
+                                       location = "+0+10",
+                                       color = "red")
+
+            }
             if (img_bright == TRUE) {
               img_n <- magick::image_modulate(img, brightness = 500)
 
@@ -209,7 +284,12 @@ vpr_manual_classification <-
               # cat(aid_dat[[ii]], '\n')
               # sink()
 
-              misclassified <- c(misclassified, aid_dat[[ii]])
+              if(missing(path_score)){
+                misclassified <- c(misclassified, aid_dat[[ii]])
+              }else{
+                misclassified <- c(misclassified, aid_dat_t[[ii]]) # if threshold has been applied
+                # TODO test that this is pulling correctly
+              }
 
 
               # update to create generic category options
@@ -219,9 +299,14 @@ vpr_manual_classification <-
                      graphics = gr,
                      title = "Appropriate Category Classification?")
 
-
+              if(missing(path_score)){
               reclassified[[ans]] <-
                 c(reclassified[[ans]], aid_dat[[ii]])
+              }else{ # if threshold has been applied
+                # TODO double check this pulling
+                reclassified[[ans]] <- c(reclassified[[ans]],
+                                         aid_dat_t[ii])
+              }
 
               # original method
               # sink(file = paste0(day_hour,'/reclassify_', allcategory[[ans]], '.txt'), append = TRUE)
@@ -285,7 +370,6 @@ vpr_manual_classification <-
 
   }
 
-
 vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE, categories) {
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
@@ -298,482 +382,290 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   #'@param mea logical indicating whether or not there are accompanying measurement files to be created
   #'@param categories A list object with all the potential classification categories
   #'
-  #' ### examples
+  #'@examples
+  #'\dontrun{
   #'basepath <- 'E:/autoID_EC_07032019/'
   #'day <- '289'
   #'hr <- '08'
-  #'categories <- c("bad_image_blurry","bad_image_malfunction","bad_image_strobe","Calanus","chaetognaths","ctenophores","krill","marine_snow","Other","small_copepod","stick")
+  #'categories <-
+  #'c("bad_image_blurry", "bad_image_malfunction", "bad_image_strobe", "Calanus", "chaetognaths",
+  #'"ctenophores", "krill", "marine_snow", "Other", "small_copepod", "stick")
   #'day_hour_files <-  paste0('d', day, '.h', hr)
   #'misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
   #'reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
   #'vpr_autoid_create(reclassify, misclassified, basepath, categories)
-  #'
+  #'}
   #'@export
 
-  # avoid CRAN notes
   . <- day <- hour <- NA
+  # get day and hour values
+  day_misclassified <- unique(vpr_day(misclassified))[[1]]
+  hour_misclassified <- unique(vpr_hour(misclassified))[[1]]
+
+  if(length(day_misclassified) != 1 | length(hour_misclassified) != 1) {
+    stop("MULTIPLE DAYS OR HOURS AMONG MISCLASSIFIED FILES, PLEASE CORRECT.")
+  }
+
   categoryNames <- list.files(basepath)
+  categoryFolders <- sort(list.files(basepath, full.names = TRUE))
+  misclassified <- sort(misclassified)
 
-  # find aid txt files
-  categoryFolders <- list.files(basepath, full.names = TRUE)
-  # remove misclassified ROIS
+  # loop through misclassified folders
   for (i in seq_len(length(misclassified))) {
-    # TODO: get category from misclassified file
-    category <- lapply(misclassified[i], function(u) categories[stringr::str_detect(u, categories )])
-    if(length(category[[1]]) > 1){
-      stop('Error in detecting category!')
+
+    if (length(categoryFolders) != length(misclassified)) {
+      stop('NUMBER OF MISCLASSIFIED FILES MUST == NUMBER OF CATEGORIES IN BASEPATH')
     }
 
+    # get category value and check
+    category <- vpr_category(misclassified[i], categories = categoryNames)
+    categoryFolder <- grep(categoryFolders[i], pattern = category, value = TRUE)
 
-   # if (category == 'ctenophores'){ browser()}
-    #  <- substr(misclassified[i], 24, nchar(misclassified[i]) - 4)
-    categoryFolder <- grep(categoryFolders, pattern = category, value = TRUE)
+    categoryFolder_check <- gsub(pattern = basepath, replacement = "", categoryFolder)
+    categoryFolder_check <- gsub(pattern = "/", replacement = "", categoryFolder_check)
+
+    if (category != categoryFolder_check) {
+      stop('CATEGORIES ARE BEING CONFUSED - INVESTIGATE')
+    }
+
     if (!category %in% categoryNames) {
-      stop(
-        paste(
-          category,
-          'is not a valid category name. Please run vpr_category_create() to create proper file structure within basepath'
-        )
-      )
+      stop(paste(category, "is not a valid category name. Please run vpr_category_create() to create proper file structure within basepath"))
+    }
+    # read in misclassified ROIs
+    mis_roi <- readLines(misclassified[i])
+
+    if(unique(mis_roi)[[1]] == "") {
+
+      mis_roi <- as.character()
+
     }
 
-    mis_roi <- readLines(misclassified[i])
-    if (length(mis_roi) != 0) {
-      day_hour <-
-        unique(substr(sub(
-          mis_roi, pattern = '.*d', replacement = 'd'
-        ), 1, 8))
-      day_hour <-
-        gsub(pattern = "\\\\",
-             replacement = '.',
-             x = day_hour)
-
-      # mis_roi_gen <- substr(mis_roi, nchar(mis_roi) - 18, nchar(mis_roi))
+    if (length(mis_roi) != 0) { # if there are ROIs that were misclassified
+      day_hour <- unique(substr(sub(mis_roi, pattern = ".*d",
+                                    replacement = "d"), 1, 8))
+      day_hour <- gsub(pattern = "\\\\", replacement = ".",
+                       x = day_hour)
       mis_roi_gen <- unlist(vpr_roi(mis_roi))
-
-      mis_roi_df <-
-        data.frame(mis_roi_gen, day_hour, category, stringsAsFactors = FALSE)
-
-      aidFolder <-
-        list.files(categoryFolder, pattern = '^aid$', full.names = TRUE)
-
-      mis_roi_df <- mis_roi_df %>%
-        dplyr::group_by(., day_hour)
-
+      mis_roi_df <- data.frame(mis_roi_gen, day_hour, category,
+                               stringsAsFactors = FALSE)
+      aidFolder <- list.files(categoryFolder, pattern = "^aid$",
+                              full.names = TRUE)
+      mis_roi_df <- mis_roi_df %>% dplyr::group_by(., day_hour)
       if (length(unique(mis_roi_df$day_hour)) > 1) {
-        stop('MULTIPLE HOURS IN ONE FILE, PLEASE CORRECT.')
+        stop("MULTIPLE HOURS IN ONE FILE, PLEASE CORRECT.")
       }
-    } else{
-      # if there is no misclassified information
-
-      print(paste('Blank misclassified file found for', category, '!'))
-      # browser()
+    }else { # if there were no ROIs misclassified
+      print(paste("Blank misclassified file found for",
+                  category, "!"))
       day_n <- vpr_day(misclassified[i])
       hr_n <- vpr_hour(misclassified[i])
-      day_hour <- paste0('d', day, '.h', hour)
-      # day_hour <- unique(substr(misclassified[i], 1, 8))
-      aidFolder <-
-        list.files(categoryFolder, pattern = '^aid$', full.names = TRUE)
-
+      day_hour <- paste(day_n, hr_n, sep = ".")
+      aidFolder <- list.files(categoryFolder, pattern = "^aid$",
+                              full.names = TRUE)
     }
-    # open correct day hour aid file
+    # read in original aid file
     aids <- list.files(aidFolder, full.names = TRUE)
-    aid_list_old_fn <- grep(aids, pattern = day_hour , value = TRUE)
-    # changed day hour pattern to accomodate lack of mis_roi_df in dummy = TRUE scenario
-
-
-    # possibility that original data file does not exist
-    if (length(aid_list_old_fn) == 0) {
-
-      # make blank dummy data file to insert reclassified info into
-      # needs file path (aidFolder)
-      aid_list_old_fn <-
-        paste0(aidFolder, '/dummy_svmaid.', day_hour)
-      #sink(aid_list_old_fn)
+    aid_list_old_fn <- grep(aids, pattern = day_hour, value = TRUE)
+    if (length(aid_list_old_fn) == 0) { # create a dummy file if no aid exists
+      aid_list_old_fn <- paste0(aidFolder, "/dummy_aid.",
+                                day_hour)
       withr::with_output_sink(aid_list_old_fn, code = {
-        cat('\n')
+        cat("\n")
       })
-      #sink()
-      print(paste('DUMMY FILE CREATED FOR', category, ' : ', aid_list_old_fn))
-
+      print(paste("DUMMY FILE CREATED FOR", category,
+                  " : ", aid_list_old_fn))
       DUMMY = TRUE
-
-      # blank file to be appended
       aid_new <- NULL
-    } else{
+    } else {
       aid_list_old <- readLines(aid_list_old_fn)
-      # BUG FIX 01/16/2020
-      # issue where duplicated ROIs in original aid files were not getting removed with misclassified/ reclassified data
-#browser()
       aid_list_old <- unique(aid_list_old)
-
       aid_old_gen <- unlist(vpr_roi(aid_list_old))
 
-
-      # KS big fix: issue #24
-      if(length(mis_roi) == 0) {
-
+      if (length(mis_roi) == 0) { # if nothing was misclassified, pull original aid through
         aid_new <- aid_list_old
-
       } else {
-
-      sub_mis_roi <- mis_roi_df %>%
-        dplyr::filter(., day_hour == unique(mis_roi_df$day_hour))
-      #%>%
-        # dplyr::filter(.,!duplicated(mis_roi_gen)) #remove duplicates #BUG FIX 01/16/20
-
-      #mm <-   sub_mis_roi$mis_roi_gen %in% aid_old_gen #switched order to prevent error (EC: 01/16/2020)
-      mm <-     aid_old_gen %in% sub_mis_roi$mis_roi_gen # FIXED SEPTEMBER 27 - WAS CAUSING MASSIVE ERRORS IN AUTOID FILES
-
-      ind <- grep(mm , pattern = 'TRUE')
-
-      # new list with misclassified rois removed
-      aid_new <- aid_list_old[-ind]
-
-
-      cat(
-        paste(
-          '>>>>',
-          length(ind),
-          'ROIs removed from',
-          category ,
-          'in',
-          unique(day_hour),
-          '\n>>>> File:',
-          aid_list_old_fn,
-          '\n'
-        )
-      )
+          # remove duplicates
+        sub_mis_roi <- mis_roi_df %>% dplyr::filter(.,
+                                                    day_hour == unique(mis_roi_df$day_hour))
+        mm <- aid_old_gen %in% sub_mis_roi$mis_roi_gen # KS solution 2023/09/27 - fixed ROI duplication error
+        ind <- grep(mm, pattern = "TRUE")
+        aid_new <- aid_list_old[-ind] # remove misclassified ROIs
+        cat(paste(">>>>", length(ind), "ROIs removed from",
+                  category, "in", unique(day_hour), "\n>>>> File:",
+                  aid_list_old_fn, "\n"))
       }
       DUMMY <- FALSE
     }
-
-    # FIX MEAS FILE TO MATCH
-    if(mea == TRUE){
-    aidMeaFolder <-
-      list.files(categoryFolder, pattern = '^aidmea$', full.names = TRUE)
-    aidMeaFile <-
-      list.files(aidMeaFolder,
-                 pattern = paste0('*', day_hour),
-                 full.names = TRUE)
-
-    # if there is no original data file
-    if (length(aidMeaFile) == 0) {
-      # make dummy data file
-      # needs file path
-      aidMeaFile <-
-        paste0(aidMeaFolder, "/dummy_svmaid.mea.", day_hour)
-      # sink(aidMeaFile)
-      withr::with_output_sink(aidMeaFile, code = {
-        cat('\n')
-      })
-      # sink()
-
-      print(paste('DUMMY FILE CREATED FOR MEAS OF', category, ' : ', aidMeaFile))
-
-      aidMea_new <- NULL
-      DUMMY = TRUE
-    } else{
-      aidMea_old <- read.table(aidMeaFile)
-
-      aidMea_old <- unique(aidMea_old) # KS fix for bug duplicates
-
-      # KS bug fix: Issue #24
-      if(length(mis_roi) == 0) {
-
-        aidMea_new <- aidMea_old
-
-      } else { aidMea_new <- aidMea_old[-ind,]
-      cat(
-        paste(
-          '>>>>',
-          length(ind),
-          'Measurements removed from',
-          category ,
-          'in',
-          unique(day_hour),
-          '\n>>>> File:',
-          aidMeaFile,
-          '\n'
-        )
-      )
+    # fix matching meas file
+    if (mea == TRUE) {
+      aidMeaFolder <- list.files(categoryFolder, pattern = "^aidmea$",
+                                 full.names = TRUE)
+      aidMeaFile <- list.files(aidMeaFolder, pattern = paste0("*",
+                                                              day_hour), full.names = TRUE)
+      if (length(aidMeaFile) == 0) {
+        aidMeaFile <- paste0(aidMeaFolder, "/dummy_aid.mea.",
+                             day_hour)
+        withr::with_output_sink(aidMeaFile, code = {
+          cat("\n")
+        })
+        print(paste("DUMMY FILE CREATED FOR MEAS OF",
+                    category, " : ", aidMeaFile))
+        aidMea_new <- NULL
+        DUMMY = TRUE
       }
-
-
-      DUMMY = FALSE
+      else {
+        aidMea_old <- read.table(aidMeaFile)
+        aidMea_old <- unique(aidMea_old)
+        if (length(mis_roi) == 0) {
+          aidMea_new <- aidMea_old
+        }
+        else {
+          aidMea_new <- aidMea_old[-ind, ]
+          cat(paste(">>>>", length(ind), "Measurements removed from",
+                    category, "in", unique(day_hour), "\n>>>> File:",
+                    aidMeaFile, "\n"))
+        }
+        DUMMY = FALSE
+      }
     }
-    }
-    # add reclassified rois
-    # to specific category
-    recl <- grep(reclassify, pattern = paste0("^", category, "$"))
-    if (length(recl) == 0) {
-      print(paste('No', category, 'to be reclassified'))
-      # final files only have rois removed
-      if(mea == TRUE){aidMea_final <- aidMea_new}
+
+    # check for any ROIs to be reclassified
+    reclassify_category <- grep(reclassify,
+                            pattern = paste0('reclassify_',category, '.txt'), # FIX [EOG] - Should only pull exact matches to category, will be sensitive to file naming conventions CAUTION
+                            value = TRUE)
+
+    if (length(reclassify_category) == 0) { # nothing to be reclassified
+      print(paste("No", category, "to be reclassified"))
+      if (mea == TRUE) {
+        aidMea_final <- aidMea_new
+      }
       aid_final <- aid_new
       if (DUMMY == TRUE) {
-        warning(print(
-          'No original data and no reclassified data, consider removing category.'
-        ))
+        warning(print("No original data and no reclassified data, consider removing category."))
       }
-    } else{
-      # loop should end right before files are saved
-
-      reclassify_category <-
-        grep(reclassify, pattern = paste0("^", category, "$"), value = TRUE)
-
-
-      # pull one reclassify file at a time
+    } else { # add ROIs which were reclassified to category
       recl_roi <- readLines(reclassify_category)
-      # get day.hour info
-      day_hour_re <- paste(day, hour, sep = ".") # arguments now given to function no need to find them in file names
-      # day_hour_re <-
-      #   substr(sub(recl_roi, pattern = '.*d', replacement = 'd'), 1, 8)
-      # day_hour_re <-
-      #   gsub(pattern = "\\\\",
-      #        replacement = '.',
-      #        x = day_hour_re)
-
-      # get generic roi string
+      day_hour_re <- paste(day, hour, sep = ".")
       recl_roi_gen <- unlist(vpr_roi(recl_roi))
-
-      # which category to add recl rois to
-
-      # check only one hour present in file
       if (length(unique(day_hour_re)) > 1) {
-        stop(
-          paste(
-            reclassify_category,
-            'has more than one unique hour value!
-                                                     Please double check file.'
-          )
-        )
+        stop(paste(reclassify_category, "has more than one unique hour value!\n                                                     Please double check file."))
       }
-
-
-      recl_roi_df <-
-        data.frame(recl_roi_gen, day_hour_re, recl_roi,  stringsAsFactors = FALSE)
-
-
-      recl_roi_df <- recl_roi_df %>%
-        dplyr::filter(.,!duplicated(recl_roi_gen))
-      # filter to remove duplicates causing errors in size and aid files being different lengths
-      # script was not catching duplicates because of different vpr tow numbers
-
-
-      # add reclassified rois
+      recl_roi_df <- data.frame(recl_roi_gen, day_hour_re,
+                                recl_roi, stringsAsFactors = FALSE)
+      recl_roi_df <- recl_roi_df %>% dplyr::filter(., !duplicated(recl_roi_gen))
       aid_final <- c(aid_new, recl_roi_df$recl_roi)
-
-      cat(paste(
-        '>>>>',
-        length(recl_roi_df$recl_roi),
-        'ROIs added to',
-        category ,
-        'in',
-        unique(day_hour),
-        '\n'
-      ))
-      # ADD RECLASSIFIED ROI MEAS TO MEA FILE
-
-      # find original meas file
-      # need original category info
-
-      # find original category data
-      # read in all roi folders
-      # weird folder character cut off problems
-
-
-
-#deprecating getRoiMeasurements
-      # bp <- substr(basepath, 1, nchar(basepath) - 1)
-      # auto_id_folder <- bp
-      # nchar_folder <- nchar(auto_id_folder)
-      # categoryfolder <- list.files(auto_id_folder, full.names = T)
-      # auto_measure_px <-
-        # getRoiMeasurements(categoryfolder, nchar_folder, unit = 'px')
-# DONE : Edit so that only required size data is loaded, without using getRoiMeasurements [ EC 28-01-2020 ]
-
-      #get all category aid and aidmea files for day/hour of interest
+      cat(paste(">>>>", length(recl_roi_df$recl_roi),
+                "ROIs added to", category, "in", unique(day_hour),
+                "\n"))
       aid_fn_list <- list()
-    for(l in seq_len(length(categoryFolders))){
-
-      all_aids <- list.files(file.path(categoryFolders[[l]], 'aid'), full.names = TRUE)
-      aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour, value = TRUE)
+      for (l in seq_len(length(categoryFolders))) {
+        all_aids <- list.files(file.path(categoryFolders[[l]],
+                                         "aid"), full.names = TRUE)
+        aid_fn_list[[l]] <- grep(all_aids, pattern = day_hour,
+                                 value = TRUE)
+      }
+      # fix matching meas file
+      if (mea == TRUE) {
+        aidm_fn_list <- list()
+        for (l in seq_len(length(categoryFolders))) {
+          all_aidms <- list.files(file.path(categoryFolders[[l]],
+                                            "aidmea"), full.names = TRUE)
+          aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour,
+                                    value = TRUE)
+        }
+        roimeas_dat_combine <- vpr_autoid_read(file_list_aid = unlist(aid_fn_list),
+                                               file_list_aidmeas = unlist(aidm_fn_list), export = "aidmeas",
+                                               station_of_interest = NA, warn = FALSE)
+        recl_roi_num <- recl_roi_df$recl_roi_gen
+        recl_roi_meas <- roimeas_dat_combine[roimeas_dat_combine$roi %in%
+                                               recl_roi_num, ]
+        if (length(recl_roi_meas$roi_ID) > length(recl_roi)) {
+          print(paste("Warning, duplicate ROI detected! Removing automatically"))
+          print(recl_roi_meas[duplicated(recl_roi_meas$roi_ID),
+          ])
+          recl_roi_meas <- recl_roi_meas %>% dplyr::filter(.,
+                                                           !duplicated(recl_roi_meas$roi_ID))
+        }
+        col_names <- c("Perimeter", "Area",
+                       "width1", "width2", "width3",
+                       "short_axis_length", "long_axis_length")
+        recl_roi_meas <- recl_roi_meas %>% dplyr::select(.,
+                                                         col_names)
+        aidMea_list <- list()
+        for (iii in 1:7) {
+          aidMea_list[[iii]] <- c(aidMea_new[, iii],
+                                  unname(recl_roi_meas[, iii]))
+        }
+        aidMea_final <- data.frame(matrix(unlist(aidMea_list),
+                                          ncol = length(aidMea_list)))
+        cat(paste(">>>>", length(recl_roi_meas$Perimeter),
+                  "Measurements added to", category, "in",
+                  unique(day_hour), "\n"))
+        if (length(recl_roi_meas$Perimeter) != length(recl_roi_df$recl_roi_gen)) {
+          warning("Measurements and ROI numbers in reclassification do not match!!!")
+        }
+      }
     }
-if(mea == TRUE){
-      aidm_fn_list <- list()
-      for(l in seq_len(length(categoryFolders))){
-
-        all_aidms <- list.files(file.path(categoryFolders[[l]], 'aidmea'), full.names = TRUE)
-        aidm_fn_list[[l]] <- grep(all_aidms, pattern = day_hour, value = TRUE)
-      }
-
-
-      # MEASUREMENTS
-# browser()
-
-      roimeas_dat_combine <-
-        vpr_autoid_read(
-          file_list_aid = unlist(aid_fn_list),
-          file_list_aidmeas = unlist(aidm_fn_list),
-          export = 'aidmeas',
-          station_of_interest = NA,
-          warn = FALSE
-        )
-
-
-
-      # find roi ids in meas
-
-      recl_roi_num <- recl_roi_df$recl_roi_gen
-
-      # day_hour_var <- day_hour #deprecated with getroiMeas
-
-      # subset auto measure to correct day hour
-      #deprecated with getRoiMeas
-      # auto_measure_px <- auto_measure_px %>%
-       # dplyr::filter(., day_hour == day_hour_var)
-
-      # find index of recl rois in auto measure
-
-      recl_roi_meas <-
-        roimeas_dat_combine[roimeas_dat_combine$roi %in% recl_roi_num ,]
-
-
-      # getRoiMeas method
-       # recl_roi_meas <-
-        # auto_measure_px[auto_measure_px$roi_ID %in% recl_roi_num ,]
-
-      # check for duplicate ROI IDs
-
-      if (length(recl_roi_meas$roi_ID) > length(recl_roi)) {
-
-        print(paste(
-          'Warning, duplicate ROI detected! Removing automatically'
-        ))
-        print(recl_roi_meas[duplicated(recl_roi_meas$roi_ID), ])
-
-        recl_roi_meas <- recl_roi_meas %>%
-          dplyr::filter(.,!duplicated(recl_roi_meas$roi_ID))
-      }
-
-      # append old aidmea file with mis rois removed
-
-      #find measurement columns
-
-      col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
-
-      recl_roi_meas <- recl_roi_meas %>%
-        dplyr::select(., col_names)
-
-      #combine new reclassifed meas data with original meas data
-      aidMea_list <- list()
-      for (iii in 1:7) {
-        aidMea_list[[iii]] <-
-          c(aidMea_new[, iii], unname(recl_roi_meas[, iii]))
-      }
-      # get into data frame format
-      aidMea_final <-
-        data.frame(matrix(unlist(aidMea_list), ncol = length(aidMea_list)))
-
-      cat(paste(
-        '>>>>',
-        length(recl_roi_meas$Perimeter),
-        'Measurements added to',
-        category ,
-        'in',
-        unique(day_hour),
-        '\n'
-      ))
-
-      if (length(recl_roi_meas$Perimeter) != length(recl_roi_df$recl_roi_gen)) {
-        warning("Measurements and ROI numbers in reclassification do not match!!!")
-      }
-    }# end reclassified loop
-    }
-    # save files
-    dirpath <- file.path('new_autoid', category[[1]])
+    # write new_autoid files
+    dirpath <- file.path("new_autoid", category[[1]])
     dir.create(dirpath, showWarnings = FALSE, recursive = TRUE)
-
-
-if(mea == TRUE){
-    aidMea_final_nm <- paste0('new_aid.mea.', unique(day_hour))
-    aidMea_final_fn <- file.path(dirpath, 'aidmea', aidMea_final_nm)
-    dir.create(file.path(category, 'aidmea'),
-               showWarnings = FALSE,
+    if (mea == TRUE) {
+      aidMea_final_nm <- paste0("new_aid.mea.", unique(day_hour))
+      aidMea_final_fn <- file.path(dirpath, "aidmea",
+                                   aidMea_final_nm)
+      dir.create(file.path(category, "aidmea"), showWarnings = FALSE,
+                 recursive = TRUE)
+      write.table(file = aidMea_final_fn, aidMea_final,
+                  sep = "    ", quote = FALSE, col.names = FALSE,
+                  row.names = FALSE)
+      cat(paste(">>>> New aidmea file created for",
+                category, "in", unique(day_hour), "\n"))
+    }
+    aid_final_nm <- paste0("new_aid.", unique(day_hour))
+    aid_final_fn <- file.path(dirpath, "aid", aid_final_nm)
+    dir.create(file.path(dirpath, "aid"), showWarnings = FALSE,
                recursive = TRUE)
-    write.table(
-      file = aidMea_final_fn,
-      aidMea_final,
-      sep = "    ",
-      quote = FALSE,
-      col.names = FALSE,
-      row.names = FALSE
-    )
-}
-    # note output could be better formatted to match line width in original files
-
-    aid_final_nm <- paste0('new_aid.', unique(day_hour))
-    aid_final_fn <- file.path(dirpath, 'aid', aid_final_nm)
-    dir.create(file.path(dirpath, 'aid'),
-               showWarnings = FALSE,
-               recursive = TRUE)
-    write.table(
-      file = aid_final_fn,
-      aid_final,
-      quote = FALSE,
-      col.names = FALSE,
-      row.names = FALSE
-    )
-    cat(paste(
-      '>>>> New aid and aid.mea files created for',
-      category,
-      'in',
-      unique(day_hour),
-      '\n'
-    ))
-
-
-    # remove dummy files if they exist
-
-    if (DUMMY == TRUE) {
-      atf <- grep(aid_list_old_fn, pattern = 'dummy')
-      amtf <- grep(aidMeaFile, pattern = 'dummy')
-
+    write.table(file = aid_final_fn, aid_final, quote = FALSE,
+                col.names = FALSE, row.names = FALSE)
+    cat(paste(">>>> New aid file created for",
+              category, "in", unique(day_hour), "\n"))
+    if (DUMMY == TRUE & mea == TRUE) {
+      atf <- grep(aid_list_old_fn, pattern = "dummy")
+      amtf <- grep(aidMeaFile, pattern = "dummy")
       if (length(atf) != 0 & length(amtf) != 0) {
-        print(paste('Deleting dummy files!'))
-        print(paste(aidMeaFile, ' & ', aid_list_old_fn))
-
+        print(paste("Deleting dummy files!"))
+        print(paste(aidMeaFile, " & ", aid_list_old_fn))
         unlink(aid_list_old_fn)
         unlink(aidMeaFile)
-
       }
+    }
 
+    if (DUMMY == TRUE & mea == FALSE) {
+      atf <- grep(aid_list_old_fn, pattern = "dummy")
+      if (length(atf) != 0) {
+        print(paste("Deleting dummy file!"))
+        print(aid_list_old_fn)
+        unlink(aid_list_old_fn)
+      }
     }
 
   }
-
-
 }
 
-
-
-# function to create new category within data structure post VP output
-
-#' Create a new category to be considered for classification after processing with VP
-#'
-#' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
-#'
-#' @param category new category name to be added (can be a list of multiple category names)
-#' @param basepath basepath used for vpr_manual_classification
-#'
-#' @return empty directory structure using new category name inside basepath
-#' @export
-#'
-#'
-#'
-#'
 vpr_category_create <- function(category, basepath) {
+  #' Create a new category to be considered for classification after processing with VP
+  #'
+  #' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
+  #'
+  #' @param category new category name to be added (can be a list of multiple category names)
+  #' @param basepath basepath used for vpr_manual_classification
+  #'
+  #' @return empty directory structure using new category name inside basepath
+  #' @export
+  #'
+  #'
+  #'
+  #'
   for (i in seq_len(length(category))) {
     # create new category folder
     newcategorypath <- file.path(basepath, category[[i]])
