@@ -97,8 +97,8 @@
 <span><span class="co">## </span></span>
 <span><span class="co">##     intersect, setdiff, setequal, union</span></span></code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/alexcb/rjson" class="external-link">rjson</a></span><span class="op">)</span></span>
-<span><span class="co">#library(readxl)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># library(rjson)</span></span>
+<span><span class="co"># library(readxl)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -452,54 +452,12 @@ as well as units and definitions should be included in the metadata
 </h2>
 <p>Here are the outputs from the above example.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
-<span>  <span class="st">"extdata"</span>, <span class="st">"vpr123_station25.csv"</span>, package <span class="op">=</span> <span class="st">"vprr"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##   DEPHPRST minimumDepthInMeters maximumDepthInMeters depthDifferenceMeters</span></span>
-<span><span class="co">## 1        1            0.7012599             1.333086             0.6318261</span></span>
-<span><span class="co">## 2       51           50.1900481            51.374062             1.1840139</span></span>
-<span><span class="co">## 3       53           52.2655387            53.817433             1.5518939</span></span>
-<span><span class="co">## 4       55           55.0559644            55.839339             0.7833749</span></span>
-<span><span class="co">## 5       57           56.7109645            57.928655             1.2176907</span></span>
-<span><span class="co">## 6        4            3.8206964             4.339441             0.5187443</span></span>
-<span><span class="co">##   minimumTimeSeconds maximumTimeSeconds timeDifferenceSeconds individualCount</span></span>
-<span><span class="co">## 1           22454.28           22455.81                 1.528               0</span></span>
-<span><span class="co">## 2           22516.03           22517.43                 1.401               0</span></span>
-<span><span class="co">## 3           22519.79           22521.84                 2.048               0</span></span>
-<span><span class="co">## 4           22522.60           22524.81                 2.202               0</span></span>
-<span><span class="co">## 5           22525.94           22527.83                 1.889               0</span></span>
-<span><span class="co">## 6           22458.24           22459.92                 1.679               0</span></span>
-<span><span class="co">##   SDBIOL01   TEMPST01 PSALST01 POTDENS0 FLUOZZZZ TURBXXXX  time_hr</span></span>
-<span><span class="co">## 1        0 16.8446000 27.09709 19.49410 85.20000 40.20000 6.237459</span></span>
-<span><span class="co">## 2        0  0.4194333 31.98277 25.65109 54.33333 23.66667 6.254662</span></span>
-<span><span class="co">## 3        0  0.4773000 32.04410 25.69756 70.00000 40.00000 6.255783</span></span>
-<span><span class="co">## 4        0  0.4776000 32.07135 25.71949 52.00000 46.50000 6.256585</span></span>
-<span><span class="co">## 5        0  0.4716500 32.08685 25.73228 53.50000 48.50000 6.257468</span></span>
-<span><span class="co">## 6        0 16.8155333 27.09840 19.50157 68.00000 48.00000 6.238705</span></span>
-<span><span class="co">##   numberOfFrames sampleSizeValue timeMilliseconds      towyoID</span></span>
-<span><span class="co">## 1             10     0.000836630         22454852  ascending_1</span></span>
-<span><span class="co">## 2              3     0.000250989         22516784  ascending_1</span></span>
-<span><span class="co">## 3              2     0.000167326         22520818  ascending_1</span></span>
-<span><span class="co">## 4              2     0.000167326         22523706  ascending_1</span></span>
-<span><span class="co">## 5              2     0.000167326         22526884  ascending_1</span></span>
-<span><span class="co">## 6              3     0.000250989         22459337 descending_1</span></span>
-<span><span class="co">##   maximumCastDepthInMeters verbatimIdentification eventID identifiedBy</span></span>
-<span><span class="co">## 1                 57.92866       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">## 2                 57.92866       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">## 3                 57.92866       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">## 4                 57.92866       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">## 5                 57.92866       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">## 6                 43.71157       bad_image_blurry    test  K. Sorochan</span></span>
-<span><span class="co">##   sampleSizeUnit identificationVerificationStatus scientificName</span></span>
-<span><span class="co">## 1    cubic metre                 ValidatedByHuman         blurry</span></span>
-<span><span class="co">## 2    cubic metre                 ValidatedByHuman         blurry</span></span>
-<span><span class="co">## 3    cubic metre                 ValidatedByHuman         blurry</span></span>
-<span><span class="co">## 4    cubic metre                 ValidatedByHuman         blurry</span></span>
-<span><span class="co">## 5    cubic metre                 ValidatedByHuman         blurry</span></span>
-<span><span class="co">## 6    cubic metre                 ValidatedByHuman         blurry</span></span></code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu">rjson</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rjson/man/fromJSON.html" class="external-link">fromJSON</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
-<span>  <span class="st">"extdata"</span>, <span class="st">"vpr123_station25-metadata.json"</span>, package <span class="op">=</span> <span class="st">"vprr"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># data &lt;- read.csv(system.file(</span></span>
+<span><span class="co">#   "extdata", "vpr123_station25.csv", package = "vprr"))</span></span>
+<span><span class="co"># head(data)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># metadata &lt;- rjson::fromJSON(file = system.file(</span></span>
+<span><span class="co">#   "extdata", "vpr123_station25-metadata.json", package = "vprr"))</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
