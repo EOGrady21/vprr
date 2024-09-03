@@ -28,8 +28,7 @@ Imports: ggplot2,
     withr,
     usethis,
     data.table,
-    fs,
-    rjson
+    fs
 Suggests: 
     knitr,
     rmarkdown,
