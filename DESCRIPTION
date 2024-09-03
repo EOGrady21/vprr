@@ -31,7 +31,8 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
-    markdown
+    markdown,
+    rjson
 VignetteBuilder: knitr
 BuildVignettes: true
 Roxygen: list(markdown = TRUE)
