@@ -1,10 +1,10 @@
-pandoc: 2.19.2
-pkgdown: 2.0.7
+pandoc: 3.1.11
+pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
+  sharing_vpr_data: sharing_vpr_data.html
   VPR_processing: VPR_processing.html
-last_built: 2023-10-19T17:27Z
+last_built: 2024-09-03T14:04Z
 urls:
   reference: https://eogrady21.github.io/vprr/reference
   article: https://eogrady21.github.io/vprr/articles
-
