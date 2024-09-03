@@ -1,8 +1,8 @@
 Package: vprr
 Type: Package
 Title: Processing and Visualization of Video Plankton Recorder Data
-Version: 0.2.3
-Authors@R: c(person("Emily O'Grady",  role = c("aut", "cre","cph"), email = "vprrcontact@gmail.com"), person("Kevin Sorochan", role = "aut", "dev"), person("Catherine Johnson", role = "aut"))
+Version: 0.3.0
+Authors@R: c(person("Emily O'Grady",  role = c("aut", "cre"), email = "vprrcontact@gmail.com"), person("Kevin Sorochan", role = "aut"), person("Catherine Johnson", role = "aut"))
 Maintainer: Emily O'Grady <vprrcontact@gmail.com>
 Description: An oceanographic data processing package for analyzing and visualizing Video 
     Plankton Recorder data.  This package was developed at 'Bedford Institute of Oceanography'.
@@ -11,7 +11,7 @@ Description: An oceanographic data processing package for analyzing and visualiz
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Depends: R (>= 2.10)
 Imports: ggplot2,
     oce,
@@ -26,7 +26,10 @@ Imports: ggplot2,
     lubridate,
     cmocean,
     withr,
-    usethis
+    usethis,
+    data.table,
+    fs,
+    rjson
 Suggests: 
     knitr,
     rmarkdown,

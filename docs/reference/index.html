@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -63,6 +66,10 @@
         </td>
         <td><p>Bin vpr data</p></td>
       </tr><tr><td>
+          <p><code><a href="category_conc_n.html">category_conc_n</a></code> </p>
+        </td>
+        <td><p>A binned data frame of concentration data per category</p></td>
+      </tr><tr><td>
           <p><code><a href="concentration_category.html">concentration_category()</a></code> </p>
         </td>
         <td><p>Binned concentrations</p></td>
@@ -77,7 +84,7 @@
       </tr><tr><td>
           <p><code><a href="ctd_df_cols.html">ctd_df_cols()</a></code> </p>
         </td>
-        <td><p>Read CTD data (SBE49) and Fluorometer data from CTD- VPR package</p></td>
+        <td><p>Read CTD data (SBE49) from CTD- VPR package</p></td>
       </tr><tr><td>
           <p><code><a href="ctd_roi_merge.html">ctd_roi_merge</a></code> </p>
         </td>
@@ -86,10 +93,6 @@
           <p><code><a href="ctd_roi_oce.html">ctd_roi_oce</a></code> </p>
         </td>
         <td><p>VPR data including CTD and ROI information</p></td>
-      </tr><tr><td>
-          <p><code><a href="getRoiMeasurements.html">getRoiMeasurements()</a></code> </p>
-        </td>
-        <td><p>THIS FUNCTION HAS BEEN DEPRECATED</p></td>
       </tr><tr><td>
           <p><code><a href="insertRow.html">insertRow()</a></code> </p>
         </td>
@@ -105,9 +108,17 @@ Used internally to create TS plots</p></td>
         </td>
         <td><p>Normalize a matrix</p></td>
       </tr><tr><td>
+          <p><code><a href="package-imports.html">package-imports</a></code> </p>
+        </td>
+        <td><p>Packages</p></td>
+      </tr><tr><td>
           <p><code><a href="px_to_mm.html">px_to_mm()</a></code> </p>
         </td>
         <td><p>Get conversion factor for pixels to mm for roi measurements</p></td>
+      </tr><tr><td>
+          <p><code><a href="read_aid_cnn.html">read_aid_cnn()</a></code> </p>
+        </td>
+        <td><p>Read aid files produced by automated classification</p></td>
       </tr><tr><td>
           <p><code><a href="roimeas_dat_combine.html">roimeas_dat_combine</a></code> </p>
         </td>
@@ -120,10 +131,6 @@ Used internally to create TS plots</p></td>
           <p><code><a href="size_df_f.html">size_df_f</a></code> </p>
         </td>
         <td><p>VPR size information dataframe</p></td>
-      </tr><tr><td>
-          <p><code><a href="taxa_conc_n.html">taxa_conc_n</a></code> </p>
-        </td>
-        <td><p>A binned data frame of concentration data per category</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_autoid_check.html">vpr_autoid_check()</a></code> </p>
         </td>
@@ -143,11 +150,11 @@ Used internally to create TS plots</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_category.html">vpr_category()</a></code> </p>
         </td>
-        <td><p>Get taxa ids from string</p></td>
+        <td><p>Get category ids from string</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_category_create.html">vpr_category_create()</a></code> </p>
         </td>
-        <td><p>Create a new taxa to be considered for classification after processing with VP</p></td>
+        <td><p>Create a new category to be considered for classification after processing with VP</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_ctdroisize_merge.html">vpr_ctdroisize_merge()</a></code> </p>
         </td>
@@ -177,6 +184,13 @@ Used internally to create TS plots</p></td>
         </td>
         <td><p>Find day &amp; hour info to match each station of interest for processing</p></td>
       </tr><tr><td>
+          <p><code><a href="vpr_export.html">vpr_export()</a></code> </p>
+        </td>
+        <td><p>Format and export VPR data for publication (IN DEVELOPMENT)
+Exports a csv file with standard column names based on British Oceanographic
+Data Centre, BODC::P01 and DarwinCore (DwC) naming conventions,
+and a JSON metadata file for station level metadata</p></td>
+      </tr><tr><td>
           <p><code><a href="vpr_hour.html">vpr_hour()</a></code> </p>
         </td>
         <td><p>Get hour identifier</p></td>
@@ -191,7 +205,7 @@ Used internally to create TS plots</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_img_copy.html">vpr_img_copy()</a></code> </p>
         </td>
-        <td><p>Image copying function for specific taxa of interest</p></td>
+        <td><p>Image copying function for specific category of interest</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_img_depth.html">vpr_img_depth()</a></code> </p>
         </td>
@@ -213,17 +227,9 @@ Used internally to create TS plots</p></td>
         </td>
         <td><p>Interpolated contour plot of particular variable</p></td>
       </tr><tr><td>
-          <p><code><a href="vpr_plot_histsize.html">vpr_plot_histsize()</a></code> </p>
-        </td>
-        <td><p>Plot size frequency histogram</p></td>
-      </tr><tr><td>
           <p><code><a href="vpr_plot_profile.html">vpr_plot_profile()</a></code> </p>
         </td>
         <td><p>Plots VPR profiles of temperature, salinity, density, fluorescence and concentration (by classification group)</p></td>
-      </tr><tr><td>
-          <p><code><a href="vpr_plot_sizefreq.html">vpr_plot_sizefreq()</a></code> </p>
-        </td>
-        <td><p>Size Frequency plots for VPR data</p></td>
       </tr><tr><td>
           <p><code><a href="vpr_plot_TS.html">vpr_plot_TS()</a></code> </p>
         </td>
@@ -253,21 +259,9 @@ Used internally to create TS plots</p></td>
         </td>
         <td><p>Bin VPR size data</p></td>
       </tr><tr><td>
-          <p><code><a href="vpr_summary.html">vpr_summary()</a></code> </p>
-        </td>
-        <td><p>Data Summary Report</p></td>
-      </tr><tr><td>
           <p><code><a href="vpr_trrois_size.html">vpr_trrois_size()</a></code> </p>
         </td>
         <td><p>Get size data from idsize files</p></td>
-      </tr><tr><td>
-          <p><code><a href="vp_plot_matrix.html">vp_plot_matrix()</a></code> </p>
-        </td>
-        <td><p>Plots normalized confusion matrix</p></td>
-      </tr><tr><td>
-          <p><code><a href="vp_plot_unkn.html">vp_plot_unkn()</a></code> </p>
-        </td>
-        <td><p>Function to visualize losses to unknown category due to disagreement in Dual classifier</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -277,11 +271,11 @@ Used internally to create TS plots</p></td>
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

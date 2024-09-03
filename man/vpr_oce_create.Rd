@@ -7,7 +7,7 @@
 vpr_oce_create(data)
 }
 \arguments{
-\item{data}{data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}}
+\item{data}{data frame of vpr data}
 }
 \description{
 Formats VPR data frame into \code{oce} format CTD object

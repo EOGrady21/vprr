@@ -9,19 +9,24 @@ vpr_roi_concentration(
   category_list,
   station_of_interest,
   binSize,
-  imageVolume
+  imageVolume,
+  rev = FALSE
 )
 }
 \arguments{
 \item{data}{a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}}
 
-\item{category_list}{a list of character strings representing category present in the station being processed}
+\item{category_list}{a vector of character strings representing category present in the station being processed}
 
 \item{station_of_interest}{The station being processed}
 
 \item{binSize}{passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged}
 
 \item{imageVolume}{the volume of VPR images used for calculating concentrations (mm^3)}
+
+\item{rev}{Logical value defining direction of binning, FALSE (default) - bins will be
+calculated from surface to bottom, TRUE- bins will be calculated bottom to
+surface}
 }
 \description{
 Calculates concentrations for each named category in dataframe

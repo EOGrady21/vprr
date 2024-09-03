@@ -4,19 +4,21 @@
 \alias{vpr_img_copy}
 \title{Image copying function for specific category of interest}
 \usage{
-vpr_img_copy(auto_id_folder, categorys.of.interest, day, hour)
+vpr_img_copy(auto_id_folder, categories.of.interest, day, hour)
 }
 \arguments{
 \item{auto_id_folder}{eg "D:/VP_data/IML2018051/autoid"}
 
-\item{categorys.of.interest}{eg. categorys.of.interest <- c('Calanus')}
+\item{categories.of.interest}{eg. categories.of.interest <- c('Calanus')}
 
 \item{day}{character, day of interest}
 
 \item{hour}{character, hour of interest}
 }
 \description{
-This function can be used to copy images from a particular category, day and hour into distinct folders within the auto id directory
-This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
+This function can be used to copy images from a particular category, day
+and hour into distinct folders within the auto id directory
+This is useful for visualizing the ROIs of a particular classification
+group or for performing manual tertiary checks to remove
 images not matching classification group descriptions.
 }

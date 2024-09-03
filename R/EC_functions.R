@@ -1,49 +1,77 @@
 ##### Import packages ####
 #' Packages
-#'  VPR processing functions depend on these packages
-#'
-#'These packages are needed!
-#'
+#' @name package-imports
 #' @import dplyr ggplot2 oce
 #' @importFrom graphics hist par plot.new
 #' @importFrom stats aggregate median quantile
 #' @importFrom utils menu read.csv read.table write.table
 #' @importFrom usethis use_data
+#' @importFrom data.table rbindlist
+#' @importFrom fs file_copy dir_create
+#' @importFrom tools file_ext
+#' @importFrom rjson toJSON
 #'
 #' @rawNamespace import(gridExtra, except = combine)
 #' @rawNamespace import(metR, except = coriolis)
 #'
 NULL
 
-
 options(dplyr.summarise.inform = FALSE) # TODO: is this needed?
 
 #### PROCESSING FUNCTIONS ####
 
+### CNN model helpers ----
 
-#' Read prediction output from a CNN model
-#'
-#' @param filename model prediction output file (.txt) from `vpr_transferlearn::save_output()`
-#'
-#' @return a dataframe
-#' @export
-#'
-#'
-vpr_pred_read <- function(filename){
-  # do some checks on the file
-  # check for .txt file
-  # check that data index exists
+read_aid_cnn <- function(aid_file) {
+  #' Read aid files produced by automated classification
+  #'
+  #' @param aid_file a file path to an aid file produced by automated classification (with ROI path and probability value)
+  #'
+  #' @return ROI path and probability values in a table
+  #' @export
+  #'
+  aid_table <- read.table(aid_file, sep = " ")
+  names(aid_table) <- c('roi', 'confidence')
+
+  return(aid_table)
+}
+
+vpr_pred_read <- function(filename) {
+  #' Read prediction output from a CNN model
+  #'
+  #' @param filename model prediction output file (.txt) from `vpr_transferlearn::save_output()`
+  #'
+  #' @return a dataframe
+  #' @export
+  #'
+  #'
+  # Check that the file exists
+  if (!file.exists(filename)) {
+    stop("File not found")
+  }
+
+  # Check that the file is a .txt file
+  if (tolower(tools::file_ext(filename)) != "txt") {
+    stop("File must be a .txt file")
+  }
+
+  # Check that the data index exists
+  all_lines <- readLines(filename)
+  dat_index <- grep(all_lines, pattern = 'DATA ----')
+  if (length(dat_index) == 0) {
+    stop("Data index not found")
+  }
 
   all_lines <- readLines(filename)
   dat_index <- grep(all_lines, pattern = 'DATA ----')
   dat_tb <- read.table(filename, header = TRUE, sep = ',', skip = dat_index)
 
   dat <- list()
-  dat$metadata <- as.list(all_lines[seq_len(dat_index -1)])
+  dat$metadata <- as.list(all_lines[seq_len(dat_index - 1)])
   dat$data <- dat_tb
 
-  md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,1]
-  md_values <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[,2]
+  md_names <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[, 1]
+  md_values <- stringr::str_split_fixed(dat$metadata, pattern = ':', 2)[, 2]
 
   dat$metadata <- md_values
   names(dat$metadata) <- md_names
@@ -51,55 +79,369 @@ vpr_pred_read <- function(filename){
   return(dat)
 }
 
-#' Save VPR data as an \link[oce]{as.oce} object
-#'
-#' @details This function will pass a VPR data frame object to an `oce` object.
-#'   Using an `oce` object as the default export format for VPR data allows for
-#'   metadata and data to be kept in the same, space efficient file, and avoid
-#'   redundancy in the data frame. The function check for data parameters that
-#'   may actually be metadata parameters (rows which have the same value
-#'   repeated for every observation). These parameters will automatically be
-#'   copied into the metadata slot of the `oce` object. The function will also
-#'   prompt for a variety of required metadata fields. Depending on specific
-#'   research / archiving requirements, these metadata parameters could be
-#'   updated by providing the argument `metadata`.
-#'
-#'   Default metadata parameters include 'deploymentType', 'waterDepth',
-#'   'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime',
-#'   'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
-#'
-#'
-#' @param data a VPR data frame
-#' @param metadata (optional) a named list of character values giving metadata
-#'   values. If this argument is not provided user will be prompted for a few
-#'   generic metadata requirements.
-#'
-#'
-#' @return an oce CTD object with all VPR data as well as metadata
-#' @export
-#'
-#' @examples
-#' data("category_conc_n")
-#' metadata <- c('deploymentType' = 'towyo', 'waterDepth' =
-#' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitude' = 47,
-#' 'longitude' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
-#' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
-#' 'S2', 'imageVolume' = 83663, 'comment' = 'test data')
-#'
-#' oce_dat <- vpr_save(category_conc_n, metadata)
-#' # save(oce_dat, file = vpr_save.RData') # save data
-#'
-vpr_save <- function(data, metadata){
+### Data Sharing ----
 
+vpr_export <- function(data, metadata, columnNames, file) {
+  #' Format and export VPR data for publication (IN DEVELOPMENT)
+  #' Exports a csv file with standard column names based on British Oceanographic
+  #' Data Centre, BODC::P01 and DarwinCore (DwC) naming conventions,
+  #'  and a JSON metadata file for station level metadata
+  #'
+  #'
+  #' @param data a VPR data frame
+  #' @param metadata (optional) a named list of character values giving metadata
+  #' to be included in JSON file
+  #' @param columnNames (optional) a named list of character values giving
+  #'  relationships between existing names of data columns and standard names
+  #' @param file a file name for the data.csv
+  #'
+  #' @examples
+  #'
+  #'
+  #' \dontrun{
+  #' data(category_conc_n)
+  #' metadata <- list(
+  #'   "station_level" = list(
+  #'     "title" = list("en" = "VPR data from the Scotian Shelf",
+  #'                    "fr" = "Données VPR de l'étagère néo-écossaise"),
+  #'     "dataset_ID" = 1,
+  #'     "decimalLatitudeStart" = 44.5,
+  #'     "decimalLongitudeStart" = -64.5,
+  #'     "decimalLatitudeEnd" = 45.5,
+  #'     "decimalLongitudeEnd" = -65.5,
+  #'     "maximumDepthInMeters" = 1000,
+  #'     "eventDate" = "2019-08-11",
+  #'     "eventTime" = "00:00:00",
+  #'     "basisOfRecord" = "MachineObservation",
+  #'    "associatedMedia" = "https://ecotaxa.obs-vlfr.fr/ipt/archive.do?r=iml2018051",
+  #'    "identificationReferences" = "Iv3 model v3.3",
+  #'    "instrument" = list("opticalSetting" = "S2",
+  #'                        "imageVolume" = 83663),
+  #'    "resources" = list(
+  #'       "data" = list("name" = "vpr123_station25.csv",
+  #'                     "creationDate" = "2023-01-01"),
+  #'       "metadata" = list("name" = "vpr123_station25-metadata.json",
+  #'                         "creationDate" = "2023-01-01")
+  #'     ),
+  #'     "dataAttributes" = list(
+  #'       "eventID" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "An identifier for the set of information associated
+  #'         with a dwc:Event (something that occurs at a place and time). May be
+  #'         a global unique identifier or an identifier specific to the data set.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "minimumDepthInMeters" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "The lesser depth of a range of depth below the local",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "maximumDepthInMeters" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "The greater depth of a range of depth below the local",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "DEPHPRST" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Depth (spatial coordinate) of sampling event start
+  #'         relative to water surface in the water body by profiling pressure
+  #'          sensor and conversion to depth using unspecified algorithm",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "individualCount" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "The number of individuals present at the time of the
+  #'          dwc:Occurrence.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "verbatimIdentification" = list(
+  #'         "dataType" = "chr",
+  #'        "definition" = "A string representing the taxonomic identification as
+  #'        it appeared in the original record.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "SDBIOL01" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Abundance of biological entity specified elsewhere
+  #'         per unit volume of the water body",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "TEMPST01" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Temperature of the water body by CTD or STD",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "PSALST01" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Practical salinity of the water body by CTD and
+  #'         computation using UNESCO 1983 algorithm",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "POTDENS0" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Density (potential) of the water body by computation
+  #'          from salinity and potential temperature using UNESCO algorithm with
+  #'           0 decibar reference pressure",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "FLUOZZZZ" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Fluorescence of the water body",
+  #'         "vocabulary" = "BODC::P01"
+  #'       ),
+  #'       "TURBXXXX" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Turbidity of water in the water body",
+  #'        "vocabulary" = "BODC::P01"
+  #'      ),
+  #'       "sampleSizeValue" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "A numeric value for a measurement of the size (time
+  #'         duration, length, area, or volume) of a sample in a sampling
+  #'         dwc:Event.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "sampleSizeUnit" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "The unit of measurement of the size (time duration,
+  #'         length, area, or volume) of a sample in a sampling dwc:Event.",
+  #'        "vocabulary" = "dwc"
+  #'       ),
+  #'       "scientificName" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "The full scientific name, with authorship and date
+  #'         information if known. When forming part of a dwc:Identification, this
+  #'          should be the name in lowest level taxonomic rank that can be
+  #'          determined. This term should not contain identification
+  #'          qualifications, which should instead be supplied in the
+  #'          dwc:identificationQualifier term.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "identifiedBy" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "A list (concatenated and separated) of names of
+  #'         people, groups, or organisations who assigned the Taxon to the subject.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "identificationVerificationStatus" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "A categorical indicator of the extent to which the
+  #'         taxonomic identification has been verified to be correct.",
+  #'         "vocabulary" = "dwc"
+  #'       ),
+  #'       "depthDifferenceMeters" = list(
+  #'        "dataType" = "float",
+  #'        "definition" = "Difference between maximumDepthInMeters and
+  #'        minimumDepthInMeters of an individual data bin, in meters",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "minimumTimeSeconds" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "minimum time value in a data bin, measured in seconds
+  #'          from the start of the day of sampling",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "maximumTimeSeconds" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "maximum time value in a data bin, measured in seconds
+  #'          from the start of the day of sampling",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "timeDifferenceSeconds" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Difference between maximumTimeSeconds and
+  #'         minimumTimeSeconds of an individual data bin, in seconds",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "numberOfFrames" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "number of VPR frames captured within an individual data bin",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "timeMilliseconds" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Time measured in milliseconds since the start of the sampling day",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "towyoID" = list(
+  #'         "dataType" = "chr",
+  #'         "definition" = "A string identifying the section of the cast to which
+  #'          the data point belongs",
+  #'         "vocabulary" = "BIO"
+  #'       ),
+  #'       "maximumCastDepthInMeters" = list(
+  #'         "dataType" = "float",
+  #'         "definition" = "Maximum depth in Meters of the cast dataset",
+  #'         "vocabulary" = "BIO"
+  #'       )
+  #'     )
+  #'   )
+  #' )
+  #'
+  #' # new_name = old_name
+  #' columnNames = list( "DEPHPRST" = "depth" ,
+  #'                     "verbatimIdentification" = "category",
+  #'                     "eventID" = "station",
+  #'                    "minimumDepthInMeters" = "min_depth",
+  #'                     "maximumDepthInMeters" = "max_depth",
+  #'                     "individualCount" = "n_roi_bin",
+  #'                     "SDBIOL01" = "conc_m3",
+  #'                     "TEMPST01" = "temperature",
+  #'                     "PSALST01" = "salinity",
+  #'                     "POTDENS0" = "density",
+  #'                     "FLUOZZZZ" = "fluorescence",
+  #'                     "TURBXXXX" = "turbidity",
+  #'                     "sampleSizeValue" = "vol_sampled_bin_m3",
+  #'                     "depthDifferenceMeters" = "depth_diff",
+  #'                     "minimumTimeSeconds" = "min_time_s",
+  #'                     "maximumTimeSeconds" = "max_time_s",
+  #'                     "timeDifferenceSeconds" = "time_diff_s",
+  #'                     "numberOfFrames" = "n_frames",
+  #'                     "timeMilliseconds" = "time_ms",
+  #'                     "towyoID" = "towyo",
+  #'                     "maximumCastDepthInMeters" = "max_cast_depth"
+  #')
+  #'
+  #' # add any new data columns required
+  #' # (eg. sampleSizeUnit, scientificName, identifiedBy, identificationVerificationStatus)
+  #' sampleSizeUnit <- "cubic metre"
+  #' identifiedBy <- "K. Sorochan"
+  #' identificationVerificationStatus <- "ValidatedByHuman"
+  #'
+  #' data <- category_conc_n %>%
+  #'   mutate(., identifiedBy = identifiedBy,
+  #'          sampleSizeUnit = sampleSizeUnit,
+  #'          identificationVerificationStatus = identificationVerificationStatus)
+  #'
+  #' # Define the mapping between category and scientific name
+  #' # scientific names based ecotaxa taxonomic system
+  #' scientificName <- list("blurry" = "bad_image_blurry",
+  #'                       "artefact" = c("bad_image_malfunction", "bad_image_strobe"),
+  #'                       "Calanus" = "Calanus")
+  #'
+  #' # Create a new column of data called scientificName based on matches to category
+  #' data <- data %>%
+  #'   dplyr::mutate(., scientificName = case_when(
+  #'     category %in% scientificName[["blurry"]] ~ "blurry",
+  #'     category %in% scientificName[["artefact"]] ~ "artefact",
+  #'     category == scientificName[["Calanus"]] ~ "Calanus",
+  #'     TRUE ~ NA
+  #'   ))
+  #'
+  #' vpr_export(data, metadata, columnNames, file = "vpr123_station25")
+  #' }
+  #' @export
+  #' @importFrom utils write.csv
+
+## input validation
+# check that data is a dataframe
+if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+# check that metadata is a named list
+if (!is.null(metadata) && !is.list(metadata)) {
+    stop("Metadata must be a named list")
+  }
+# check that columnNames is a named list
+if (!is.null(columnNames) && !is.list(columnNames)) {
+    stop("columnNames must be a named list")
+  }
+
+# check that columnNames matches data
+if (!is.null(columnNames)) {
+    if (!all(unlist(columnNames) %in% names(data))) {
+      stop("columnNames must contain all column names in data")
+    }
+  }
+
+## update column names in dataframe based on columnNames
+new_data <- dplyr::rename(data, all_of(unlist(columnNames)))
+
+
+## do some data checks
+# check for null/NA values
+# Check for null or NA values in data
+cols_with_null_or_na <- sapply(new_data, function(x) any(is.null(x) | is.na(x)))
+
+# Print column names with null or NA values
+if (any(cols_with_null_or_na)) {
+  warning("The following columns have null or NA values:\n ", names(new_data)[cols_with_null_or_na])
+}
+
+# remove file extension from file name if required
+# so that file name is generic and applicable to data and metadata strings
+file <- gsub(".csv", "", file)
+
+## write data to csv
+# BE SURE ROW NAMES ARE FALSE
+write.csv(new_data, file = paste0(file, '.csv'), row.names = FALSE)
+
+
+## write metadata to json
+exstr <- rjson::toJSON(metadata, indent = 1) # indent makes pretty formatting
+cat(exstr, file = paste0(file, '-metadata.json'))
+
+
+}
+
+vpr_save <- function(data, metadata) {
+  #' Save VPR data as an \link[oce]{as.oce} object
+  #'
+  #' @details This function will pass a VPR data frame to an `oce` object.
+  #'   Using an `oce` object as the default export format for VPR data allows for
+  #'   metadata and data to be kept in the same, space efficient file, and avoid
+  #'   redundancy in the data frame. The function checks for data parameters that
+  #'   may actually be metadata parameters (rows which have the same value
+  #'   repeated for every observation). These parameters will automatically be
+  #'   copied into the metadata slot of the `oce` object. The function will also
+  #'   prompt for a variety of required metadata fields. Depending on specific
+  #'   research / archiving requirements, these metadata parameters could be
+  #'   updated by providing the argument `metadata`.
+  #'
+  #'   Default metadata parameters include 'deploymentType', 'waterDepth',
+  #'   'serialNumber', 'latitudeStart', 'longitudeStart', 'castDate', 'castStartTime',
+  #'   'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment'.
+  #'
+  #'
+  #' @param data a VPR data frame
+  #' @param metadata (optional) a named list of character values giving metadata
+  #'   values. If this argument is not provided user will be prompted for a few
+  #'   generic metadata requirements.
+  #'
+  #'
+  #' @return an oce CTD object with all VPR data as well as metadata
+  #' @export
+  #'
+  #' @examples
+  #' data("category_conc_n")
+  #' metadata <- list('deploymentType' = 'towyo', 'waterDepth' =
+  #' max(ctd_roi_merge$pressure), 'serialNumber' = NA, 'latitudeStart' = 47,
+  #' 'longitudeStart' = -65, 'castDate' = '2019-08-11', 'castStartTime'= '00:00',
+  #' 'castEndTime' = '01:00', 'processedBy' = 'E. Chisholm', 'opticalSetting' =
+  #' 'S2', 'imageVolume' = 83663, 'comment' = 'test data')
+  #'
+  #' oce_dat <- vpr_save(category_conc_n, metadata)
+  #' # save(oce_dat, file = vpr_save.RData') # save data
+  #'
+  # Check that the data is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the metadata is a named list
+  if (!is.null(metadata) && !is.list(metadata)) {
+    stop("Metadata must be a named list")
+  }
   # create oce objects
 
   oce_data <- as.oce(data)
 
   # check for metadata in dataframe
   rem_list <- list()
-  for(i in seq_len(length(oce_data@data))){
-    if(length(unique(oce_data@data[[i]])) == 1){
-      print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of' , unique(oce_data@data[[i]]), 'moved to metadata slot. '))
+  for (i in seq_len(length(oce_data@data))) {
+    if (length(unique(oce_data@data[[i]])) == 1) {
+      print(paste('Metadata parameter found in Data object! ', names(oce_data@data)[[i]], 'value of', unique(oce_data@data[[i]]), 'moved to metadata slot. '))
       # add as metadtaa parameter
       oce_data <- oceSetMetadata(oce_data, name = names(oce_data@data)[[i]], value = unique(oce_data@data[[i]]))
       rem_list[[i]] <- i
@@ -110,320 +452,129 @@ vpr_save <- function(data, metadata){
   oce_data@data <- oce_data@data[-unlist(rem_list)]
 
   # check for other metadata and ask user to supply
-if(missing(metadata)){
-  req_meta <- c('deploymentType', 'waterDepth', 'serialNumber', 'latitude', 'longitude', 'castDate', 'castStartTime', 'castEndTime', 'processedBy', 'opticalSetting', 'imageVolume', 'comment')
-# TODO include metadata examples or skip
-  # clarify serial number, water depth?
+  if (missing(metadata)) {
+    req_meta <- c('deploymentType',
+        'waterDepth',
+        'serialNumber',
+       'latitudeStart',
+        'longitudeStart',
+        'castDate',
+        'castStartTime',
+        'castEndTime',
+        'processedBy',
+        'opticalSetting',
+        'imageVolume',
+        'comment')
+# TODO include metadata examples or skip # nolint
+  # clarify serial number, water depth? # nolint
 
-  for(rm in req_meta){
-    if(is.null(oce_data@metadata[[rm]])){
+    for (rm in req_meta) {
+    if (is.null(oce_data@metadata[[rm]])) {
       print(paste('Please provide value for Metadata parameter', rm))
       rm_val <- readline(paste('Metadata slot, ', rm, ': '))
-      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
+      oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
     }
-    # TODO : add possibility of value existing as 'unknown or some other placeholder which should be overwritten
 
-  }
-}else{
+    }
+  }else {
 # if metadata names and values are provided as list
-  for(rm in names(metadata)){
+    for (rm in names(metadata)) {
 
       rm_val <- metadata[[rm]]
-      oce_data <- oceSetMetadata(oce_data, name = rm , value = rm_val, note = NULL)
+      oce_data <- oceSetMetadata(oce_data, name = rm, value = rm_val, note = NULL)
 
 
+    }
   }
-}
 
   return(oce_data)
 }
 
-#' Add Year/ month/ day hour:minute:second information
-#'
-#' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
-#' Will also add 'time_hr' parameter if not already present.
-#'
-#' @param data VPR data frame from \code{\link{vpr_ctdroi_merge}}
-#' @param year Year of data collection
-#' @param offset time offset in hours between VPR CPU and processed data times (optional)
-#'
-#' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
-#'
-#' @examples
-#' year <- 2019
-#' data('ctd_roi_merge')
-#' dat <- vpr_ctd_ymd(ctd_roi_merge, year)
-#'
-#'
-#' @export
-
-vpr_ctd_ymd <- function(data, year, offset){
-  # avoid CRAN notes
-  . <- time_ms <- NA
-
-  d <- grep(names(data), pattern = 'time_hr')
-  if(length(d) == 0){
-    data <- data %>%
-      dplyr::mutate(., time_hr = time_ms / 3.6e+06)
+vpr_oce_create <- function(data) {
+  #' Create ctd oce object with vpr data
+  #'
+  #' Formats VPR data frame into \code{oce} format CTD object
+  #'
+  #' @author E. Chisholm
+  #'
+  #' @param data data frame of vpr data
+  #'
+  #' @examples
+  #' data('ctd_roi_merge')
+  #' oce_dat <- vpr_oce_create(ctd_roi_merge)
+  #'
+  #' @export
+  # create oce objects
+  ctd_roi_oce <- oce::as.ctd(data)
+  # compare oce vars to df vars
+  oce_names <- names(ctd_roi_oce@data)
+  df_names <- colnames(data)
+  if (length(oce_names) < length(df_names)) {
+    warning("oce-ctd object may be missing some data columns!")
   }
 
-
-  day_num <- substr(data$day, 2, 4)
-
-  hour_num <- substr(data$hour, 2, 3)
-
-  ymdd <- as.Date(as.numeric(day_num), origin = paste0(year,'-01-01'))
-
-
-  l_per <- round(lubridate::seconds_to_period(data$time_ms/1000),0)
-
-
-  ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
-
-  if(!missing(offset)){
-
-    ymdhms_obj <- ymdhms_obj + offset*3600 # convert hour offset to seconds and adjust times
-
-  }
-
-  data <- data %>%
-    dplyr::mutate(., ymdhms = ymdhms_obj)
-
-  return(data)
-
+  return(ctd_roi_oce)
 }
 
 
-#' Bin VPR size data
-#'
-#' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
-#'
-#' @param data_all a VPR CTD and measurement dataframe from \code{\link{vpr_ctdroisize_merge}}
-#' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
-#'
-#' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
-#'
-#' @examples
-#'
-#' data('size_df_f')
-#' vpr_size_bin(size_df_f, bin_mea = 5)
-#'
-#' @export
-#'
-#'
-#'
-vpr_size_bin <- function(data_all, bin_mea){
+### Core ----
 
-  #Bin by depth
-  p <- data_all$pressure
-  max_pressure <- max(p, na.rm = TRUE)
-  min_pressure <- min(p, na.rm = TRUE)
-  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = bin_mea)
-
-  #Get variables of interest using oce bin functions
-
-  med <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
-  iqr3 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
-  iqr1 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
-  n_obs <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
-  temperature <- oce::binApply1D(p, data_all$temperature, xbreaks = x_breaks, mean)$result
-  salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
-  pressure <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
-
-  if (!(length(pressure) == length(salinity))) {
-
-    salinity_mean <- binMean1D(p, data_all$salinity, xbreaks = x_breaks)$result
-
-    idx_rm <- which(is.na(salinity_mean))
-
-    #informs user where bins were removed due to NAs
-    #note if a bin is 'NA' typically because there is no valid data in that depth range,
-    #if you have a lot of NA bins, think about increasing your binSize
-    print(paste('Removed bins at', pressure[idx_rm]))
-
-    lp <- length(pressure)
-    pressure <- pressure[-idx_rm]
-
+vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume, rev = FALSE) {
+  #'Calculate VPR concentrations
+  #'
+  #' Calculates concentrations for each named category in dataframe
+  #'
+  #' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
+  #' @param category_list a vector of character strings representing category present in the station being processed
+  #' @param station_of_interest The station being processed
+  #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
+  #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' @param rev Logical value defining direction of binning, FALSE (default) - bins will be
+  #'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
+  #'   surface
+  #'
+  #' @examples
+  #'
+  #' data('ctd_roi_merge')
+  #' ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
+  #'
+  #' category_list <- c('Calanus', 'krill')
+  #' binSize <- 5
+  #' station_of_interest <- 'test'
+  #' imageVolume <- 83663
+  #'
+  #' category_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
+  #' station_of_interest, binSize, imageVolume)
+  #'
+  #'@export
+  #'
+  #'
+  # input validation
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
   }
 
-  station_id <- unique(data$station)
-
-  dfs <- data.frame('median' = med, 'IQR1' = iqr1,
-                    'IQR3' = iqr3, 'n_obs' = n_obs,
-                    'temperature' = temperature, 'salinity' = salinity,
-                    'pressure' = pressure)
-  return(dfs)
-}
-
-#' Format CTD and Size data from VPR
-#'
-#' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
-#'
-#' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
-#' @param data_mea VPR size data frame from \code{\link{vpr_autoid_read}}
-#' @param category_of_interest a list of category of interest to be included in output dataframe
-#'
-#' @return A dataframe containing VPR CTD and size data
-#'
-#' @examples
-#'
-#' data("ctd_roi_merge")
-#' data("roimeas_dat_combine")
-#' category_of_interest = 'Calanus'
-#'
-#'ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
-#'
-#' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
-#'  category_of_interest = category_of_interest)
-#'
-#' @export
-#'
-vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest){
-
-  # avoid CRAN notes
-  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
-
-data <- data[!duplicated(data$time_ms),]
-
-#get CTD data
-data_ctd <- data %>%
-  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
-  dplyr::mutate(., day_hour = paste(day, hour, sep = ".")) %>%
-  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
-  dplyr::select(., frame_ID, pressure, temperature, salinity, sigmaT, fluorescence_mv, turbidity_mv)
-
-#get measurement data
-data_mea <- data_mea %>%
-  dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
-  dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
-  dplyr::select(., -Perimeter, -Area, -width1, -width2, -width3, -short_axis_length)
-
-#combine measurement and ctd data
-data_all <- right_join(data_ctd, data_mea) %>%
-  dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
-  dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
-  dplyr::filter(., category %in% category_of_interest)
-
-#cut off data below maximum pressure to maintain consistent analysis between stations with varying depths
-#data_all <- data_all %>%
-  #dplyr::filter(., pressure <= max_pressure)
-
-return(data_all)
-
-}
-
-#' Copy VPR images into folders
-#'
-#' Organize VPR images into folders based on classifications provided by visual plankton
-#'
-#' @param basepath A file path to your autoid folder where VP data is stored eg. "C:\\\\data\\\\cruise_XXXXXXXXXXXXXXX\\\\autoid\\\\"
-#' @param day character string representing numeric day of interest
-#' @param hour character string representing hour of interest
-#' @param classifier_type character string representing the type of classifier (either 'svm', 'nn' or 'dual') from Visual Plankton
-#' @param classifier_name character string representing name of Visual Plankton classifier
-#' @param category optional list of character strings if you wish to only copy images from specific classification groups
-#'
-#' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
-#' inside your basepath/autoid folder
-#'
-#' @export
-vpr_autoid_copy <- function(basepath, day, hour, classifier_type, classifier_name, category){
-
-  folder_names <- list.files(basepath)
-
-  if(!missing(category)){
-    folder_names <- folder_names[folder_names %in% category]
+  # Check that the categories in category_list are valid and contained in the names of data
+  valid_categories <- intersect(names(data), unlist(category_list))
+  if (length(valid_categories) == 0) {
+    stop("Category_list contains no valid categories")
   }
 
-  #check valid folders
-  if(length(folder_names) < 1){
-    stop('No valid category folders found in basepath!')
+  # Check that the station_of_interest argument is a character vector
+  if (!is.character(station_of_interest)) {
+    stop("Station_of_interest must be a character vector")
   }
 
-  day_hour <- paste0('d', day, '.h', hour)
-  if(!missing(classifier_type)){
-    type_day_hour <- paste0(classifier_type,'aid.', day_hour)
-  } else{
-    warning('No classifier information provided, attempting to pull ROIs based only on day/hour, please check there is only one aid file for each category!')
-    type_day_hour <- day_hour
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("BinSize must be a numeric value greater than 0")
   }
 
-for (i in folder_names) {
-
-  #Get name of folder containing .txt files with roi paths within a category
-  dir_roi <- paste(basepath, i, "/", "aid", sep = "")
-
-  #Get names of text files
-  txt_roi <- list.files(dir_roi)
-
-  subtxt <- grep(txt_roi, pattern = type_day_hour, value = TRUE)
-  txt_roi <- subtxt
-
-  if(!missing(classifier_name)){
-    subtxt2 <- grep(txt_roi, pattern = classifier_name, value = TRUE)
-    txt_roi <- subtxt2
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("ImageVolume must be a numeric value greater than 0")
   }
-
-  for(ii in txt_roi) {
-
-    # setwd(dir_roi)
-    withr::with_dir(dir_roi, code = {
-
-    roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
-
-    #Create a new folder for autoid rois
-    roi_folder <- paste(basepath, i, "\\", ii, "_ROIS", sep = "")
-    command1 <- paste('mkdir', roi_folder, sep = " ")
-    shell(command1)
-
-    #Copy rois to this directory
-    for (iii in seq_len(nrow(roi_path_str))) {
-
-      dir_tmp <- as.character(roi_path_str[iii,1])
-      command2 <- paste("copy", dir_tmp, roi_folder, sep = " ")
-      shell(command2)
-
-      print(paste(iii, '/', nrow(roi_path_str),' completed!'))
-    }
-
-    })
-  }
-
-  print(paste(i, 'completed!'))
-}
-
-print(paste('Day ', day, ', Hour ', hour, 'completed!'))
-}
-
-
-#'Calculate VPR concentrations
-#'
-#' Calculates concentrations for each named category in dataframe
-#'
-#' @param data a VPR dataframe as produced by \code{\link{vpr_ctdroi_merge}}
-#' @param category_list a list of character strings representing category present in the station being processed
-#' @param station_of_interest The station being processed
-#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
-#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-#'
-#' @examples
-#'
-#' data('ctd_roi_merge')
-#' ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
-#'
-#' category_list <- c('Calanus', 'krill')
-#' binSize <- 5
-#' station_of_interest <- 'test'
-#' imageVolume <- 83663
-#'
-#' category_conc_n <- vpr_roi_concentration(ctd_roi_merge, category_list,
-#' station_of_interest, binSize, imageVolume)
-#'
-#'@export
-#'
-#'
-vpr_roi_concentration <- function(data, category_list, station_of_interest, binSize, imageVolume){
-
   # avoid CRAN notes
   . <- NA
   # check that category exist for this station
@@ -435,7 +586,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
   # calculate concentrations
   conc_dat <- list()
   for ( ii in seq_len(length(valid_category))){
-    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume) %>%
+    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume, rev = rev) %>%
       dplyr::mutate(., category = valid_category[ii])
   }
 
@@ -449,31 +600,61 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
   return(category_conc_n)
 }
 
-#' Binned concentrations
-#'
-#' This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.
-#' Used inside \code{\link{vpr_roi_concentration}}
-#'
-#'
-#' @param data dataframe produced by processing internal to vpr_roi_concentration
-#' @param category name of category isolated
-#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
-#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-#' @param rev Logical value defining direction of binning, FALSE - bins will be
-#'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
-#'   surface
-#'
-#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
-#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
-#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
-#'
-#'
-#' @author E. Chisholm
-#'
-#' @export
-concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE){
+concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE, breaks = NULL, cutoff = 0.1) {
+  #' Binned concentrations
+  #'
+  #' This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.
+  #' Used inside \code{\link{vpr_roi_concentration}}
+  #'
+  #'
+  #' @param data dataframe produced by processing internal to vpr_roi_concentration
+  #' @param category name of category isolated
+  #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
+  #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' @param rev Logical value defining direction of binning, FALSE - bins will be
+  #'   calculated from surface to bottom, TRUE- bins will be calculated bottom to
+  #'   surface
+  #' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+  #' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
+  #'
+  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+  #'
+  #'
+  #' @author E. Chisholm
+  #'
+  #' @export
+  #input validation
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the category argument is a character string
+  if (!is.character(category)) {
+    stop("Category must be a character string")
+  }
+
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("BinSize must be a numeric value greater than 0")
+  }
+
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("ImageVolume must be a numeric value greater than 0")
+  }
+
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("Rev must be a logical value")
+  }
+
   . <- NA # avoid CRAN notes
 
+  # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
+  # TODO remove hardcoding and instead use reference to ctd col_list or use reverse of categories
   # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
   noncategory <-
     c(
@@ -496,7 +677,8 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
       'depth'
     )
   dt <- data %>%
-    dplyr::select(., noncategory, category)
+    dplyr::select(., any_of(noncategory), all_of(category))
+
 
   # get n_roi of only one category
   names(dt) <-
@@ -506,46 +688,66 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
   ctd_roi_oce <- vpr_oce_create(dt)
 
   # bin data
-  final <- bin_cast(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev)
+  final <- bin_cast(ctd_roi_oce = ctd_roi_oce, imageVolume = imageVolume, binSize = binSize, rev = rev, breaks = breaks, cutoff = cutoff)
 
   return(final)
 }
 
+bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE, breaks = NULL, cutoff = 0.1) {
+  #' Bin vpr data
+  #'
+  #' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
+  #' This function is used inside \code{\link{concentration_category}}
+  #'
+  #'
+  #' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}
+  #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
+  #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' @param rev logical value,passed to \code{\link{bin_calculate}} if TRUE, binning will begin at bottom of each cast,
+  #'   this controls data loss due to uneven binning over depth. If bins begin at
+  #'   bottom, small amounts of data may be lost at the surface of each cast, if
+  #'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+  #'   at bottom of each cast
+  #' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+  #' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
+  #'
+  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
+  #'
+  #'
+  #'@return A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values
+  #' @export
+  #'
+  #'
+  # input validation
+  if (!inherits(ctd_roi_oce, "ctd")) {
+    stop("ctd_roi_oce must be an object of class 'ctd'")
+  }
 
-#' Bin vpr data
-#'
-#' Formats \code{oce} style VPR data into depth averaged bins using \code{\link{ctd_cast}} and \code{\link{bin_calculate}}
-#' This function is used inside \code{\link{concentration_category}}
-#'
-#'
-#' @param ctd_roi_oce \code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}
-#' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
-#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-#' @param rev logical value,passed to \code{\link{bin_calculate}} if TRUE, binning will begin at bottom of each cast,
-#'   this controls data loss due to uneven binning over depth. If bins begin at
-#'   bottom, small amounts of data may be lost at the surface of each cast, if
-#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
-#'   at bottom of each cast
-#'
-#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
-#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
-#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
-#'
-#'
-#'@return A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values
-#' @export
-#'
-#'
-bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("imageVolume must be a numeric value greater than 0")
+  }
 
-. <- time_hr <- conc_m3 <- NA
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("binSize must be a numeric value greater than 0")
+  }
+
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("rev must be a logical value")
+  }
+  . <- conc_m3 <- NA
+  #browser()
   #find upcasts
-  upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df')
+  upcast <- ctd_cast(data = ctd_roi_oce, cast_direction = 'ascending', data_type = 'df', breaks = breaks, cutoff = cutoff)
   upcast2 <- lapply(X = upcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   upcast_df <- do.call(rbind, upcast2)
 
   #find downcasts
-  downcast <- ctd_cast(ctd_roi_oce, cast_direction = "descending", data_type = "df")
+  downcast <- ctd_cast(ctd_roi_oce, cast_direction = "descending", data_type = "df", breaks = breaks, cutoff = cutoff)
   downcast2 <- lapply(X = downcast, FUN = bin_calculate, binSize = binSize, imageVolume = imageVolume, rev = rev)
   downcast_df <- do.call(rbind, downcast2)
 
@@ -555,108 +757,74 @@ bin_cast <- function(ctd_roi_oce, imageVolume, binSize, rev = FALSE){
 
   #Remove infinite concentrations (why do these occur again?)
   vpr_depth_bin <- vpr_depth_bin %>%
-   # dplyr::mutate(., time_hr = time_hr - min(time_hr)) %>% # this is potentially creating issues where time is not aligned in plots
+    # dplyr::mutate(., time_hr = time_hr - min(time_hr)) %>% # this is potentially creating issues where time is not aligned in plots
     dplyr::filter(., is.finite(conc_m3))
 
   return(vpr_depth_bin)
 }
 
-
-
-#' Create ctd oce object with vpr data
-#'
-#' Formats VPR data frame into \code{oce} format CTD object
-#'
-#' @author E. Chisholm
-#'
-#' @param data data frame of vpr data with variable names \itemize{'time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT'}
-#'
-#' @examples
-#' data('ctd_roi_merge')
-#' oce_dat <- vpr_oce_create(ctd_roi_merge)
-#'
-#' @export
-vpr_oce_create <- function(data){
-
-  # create oce objects
-  ctd_roi_oce <- oce::as.ctd(data)
-  # compare oce vars to df vars
-  oce_names <- names(ctd_roi_oce@data)
-  df_names <- colnames(data)
-  if(length(oce_names) < length(df_names)){
-    warning("oce-ctd object may be missing some data columns!")
-  }
-  # otherVars<-  c('time_ms', 'fluorescence_mv', 'turbidity_mv', 'n_roi', 'sigmaT', 'depth', 'time_hr') # TODO edit to avoid hard coding variable names
-  # for ( o in otherVars){
-  #   eval(parse(text = paste0("ctd_roi_oce <- oce::oceSetData(ctd_roi_oce, name = '",o,"', value = data$",o,")")))
-  # }
-
-  return(ctd_roi_oce)
-}
-
-#' Read and format CTD VPR data
-#'
-#' Acts as a wrapper for \code{\link{ctd_df_cols}}
-#'
-#' Reads CTD data and adds day, hour, and station information.
-#' Calculates sigma T and depth variables from existing CTD data to supplement raw data.
-#' If there are multiple hours of CTD data, combines them into single dataframe.
-#'
-#' **WARNING** \code{\link{ctd_df_cols}} is hard coded to accept a specific
-#' order of CTD data columns. The names and values in these columns can change
-#' based on the specific instrument and should be updated/confirmed before processing data
-#' from a new VPR.
-#'
-#' @author E. Chisholm & K. Sorochan
-#'
-#'
-#' @param ctd_files full file paths to vpr ctd \code{.dat} files
-#' @param station_of_interest VPR station name
-#' @param day Day of interest, if not provided will be pulled from file path
-#' @param hour Hour of interest, if not provided will be pulled from file path
-#' @param col_list Optional list of CTD data column names
-#'
-#' @examples
-#'
-#' station_of_interest <- 'test'
-#'
-#' ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat",
-#' package = "vprr", mustWork = TRUE)
-#'
-#' ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
-#'
-#' @export
-
-vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list){
+vpr_ctd_read <- function(ctd_files, station_of_interest, day, hour, col_list) {
+  #' Read and format CTD VPR data
+  #'
+  #' Acts as a wrapper for \code{\link{ctd_df_cols}}
+  #'
+  #' Reads CTD data and adds day, hour, and station information.
+  #' Calculates sigma T and depth variables from existing CTD data to supplement raw data.
+  #' If there are multiple hours of CTD data, combines them into single dataframe.
+  #'
+  #' **WARNING** \code{\link{ctd_df_cols}} is hard coded to accept a specific
+  #' order of CTD data columns. The names and values in these columns can change
+  #' based on the specific instrument and should be updated/confirmed before processing data
+  #' from a new VPR.
+  #'
+  #' @author E. Chisholm & K. Sorochan
+  #'
+  #'
+  #' @param ctd_files full file paths to vpr ctd \code{.dat} files
+  #' @param station_of_interest VPR station name
+  #' @param day Day of interest, if not provided will be pulled from file path
+  #' @param hour Hour of interest, if not provided will be pulled from file path
+  #' @param col_list Optional chr vector of CTD data column names
+  #'
+  #' @examples
+  #'
+  #' station_of_interest <- 'test'
+  #'
+  #' ctd_files <- system.file("extdata/COR2019002/rois/vpr5/d222", "h03ctd.dat.gz",
+  #' package = "vprr", mustWork = TRUE)
+  #'
+  #' ctd_dat_combine <- vpr_ctd_read(ctd_files, station_of_interest)
+  #'
+  #' @export
 
   # avoid CRAN notes
   . <- NA
 
-if(length(ctd_files) == 0){
-  stop('No CTD files provided!')
-}
+  if (length(ctd_files) == 0) {
+    stop('No CTD files provided!')
+  }
   ctd_dat <- list()
-  for (i in seq_len(length(ctd_files))){
+  for (i in seq_len(length(ctd_files))) {
 
-    if(missing(day)){
-    day_id <- unlist(vpr_day(ctd_files[i]))
-    }else{
+    if (missing(day)) {
+      day_id <- unlist(vpr_day(ctd_files[i]))
+    }else {
       day_id <- day
     }
 
-    if(missing(hour)){
-    hour_id <- unlist(vpr_hour(ctd_files[i]))
-    }else{
+    if (missing(hour)) {
+      hour_id <- unlist(vpr_hour(ctd_files[i]))
+    }else {
       hour_id <- hour
     }
 
 
     station_id <- station_of_interest
 
-    if(missing(col_list)){
+    if (missing(col_list)) {
       ctd_dat_tmp <- ctd_df_cols(ctd_files[i])
-    }else{
-        ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
+    }else {
+      ctd_dat_tmp <- ctd_df_cols(ctd_files[i], col_list)
     }
 
     ctd_dat[[i]] <- data.frame(ctd_dat_tmp,
@@ -680,36 +848,55 @@ if(length(ctd_files) == 0){
       ctd_dat_combine$temperature,
       ctd_dat_combine$pressure
     )) %>%
-  dplyr::mutate(., depth = oce::swDepth(ctd_dat_combine$pressure)) # note that default latitude is used (45)
+    dplyr::mutate(., depth = oce::swDepth(ctd_dat_combine$pressure)) # note that default latitude is used (45)
 
 
   return(ctd_dat_combine)
 }
 
+vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine) {
+  #'Merge CTD and ROI data from VPR
+  #'
+  #'Combines CTD data (time, hydrographic parameters), with ROI information
+  #'(identification number) into single dataframe, aligning ROI identification
+  #'numbers and category classifications with time and hydrographic parameters
+  #'
+  #'@author E. Chisholm & K. Sorochan
+  #'
+  #'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{vpr_ctd_read}}
+  #'@param roi_dat_combine a data frame of roi aid data from \code{\link{vpr_autoid_read}}
+  #'
+  #'
+  #' @examples
+  #' data('ctd_dat_combine')
+  #' data('roi_dat_combine')
+  #'
+  #' ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
+  #'@export
+  #'
+  # input validation
+  # Check that the ctd_dat_combine argument is a data frame
+  if (!is.data.frame(ctd_dat_combine)) {
+    stop("ctd_dat_combine must be a data frame")
+  }
 
-#'Merge CTD and ROI data from VPR
-#'
-#'Combines CTD data (time, hydrographic parameters), with ROI information
-#'(identification number) into single dataframe, aligning ROI identification
-#'numbers and category classifications with time and hydrographic parameters
-#'
-#'@author E. Chisholm & K. Sorochan
-#'
-#'@param ctd_dat_combine a CTD dataframe from VPR processing from \code{\link{vpr_ctd_read}}
-#'@param roi_dat_combine a data frame of roi aid data from \code{\link{vpr_autoid_read}}
-#'
-#'
-#' @examples
-#' data('ctd_dat_combine')
-#' data('roi_dat_combine')
-#'
-#' ctd_roi_merge <- vpr_ctdroi_merge(ctd_dat_combine, roi_dat_combine)
-#'@export
-#'
-vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
+  # Check that the roi_dat_combine argument is a data frame
+  if (!is.data.frame(roi_dat_combine)) {
+    stop("roi_dat_combine must be a data frame")
+  }
+
+  # Check that the ctd_dat_combine argument has a "time_ms" column
+  if (!"time_ms" %in% colnames(ctd_dat_combine)) {
+    stop("ctd_dat_combine must have a 'time_ms' column")
+  }
+
+  # Check that the roi_dat_combine argument has a "time_ms" column
+  if (!"time_ms" %in% colnames(roi_dat_combine)) {
+    stop("roi_dat_combine must have a 'time_ms' column")
+  }
 
   # avoid CRAN notes
-  . <- roi <- NA
+  . <- roi <- time_ms <- NA
   # First subset ctd data by roi id
   ctd_time <- ctd_dat_combine$time_ms
   roi_time <- as.numeric(roi_dat_combine$time_ms)
@@ -719,9 +906,9 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
 
 
   # Get total number of rois per frame
-  categorys <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
-  category_col_id <- which(colnames(roi_dat_combine) %in% categorys)
-  category_subset <- roi_dat_combine[,category_col_id]
+  categories <- colnames(roi_dat_combine)[!(colnames(roi_dat_combine) %in% c('time_ms', 'roi'))]
+  category_col_id <- which(colnames(roi_dat_combine) %in% categories)
+  category_subset <- roi_dat_combine[, category_col_id]
   n_roi_total <- base::rowSums(category_subset)
   roi_dat_2 <- data.frame(roi_dat_combine, n_roi_total)
 
@@ -735,109 +922,127 @@ vpr_ctdroi_merge <- function(ctd_dat_combine, roi_dat_combine){
   ctd_roi_merge[is.na(ctd_roi_merge)] <- 0
 
   ctd_roi_merge <- ctd_roi_merge %>%
-    dplyr::mutate(., roi = ifelse(roi == 0, NA, roi))
+    dplyr::mutate(., roi = ifelse(roi == 0, NA, roi)) %>%
+    dplyr::arrange(., time_ms) # ensure that data is sorted by time to avoid processing errors
 
-  return (ctd_roi_merge)
+  return(ctd_roi_merge)
 }
 
-
-#'Read VPR aid files
-#'
-#'Read aid text files containing ROI string information or measurement data and output as a dataframe
-#'
-#'Only outputs either ROI string information OR measurement data
-#'
-#'
-#' @author E. Chisholm & K. Sorochan
-#'
-#'@param  file_list_aid a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.
-#'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.
-#'@param export a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)
-#'@param station_of_interest Station information to be added to ROI data output, use NA if irrelevant
-#'@param opticalSetting Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels
-#'@param warn Logical, FALSE silences size data unit warnings
-#'@param categories A list object (of chr strings) with all the potential classification categories
-#'
-#'@note Full paths to each file should be specified
-#'
-#' @examples
-#'
-#' station_of_interest <- 'test'
-#' dayhour <- c('d222.h03', 'd222.h04')
-#' categories <- c("bad_image_blurry", "bad_image_malfunction",
-#' "bad_image_strobe", "Calanus", "chaetognaths","ctenophores","krill",
-#' "marine_snow","Other","small_copepod", "stick")
-#'
-#' #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
-#' opticalSetting <- "S2"
-#' imageVolume <- 83663 #mm^3
-#'
-#' auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
-#' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
-#'
-#' #'   # Path to aid for each category
-#' aid_path <- paste0(auto_id_path, '/aid/')
-#' # Path to mea for each category
-#' aidmea_path <- paste0(auto_id_path, '/aidmea/')
-#'
-#' # AUTO ID FILES
-#' aid_file_list <- list()
-#' aidmea_file_list <- list()
-#' for (i in 1:length(dayhour)) {
-#'   aid_file_list[[i]] <-
-#'     list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
-#'   # SIZE DATA FILES
-#'   aidmea_file_list[[i]] <-
-#'     list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
-#' }
-#'
-#' aid_file_list_all <- unlist(aid_file_list)
-#' aidmea_file_list_all <- unlist(aidmea_file_list)
-#'
-#'  # ROIs
-#' roi_dat_combine <-
-#'   vpr_autoid_read(
-#'     file_list_aid = aid_file_list_all,
-#'     file_list_aidmeas = aidmea_file_list_all,
-#'     export = 'aid',
-#'     station_of_interest = station_of_interest,
-#'     opticalSetting = opticalSetting,
-#'     warn = FALSE,
-#'     categories = categories
-#'   )
-#'
-#' # MEASUREMENTS
-#' roimeas_dat_combine <-
-#'   vpr_autoid_read(
-#'     file_list_aid = aid_file_list_all,
-#'     file_list_aidmeas = aidmea_file_list_all,
-#'     export = 'aidmeas',
-#'     station_of_interest = station_of_interest,
-#'     opticalSetting = opticalSetting,
-#'     warn = FALSE,
-#'     categories = categories
-#'  )
-#'
-#' @export
-vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE, categories){
-
+vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of_interest, opticalSetting, warn = TRUE, categories) {
+  #'Read VPR aid files
+  #'
+  #'Read aid text files containing ROI string information or measurement data and output as a dataframe
+  #'
+  #'Only outputs either ROI string information OR measurement data
+  #'
+  #'
+  #' @author E. Chisholm & K. Sorochan
+  #'
+  #'@param  file_list_aid a list object of aid text files, containing ROI strings.
+  #'@param file_list_aidmeas  a list object of aidmea text files, containing ROI measurements.
+  #'@param export a character string specifying which type of data to output, either 'aid' (roi strings) or 'aidmeas' (measurement data)
+  #'@param station_of_interest Station information to be added to ROI data output, use NA if irrelevant
+  #'@param opticalSetting Optional argument specifying VPR optical setting. If provided will be used to convert size data into mm from pixels, if missing size data will be output in pixels
+  #'@param warn Logical, FALSE silences size data unit warnings
+  #'@param categories A list object (of chr strings) with all the potential classification categories
+  #'
+  #'@note Full paths to each file should be specified
+  #'
+  #' @examples
+  #'
+  #' station_of_interest <- 'test'
+  #' dayhour <- c('d222.h03', 'd222.h04')
+  #' categories <- c("bad_image_blurry", "bad_image_malfunction",
+  #' "bad_image_strobe", "Calanus", "chaetognaths","ctenophores","krill",
+  #' "marine_snow","Other","small_copepod", "stick")
+  #'
+  #' #' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)
+  #' opticalSetting <- "S2"
+  #' imageVolume <- 83663 #mm^3
+  #'
+  #' auto_id_folder <- system.file('extdata/COR2019002/autoid/', package = 'vprr', mustWork = TRUE)
+  #' auto_id_path <- list.files(paste0(auto_id_folder, "/"), full.names = TRUE)
+  #'
+  #' #'   # Path to aid for each category
+  #' aid_path <- paste0(auto_id_path, '/aid/')
+  #' # Path to mea for each category
+  #' aidmea_path <- paste0(auto_id_path, '/aidmea/')
+  #'
+  #' # AUTO ID FILES
+  #' aid_file_list <- list()
+  #' aidmea_file_list <- list()
+  #' for (i in 1:length(dayhour)) {
+  #'   aid_file_list[[i]] <-
+  #'     list.files(aid_path, pattern = dayhour[[i]], full.names = TRUE)
+  #'   # SIZE DATA FILES
+  #'   aidmea_file_list[[i]] <-
+  #'     list.files(aidmea_path, pattern = dayhour[[i]], full.names = TRUE)
+  #' }
+  #'
+  #' aid_file_list_all <- unlist(aid_file_list)
+  #' aidmea_file_list_all <- unlist(aidmea_file_list)
+  #'
+  #'  # ROIs
+  #' roi_dat_combine <-
+  #'   vpr_autoid_read(
+  #'     file_list_aid = aid_file_list_all,
+  #'     file_list_aidmeas = aidmea_file_list_all,
+  #'     export = 'aid',
+  #'     station_of_interest = station_of_interest,
+  #'     opticalSetting = opticalSetting,
+  #'     warn = FALSE,
+  #'     categories = categories
+  #'   )
+  #'
+  #' # MEASUREMENTS
+  #' roimeas_dat_combine <-
+  #'   vpr_autoid_read(
+  #'     file_list_aid = aid_file_list_all,
+  #'     file_list_aidmeas = aidmea_file_list_all,
+  #'     export = 'aidmeas',
+  #'     station_of_interest = station_of_interest,
+  #'     opticalSetting = opticalSetting,
+  #'     warn = FALSE,
+  #'     categories = categories
+  #'  )
+  #'
+  #' @export
   # set-up for only processing aid data
-  if(missing(file_list_aidmeas)){export <- 'aid'}
+  if (missing(file_list_aidmeas)) {
+    export <- 'aid'
+  }
   # avoid CRAN notes
   . <- roi <- category <- n_roi <- day_hour <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- NA
-if( export == 'aidmeas'){
-  if (missing(opticalSetting)){
-    opticalSetting <- NA
-    if(warn != FALSE){
-    warning('No optical setting provided, size data output in pixels!!!')
+  if ( export == 'aidmeas') {
+    if (missing(opticalSetting)) {
+      opticalSetting <- NA
+      if (warn != FALSE) {
+        warning('No optical setting provided, size data output in pixels!!!')
+      }
     }
   }
-}
-# aid
+  # aid
+
+
+  # check for empty files
+  empty_files <- list()
+  for (j in seq_len(length(file_list_aid))) {
+    mtry <- try(read.table(file_list_aid[j], sep = ",", header = TRUE),
+                silent = TRUE)
+
+    if (inherits(mtry, 'try-error')) {
+      empty_files[j] <- TRUE
+    } else {
+      empty_files[j] <- FALSE
+    }
+
+  }
+  file_list_aid <- file_list_aid[empty_files == FALSE]
 
   col_names <- "roi"
   dat <- list()
-  for(i in seq_len(length(file_list_aid))) {
+
+  for (i in seq_len(length(file_list_aid))) {
 
     data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
 
@@ -849,18 +1054,16 @@ if( export == 'aidmeas'){
     data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i], categories)[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
     hour <- unlist(vpr_hour(file_list_aid[i]))
-    if(length(day) >1 | length(hour) >1){
+    if (length(day) > 1 || length(hour) > 1) {
       stop('Problem detecting day/hour values!')
     }
     data_tmp$day_hour <- paste(day, hour, sep = ".")
-    dat[[i]]<- data_tmp
+    dat[[i]] <- data_tmp
 
   }
 
 
   dat_combine_aid <- do.call(rbind, dat)
-
-  #browser()
   remove(dat, data_tmp, day, hour)
 
   # format
@@ -880,421 +1083,292 @@ if( export == 'aidmeas'){
 
 
 
-# aidmeas
-# TODO: update code so it can run without measurement input
-if(export == 'aidmeas'){
-  dat <- list()
-  col_names <- c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length')
-  for(i in seq_len(length(file_list_aidmeas))) {
+  # aidmeas
+  # TODO: update code so it can run without measurement input
+  if (export == 'aidmeas') {
 
-    data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
+    # check for empty files
+    empty_files <- list()
+    for (j in seq_len(length(file_list_aidmeas))) {
+      mtry <- try(read.table(file_list_aidmeas[j], sep = ",", header = TRUE),
+                  silent = TRUE)
+
+      if (inherits(mtry, 'try-error')) {
+        empty_files[j] <- TRUE
+      } else {
+        empty_files[j] <- FALSE
+      }
+    }
+    file_list_aidmeas <- file_list_aidmeas[empty_files == FALSE]
+
+    dat <- list()
+    col_names <- c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length')
+    for (i in seq_len(length(file_list_aidmeas))) {
+
+      data_tmp <- read.table(file_list_aidmeas[i], stringsAsFactors = FALSE, col.names = col_names)
 
 
-if(!is.na(opticalSetting)){
-      data_tmp <- px_to_mm(data_tmp, opticalSetting)
-}
-
-
-
-
-  data_tmp$category <- unlist(vpr_category(file_list_aidmeas[i], categories))
-  day <- unlist(vpr_day(file_list_aidmeas[i]))
-  hour <- unlist(vpr_hour(file_list_aidmeas[i]))
-  data_tmp$day_hour <- paste(day, hour, sep = ".")
-  dat[[i]]<- data_tmp
-
-  }
-
-  dat_combine_aidmeas <- do.call(rbind, dat)
-
-  # remove(dat, data_tmp, day, hour)
-  dat_combine_aidmeas$id <- row.names(dat_combine_aidmeas)
-
-  # Get roi measurement data frame
-  dat_combine_selected <- dat_combine_aidmeas %>%
-    dplyr::select(., category, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
-
-  roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('category', 'day_hour', 'id') ) %>%
-    dplyr::select(., - id) %>%
-    dplyr::mutate(., station = station_of_interest) %>%
-    dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
-    dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
-
-} # end aidmeas section
+      if (!is.na(opticalSetting)) {
+        data_tmp <- px_to_mm(data_tmp, opticalSetting)
+      }
 
 
 
-  #  browser()
-# export
-  if (export == 'aid'){
+
+      data_tmp$category <- unlist(vpr_category(file_list_aidmeas[i], categories))
+      day <- unlist(vpr_day(file_list_aidmeas[i]))
+      hour <- unlist(vpr_hour(file_list_aidmeas[i]))
+      data_tmp$day_hour <- paste(day, hour, sep = ".")
+      dat[[i]] <- data_tmp
+
+    }
+
+    dat_combine_aidmeas <- do.call(rbind, dat)
+
+    # remove(dat, data_tmp, day, hour)
+    dat_combine_aidmeas$id <- row.names(dat_combine_aidmeas)
+
+    # Get roi measurement data frame
+    dat_combine_selected <- dat_combine_aidmeas %>%
+      dplyr::select(., category, day_hour, id, Perimeter, Area, width1, width2, width3, short_axis_length, long_axis_length) #added all measurement columns EC Jan 28 2020
+
+    roimeas_dat_combine <- right_join(dat_combine_aid, dat_combine_selected, by = c('category', 'day_hour', 'id')) %>%
+      dplyr::select(., - id) %>%
+      dplyr::mutate(., station = station_of_interest) %>%
+      dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+      dplyr::mutate(., time_ms = as.numeric(substr(roi, 1, 8)))
+
+  } # end aidmeas section
+
+
+
+  # export
+  if (export == 'aid') {
     return(roi_dat)
   }
 
-  if (export == 'aidmeas'){
-     return(roimeas_dat_combine)
-
+  if (export == 'aidmeas') {
+    return(roimeas_dat_combine)
   }
-
-
-
 }
 
+bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
+  #' Get bin averages for VPR and CTD data
+  #'
+  #' Bins CTD data for an individual cast to avoid depth averaging across tow-yo's
+  #'
+  #' @author E. Chisholm, K. Sorochan
+  #'
+  #'
 
-
-#'Get conversion factor for pixels to mm for roi measurements
-#'
-#'Used internally
-#'
-#' @details converts pixels to mm using conversion factor specific to optical setting
-#'
-#' @param x an aidmea data frame (standard) to be converted into mm from pixels
-#' @param opticalSetting the VPR setting determining the field of view and conversion factor between mm and pixels
-#'
-#' @details Options for opticalSetting are 'S0', 'S1', 'S2', or 'S3'
-#'
-#' @export
-px_to_mm <- function(x, opticalSetting) {
-
-
-
-  #find correct conversion factor based on VPR optical setting
-  if (opticalSetting == 'S0'){
-    #px to mm conversion factor
-    frame_mm <- 7
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
-  }
-  if (opticalSetting == 'S1'){
-    #px to mm conversion factor
-    frame_mm <- 14
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
-  }
-  if (opticalSetting == 'S2'){
-    #px to mm conversion factor
-    frame_mm <- 24
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
-  }
-  if (opticalSetting == 'S3'){
-    #px to mm conversion factor
-    frame_mm <- 48
-    mm_px <- frame_mm/1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
-  }
-  #original default to S2 setting
-  #mm_px <- 24/1024 #mm/pixel
-
-  mm2_px2 <- (mm_px)^2
-
-  x[, c(1, 3:7)] <- x[, c(1, 3:7)]*mm_px
-  x[,2] <- x[,2]*mm2_px2
-
-  return(x)
-
-}
-
-
-#'Read CTD data (SBE49) and Fluorometer data from CTD- VPR package
-#'
-#'Internal use \code{\link{vpr_ctd_read}}
-#'
-#'**WARNING** This is hard coded to accept a specific
-#' order of CTD data columns. The names and values in these columns can change
-#' based on the specific instrument and should be updated before processing data
-#' from a new VPR.
-#'
-#'Text file format .dat file
-#'Outputs ctd dataframe with variables time_ms, conductivity, temperature,
-#'pressure, salinity, fluor_ref, fluorescence_mv, turbidity_ref,
-#'turbidity_mv, altitude_NA
-#' @author K. Sorochan, E. Chisholm
-#'
-#'
-#'
-#'@param x full filename (ctd .dat file)
-#' @param col_list list of CTD data column names
-#'
-#'@export
-ctd_df_cols <- function(x, col_list) {
-
-  if(missing(col_list)){
-    col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity", "fluor_ref", "fluorescence_mv",
-      "turbidity_ref", "turbidity_mv", "altitude_NA")
-    warning('CTD data columns named based on defaults!')
+  #' @param data ctd data frame object including scan, salinity, temperature,
+  #'   depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
+  #'   altitude, cast_id, n_roi
+  #' @param binSize the height of bins over which to average, default is 1 metre
+  #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
+  #' @param rev logical value, if TRUE, binning will begin at bottom of each cast,
+  #'   this controls data loss due to uneven binning over depth. If bins begin at
+  #'   bottom, small amounts of data may be lost at the surface of each cast, if
+  #'   binning begins at surface (rev = FALSE), small amounts of data may be lost
+  #'   at bottom of each cast
+  #'
+  #'
+  #' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
+  #' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+  #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
+  #' Used internally ( \code{\link{bin_cast}} ) after \code{\link{ctd_cast}} on a single ascending or descending section of VPR cast
+  #'
+  #'
+  #'
+  #' @note binSize should be carefully considered for best results
+  #' @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
+  #'
+  #' @export
+  #'
+  # input validation
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("data must be a data frame")
   }
 
-
-  data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
-  time <- data[,1]
-  time <- as.numeric(gsub("[^[:digit:]]", "", time))
-
-
-  data2 <- cbind(time, data[,-1])
-  colnames(data2) <- col_list
-  data2 <- data2[!duplicated(data2), ]
-  data2
-}
-
-
-
-#' Normalize a matrix
-#'
-#' take each element of matrix dived by column total
-#'
-#' Make sure to remove total rows before using with VP data
-#'
-#' @note used internally for visualization of confusion matrices
-#'
-#' @param mat a matrix to normalize
-#'
-#'
-normalize_matrix <- function(mat){
-
-
-  nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
-  for(i in seq_len(length(nm[,1]))){ # 1:length(nm[,1])
-    for (j in seq_len(length(nm[1,]))){ # 1:length(nm[1,])
-      nm[i,j] <- mat[i,j]/colSums(mat)[j]
-    }
+  # Check that the binSize argument is a numeric value greater than 0
+  if (!is.numeric(binSize) || binSize <= 0) {
+    stop("binSize must be a numeric value greater than 0")
   }
-  return(nm)
 
-}
-
-#' Get size data from idsize files
-#'
-#'
-#' useful for getting size distribution of known rois from each category. gathers
-#' size information from idsize text files produced when training a new
-#' classifier in VP (Visual Plankton)
-#'
-#'
-#'@param directory cruise directory eg. 'C:/data/IML2018051/'
-#'@param category list of character elements containing category of interest
-#'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
-#'
-#' @export
-
-
-# @examples
-# \dontrun{
-#
-# }
-
-vpr_trrois_size <- function(directory, category, opticalSetting){
-
-  #loop for each category of interest
-  for (t in category){
-    #check
-    # g <- grep(category_names, pattern = t)
-    # if (length(g) == 0){
-    #   stop(paste('category of interest, ', t, 'not found in data provided!'))
-    # }
-    #
-    size_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('mea.', t))
-    #roi_file <- list.files(path = paste0(directory,'/idsize'), pattern = paste0('hid.v0.',t))
-
-    #Get info
-    #roi_ID <- read.table(paste0(directory,'/idsize/', roi_file), stringsAsFactors = FALSE)
-    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
-
-    eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
-
-
+  # Check that the imageVolume argument is a numeric value greater than 0
+  if (!is.numeric(imageVolume) || imageVolume <= 0) {
+    stop("imageVolume must be a numeric value greater than 0")
   }
-  #returns a data frame with size information and named columns
-  eval(parse(text = paste0('return(auto_measure_', t,'_mm)')))
-}
 
+  # Check that the rev argument is a logical value
+  if (!is.logical(rev)) {
+    stop("rev must be a logical value")
+  }
 
+  # Check that the data argument has a "depth" column
+  if (!"depth" %in% colnames(data)) {
+    stop("data must have a 'depth' column")
+  }
 
-#' Get bin averages for VPR and CTD data
-#'
-#' Bins CTD data for an individual cast to avoid depth averaging across tow-yo's
-#'
-#' @author E. Chisholm, K. Sorochan
-#'
-#'
+  # Check that the data argument has a "cast_id" column
+  if (!"cast_id" %in% colnames(data)) {
+    stop("data must have a 'cast_id' column")
+  }
 
-#' @param data ctd data frame object including scan, salinity, temperature,
-#'   depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
-#'   altitude, cast_id, n_roi
-#' @param binSize the height of bins over which to average, default is 1 metre
-#' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
-#' @param rev logical value, if TRUE, binning will begin at bottom of each cast,
-#'   this controls data loss due to uneven binning over depth. If bins begin at
-#'   bottom, small amounts of data may be lost at the surface of each cast, if
-#'   binning begins at surface (rev = FALSE), small amounts of data may be lost
-#'   at bottom of each cast
-#'
-#'
-#' @details Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
-#' For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
-#' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
-#' Used internally ( \code{\link{bin_cast}} ) after \code{\link{ctd_cast}} on a single ascending or descending section of VPR cast
-#'
-#'
-#'
-#' @note binSize should be carefully considered for best results
-#' @note Depth is used for calculations! Please ensure depth is included in data frame using \link[oce]{swDepth}
-#'
-#' @export
-#'
-bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE){
-
-# browser()
-  cast_id <-unique(data$cast_id)
-
-
-
-
-  cast_id <-unique(data$cast_id)
+  cast_id <- unique(data$cast_id)
   max_cast_depth <- max(data$depth) # ADDED BY KS TO IDENTIFY EACH TOWYO CHUNK
 
   p <- data$depth
   max_depth <- max(p, na.rm = TRUE)
   min_depth <- min(p, na.rm = TRUE)
   x_breaks <- seq(from = floor(min_depth), to = ceiling(max_depth), by = binSize)
-  if (rev == TRUE){
+  if (rev == TRUE) {
     x_breaks <- seq(from = ceiling(max_depth), to = floor(min_depth), by = - binSize) #reversed by KS
   }
 
   # error when cast is too small
-  if(max_depth - min_depth < binSize){
+  if (max_depth - min_depth < binSize) {
     warning(paste('Cast', cast_id, 'is too small to calculate information for bins of size', binSize))
     data.frame(NULL)
-  }else{
+  } else {
 
 
-  # Get variables of interest using oce bin functions
+    # Get variables of interest using oce bin functions
 
-  min_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, min)$result
-  max_time_s <- oce::binApply1D(p, data$time_ms/1000, xbreaks = x_breaks, max)$result
-  min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
-  max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
-  n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
-  temperature <- oce::binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
-  salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
-  density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
-  fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
-  turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
-  time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
-  time_hr <- oce::binApply1D(p, data$time_ms/(1000*3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
-if (rev == TRUE){
+    min_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, min)$result
+    max_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, max)$result
+    min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
+    max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
+    n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
+    temperature <- oce::binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
+    salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+    density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
+    fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
+    turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
+    time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
+    time_hr <- oce::binApply1D(p, data$time_ms / (1000 * 3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
+    if (rev == TRUE) {
 
-  depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
+      depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
 
-}else{ # simplify?
+    } else { # simplify?
 
-    depth <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
+      depth <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids
 
-  }
-  # calculates number of frames captured per depth bin by counting number of pressure observations per bin
-  n_frames <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
-
-  # WARNING
-  # binApply1D does not calculate NAs, if there is binned depth range that does
-  # not contain any data, the binApply function will not create an empty or NA
-  # placeholder bin in that case the result length will be different than the
-  # length of midpoints since the variable "pressure" is a mid point calculation it is used to
-  # test for non existent empty bins. If there are non existant empty bins,
-  # binMean1D will calculate them as NA, this loop finds where the bins would
-  # have been located and removes those indexes from the pressure vector so the
-  # length of variables is all identical
-
-  if (!(length(depth) == length(salinity))) {
-
-    salinity_mean <- binMean1D(p, data$salinity, xbreaks = x_breaks)$result
-
-    idx_rm <- which(is.na(salinity_mean))
-
-    # informs user where bins were removed due to NAs
-    # note if a bin is 'NA' typically because there is no valid data in that depth range,
-    # if you have a lot of NA bins, think about increasing your binSize
-    message(paste('Removed bins at', depth[idx_rm]))
-
-    lp <- length(depth)
-    depth <- depth[-idx_rm]
-    if (length(n_frames) == lp){
-      n_frames <- n_frames[-idx_rm]
     }
+    # calculates number of frames captured per depth bin by counting number of pressure observations per bin
+    n_frames <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
 
-  }
-  # make sure n_frames matches the length of other data frame rows
-  if (length(n_frames) > length(depth)){
-    n_frames <- n_frames[-length(n_frames)]
-  }
-  if( length(n_frames) < length(depth)){
-    n_frames <- c(n_frames, 0)
-  }
-  if (length(n_frames) != length(depth)){
-    length(n_frames) <- length(depth)
-  }
-  # Get derived variables
+    # WARNING
+    # binApply1D does not calculate NAs, if there is binned depth range that does
+    # not contain any data, the binApply function will not create an empty or NA
+    # placeholder bin in that case the result length will be different than the
+    # length of midpoints since the variable "pressure" is a mid point calculation it is used to
+    # test for non existent empty bins. If there are non existant empty bins,
+    # binMean1D will calculate them as NA, this loop finds where the bins would
+    # have been located and removes those indexes from the pressure vector so the
+    # length of variables is all identical
 
-  time_diff_s <- max_time_s - min_time_s
+    if (!(length(depth) == length(salinity))) {
 
-  # calculate concentration based on opticalSetting
+      salinity_mean <- binMean1D(p, data$salinity, xbreaks = x_breaks)$result
 
-  # "Old way" of calculating concentration assuming constant frame rate of 15 fps
-  # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s)) #
+      idx_rm <- which(is.na(salinity_mean))
 
-  # "New way" of calculating concentration by summing volume associated with frames over depth bin
-  vol_sampled_bin_m3 <- (imageVolume/1e09)*n_frames
-  conc_m3 <- n_roi_bin/(vol_sampled_bin_m3) # KS edit 10/9/19
+      # informs user where bins were removed due to NAs
+      # note if a bin is 'NA' typically because there is no valid data in that depth range,
+      # if you have a lot of NA bins, think about increasing your binSize
+      message(paste('Removed bins at', depth[idx_rm]))
 
-  depth_diff <- max_depth - min_depth
+      lp <- length(depth)
+      depth <- depth[-idx_rm]
+      if (length(n_frames) == lp) {
+        n_frames <- n_frames[-idx_rm]
+      }
 
-  # Output
-  data.frame(depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s,
-             n_roi_bin, conc_m3,
-             temperature, salinity, density, fluorescence, turbidity,
-             time_hr, n_frames, vol_sampled_bin_m3, time_ms,
-             towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
-} # end else loop for size error
+    }
+    # make sure n_frames matches the length of other data frame rows
+    if (length(n_frames) > length(depth)) {
+      n_frames <- n_frames[-length(n_frames)]
+    }
+    if (length(n_frames) < length(depth)) {
+      n_frames <- c(n_frames, 0)
+    }
+    if (length(n_frames) != length(depth)) {
+      length(n_frames) <- length(depth)
+    }
+    # Get derived variables
+
+    time_diff_s <- max_time_s - min_time_s
+
+    # calculate concentration based on opticalSetting
+
+    # "Old way" of calculating concentration assuming constant frame rate of 15 fps
+    # conc_m3 <- n_roi_bin/((imageVolume/1e09)*(15)*(time_diff_s)) #
+
+    # "New way" of calculating concentration by summing volume associated with frames over depth bin
+    vol_sampled_bin_m3 <- (imageVolume / 1e09) * n_frames
+    conc_m3 <- n_roi_bin / (vol_sampled_bin_m3) # KS edit 10/9/19
+
+    depth_diff <- max_depth - min_depth
+
+    # Output
+    data.frame(depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s,
+               n_roi_bin, conc_m3,
+               temperature, salinity, density, fluorescence, turbidity,
+               time_hr, n_frames, vol_sampled_bin_m3, time_ms,
+               towyo = cast_id, max_cast_depth) # MAX CAST PRESSURE ADDED BY KS
+  } # end else loop for size error
 }
 
-
-#' Isolate ascending or descending section of ctd cast
-#'
-#' This is an internal step required to bin data
-#'
-#'
-#' @author  K Sorochan, E Chisholm
-#'
-#' @param data an \code{oce} ctd object
-#' @param cast_direction 'ascending' or 'descending' depending on desired section
-#' @param data_type specify 'oce' or 'df' depending on class of desired output
-#' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
-#' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
-#' @return Outputs either data frame or oce ctd object
-#'
-#'
-#'
-#' @note \code{\link{ctdFindProfiles}} arguments for \code{minLength} and \code{cutOff} were updated to
-#' prevent losing data (EC 2019/07/23)
-#'
-#'
-#' @export
-#'
 ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1, breaks = NULL) {
+  #' Isolate ascending or descending section of ctd cast
+  #'
+  #' This is an internal step required to bin data
+  #'
+  #'
+  #' @author  K Sorochan, E Chisholm
+  #'
+  #' @param data an \code{oce} ctd object
+  #' @param cast_direction 'ascending' or 'descending' depending on desired section
+  #' @param data_type specify 'oce' or 'df' depending on class of desired output
+  #' @param cutoff Argument passed to \link[oce]{ctdFindProfiles}
+  #' @param breaks Argument passed to \link[oce]{ctdFindProfiles}
+  #' @return Outputs either data frame or oce ctd object
+  #'
+  #'
+  #'
+  #' @note \code{\link{ctdFindProfiles}} arguments for \code{minLength} and \code{cutOff} were updated to
+  #' prevent losing data (EC 2019/07/23)
+  #'
+  #'
+  #' @export
+  #'
+  # input validation
+  # Check that the data argument is a valid ctd object
+  if (!inherits(data, "ctd")) {
+    stop("data must be a valid ctd object")
+  }
+
 
   cast_updated <- list()
-
-
-  if (is.null(breaks)){
+  # browser()
+  if (is.null(breaks)) {
     cast <- oce::ctdFindProfiles(data, direction = cast_direction, minLength = 0, cutoff = cutoff)
-  }else{
-    cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction)
+  }else {
+    cast <- oce::ctdFindProfiles(data, breaks = breaks, direction = cast_direction, cutoff = cutoff)
 
   }
 
 
 
   # append data with 'cast_id' to be able to identify/ combine data frames
-  for(i in seq_len(length(cast))) {
+  for (i in seq_len(length(cast))) {
 
     data <- cast[[i]]
 
     n_obs <- length(data@data$pressure)
-    cast_number <- i
     cast_id <- paste(cast_direction, i, sep = "_")
     cast_id_vec <- rep(cast_id, n_obs)
 
@@ -1303,17 +1377,16 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
   }
 
   # output in oce format
-  if(data_type == "oce") {
+  if (data_type == "oce") {
 
     cast_updated
 
   }
 
   # output in dataframe
-  if(data_type == "df") {
+  if (data_type == "df") {
 
     getDf <- function(x) {
-
       data.frame(x@data, stringsAsFactors = FALSE)
 
     }
@@ -1324,19 +1397,286 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 }
 
-#' Find day & hour info to match each station of interest for processing
-#'
-#'
-#'  @author E. Chisholm and K. Sorochan
-#'
-#' @param stations a vector of character values naming stations of interest
-#' @param file CSV file containing 'day', 'hour', 'station', and 'day_hour' columns
-#'
-#' @return Vector of day-hour combinations corresponding to stations of interest
-#'
-#' @export
-vpr_dayhour <- function(stations, file) {
 
+### Image helpers ----
+
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour') {
+  #' Copy VPR images into folders
+  #'
+  #' Organize VPR images into folders based on classifications provided by visual plankton
+  #'
+  #' @param new_autoid A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"
+  #' @param day character string representing numeric day of interest (3 chr)
+  #' @param hour character string representing hour of interest (2 chr)
+  #' @param cast character string, VPR cast number of interest (3 chr)
+  #' @param station character string, station name of interest (eg. "Shediac")
+  #' @param roi_path (optional) provide if ROI data has been moved since autoid
+  #'   files were created (if path strings in aid files do not match where data
+  #'   currently exists), a file path where ROI data is stored (up to "rois"
+  #'   folder)
+  #' @param threshold (optional) a numeric value, supplied only if you are
+  #'     copying images based on automated classifications, only images below this
+  #'     threshold of confidence will be copied for manual classification
+  #' @param org chr value, if 'station', images will be output in folders labelled
+  #'   by station, if 'dayhour', images will be output in folders labelled by day
+  #'   and hour
+  #'
+  #' @note this function uses tidy paths, see fs::path_tidy() for more info
+  #'
+  #' @return organized file directory where VPR images are contained with folders, organized by day, hour and classification,
+  #' inside your autoid folder
+  #'
+  #' @export
+
+  # INPUT VALIDATION
+  # Check that the day argument is a character string of length 3
+  if (!is.character(day) || nchar(day) != 3) {
+    stop("day must be a character string of length 3")
+  }
+
+  # Check that the hour argument is a character string of length 2
+  if (!is.character(hour) || nchar(hour) != 2) {
+    stop("hour must be a character string of length 2")
+  }
+
+  # Check that the cast argument is a character string of length 3
+  if (!is.character(cast) || nchar(cast) != 3) {
+    stop("cast must be a character string of length 3")
+  }
+
+  # Check that the station argument is a character vector
+  if (!is.character(station)) {
+    stop("station must be a character vector")
+  }
+
+  # Check that the threshold argument is a numeric value between 0 and 1 (if not NULL)
+  if (!is.null(threshold) && (!is.numeric(threshold) || threshold < 0 || threshold > 1)) {
+    stop("threshold must be a numeric value between 0 and 1")
+  }
+
+  # Check that the org argument is either 'station' or 'dayhour' (if not NULL)
+  if (!is.null(org) && org != 'station' && org != 'dayhour') {
+    stop("org must be either 'station' or 'dayhour'")
+  }
+  #TODO update to use withr::with_dir to avoid CRAN complaints
+
+  # for each dh check which station it should be in
+  dh <- paste0('d', day, '.h', hour)
+  # pull new_aids per station
+  aid_fns <- list.files(new_autoid, pattern = dh, recursive = TRUE, full.names = TRUE)
+  # remove empty files
+  empty_ind <- list()
+  for (ii in seq_len(length(aid_fns))) {
+    mtry <- try(read.table(aid_fns[ii], sep = ",", header = TRUE),
+                silent = TRUE)
+    if (inherits(mtry, 'try-error')) {
+      empty_ind[[ii]] <- TRUE
+    }else {
+      empty_ind[[ii]] <- FALSE
+    }
+  }
+
+  aid_fns <- aid_fns[unlist(empty_ind) == FALSE]
+
+  # read aid files
+  for (ii in seq_len(length(aid_fns))) {
+    if (missing(threshold) | is.null(threshold) == TRUE) {
+      aid_dat <- read.table(aid_fns[ii])
+    }else {
+      aid_dat <- read.table(aid_fns[ii], stringsAsFactors = FALSE)
+      aid_dat <- subset(aid_dat, aid_dat$V2 < threshold)
+    }
+    category <- unlist(vprr::vpr_category(aid_fns[ii],
+                                          categories = list.files(path = new_autoid, include.dirs = TRUE)))
+
+
+    # fix file paths so they will copy
+    if (!missing(roi_path)) {
+      tt <- stringr::str_locate(string = aid_dat$V1[1], pattern = 'rois')
+      sub_roi_path <- substr(aid_dat$V1, tt[1], nchar(aid_dat$V1))
+      new_roi_path <- paste0(roi_path, sub_roi_path)
+    } else {
+      new_roi_path <- aid_dat$V1
+    }
+
+    # tidy path strings
+    new_roi_path <- fs::path_tidy(new_roi_path)
+
+    # copy images in batches
+
+    if (org == 'station') {
+      copy_path <- file.path(new_autoid, category,
+                             paste0('vpr', cast, '_', station, '_ROIS'))
+    }
+    if (org == 'dayhour') {
+      copy_path <- file.path(new_autoid, category,
+                             paste0("aid.", dh, "_ROIS"))
+    }
+    fs::dir_create(copy_path, recurse = TRUE)
+
+    fs::file_copy(new_roi_path, copy_path, overwrite = TRUE)
+
+    cat(length(new_roi_path), 'images copied to ', copy_path, '\n')
+  }
+}
+
+### Helpers  & Formatting ----
+
+vpr_ctd_ymd <- function(data, year, offset) {
+  #' Add Year/ month/ day hour:minute:second information
+  #'
+  #' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
+  #' Will also add 'time_hr' parameter if not already present.
+  #'
+  #' @param data VPR data frame from \code{\link{vpr_ctdroi_merge}}
+  #' @param year Year of data collection
+  #' @param offset time offset in hours between VPR CPU and processed data times (optional)
+  #'
+  #' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
+  #'
+  #' @examples
+  #' year <- 2019
+  #' data('ctd_roi_merge')
+  #' dat <- vpr_ctd_ymd(ctd_roi_merge, year)
+  #'
+  #'
+  #' @export
+
+  # avoid CRAN notes
+  . <- time_ms <- NA
+
+  d <- grep(names(data), pattern = 'time_hr')
+  if (length(d) == 0) {
+    data <- data %>%
+      dplyr::mutate(., time_hr = time_ms / 3.6e+06)
+  }
+
+  day_num <- substr(data$day, 2, 4)
+
+  ymdd <- as.Date(as.numeric(day_num), origin = paste0(year, '-01-01'))
+
+
+  l_per <- round(lubridate::seconds_to_period(data$time_ms / 1000), 0)
+
+
+  ymdhms_obj <- as.POSIXct(l_per, origin = ymdd, tz = 'UTC')
+
+  if (!missing(offset)) {
+
+    ymdhms_obj <- ymdhms_obj + offset * 3600 # convert hour offset to seconds and adjust times
+
+  }
+
+  data <- data %>%
+    dplyr::mutate(., ymdhms = ymdhms_obj)
+
+  return(data)
+
+}
+
+px_to_mm <- function(x, opticalSetting) {
+  #'Get conversion factor for pixels to mm for roi measurements
+  #'
+  #'Used internally
+  #'
+  #' @details converts pixels to mm using conversion factor specific to optical setting
+  #'
+  #' @param x an aidmea data frame (standard) to be converted into mm from pixels
+  #' @param opticalSetting the VPR setting determining the field of view and conversion factor between mm and pixels
+  #'
+  #' @details Options for opticalSetting are 'S0', 'S1', 'S2', or 'S3'
+  #'
+  #' @export
+
+
+  #find correct conversion factor based on VPR optical setting
+  if (opticalSetting == 'S0') {
+    #px to mm conversion factor
+    frame_mm <- 7
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S1') {
+    #px to mm conversion factor
+    frame_mm <- 14
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S2') {
+    #px to mm conversion factor
+    frame_mm <- 24
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  if (opticalSetting == 'S3') {
+    #px to mm conversion factor
+    frame_mm <- 48
+    mm_px <- frame_mm / 1024 #1024 is resolution of VPR images (p.4 DAVPR manual)
+  }
+  mm2_px2 <- (mm_px)^2
+
+  x[, c(1, 3:7)] <- x[, c(1, 3:7)] * mm_px
+  x[, 2] <- x[, 2] * mm2_px2
+
+  return(x)
+
+}
+
+ctd_df_cols <- function(x, col_list) {
+  #'Read CTD data (SBE49) from CTD- VPR package
+  #'
+  #'Internal use \code{\link{vpr_ctd_read}}
+  #'
+  #'**WARNING** This is hard coded to accept a specific
+  #' order of CTD data columns. The names and values in these columns can change
+  #' based on the specific instrument and should be updated before processing data
+  #' from a new VPR.
+  #'
+  #'Text file format .dat file
+  #'Outputs ctd dataframe with variables time_ms, conductivity, temperature,
+  #'pressure, salinity
+  #' @author K. Sorochan, E. Chisholm
+  #'
+  #'
+  #'
+  #'@param x full filename (ctd .dat file)
+  #' @param col_list list of CTD data column names
+  #'
+  #'@export
+  if (missing(col_list)) {
+    col_list <- c("time_ms", "conductivity", "temperature", "pressure", "salinity")
+    warning('CTD data columns named based on defaults!')
+  }
+
+
+
+
+  data <- read.table(textConnection(gsub(":", ",", readLines(x))), sep = ",")
+  time <- data[, 1]
+  time <- as.numeric(gsub("[^[:digit:]]", "", time))
+
+
+  data2 <- cbind(time, data[, -1])
+
+  # check that provided names are right length
+  if (length(col_list) > ncol(data2)) {
+    stop('Column name vector does not match data! Too many column names!')
+  }
+
+  colnames(data2) <- col_list
+  data2 <- data2[!duplicated(data2), ]
+  data2
+}
+
+vpr_dayhour <- function(stations, file) {
+  #' Find day & hour info to match each station of interest for processing
+  #'
+  #'
+  #'  @author E. Chisholm and K. Sorochan
+  #'
+  #' @param stations a vector of character values naming stations of interest
+  #' @param file CSV file containing 'day', 'hour', 'station', and 'day_hour' columns
+  #'
+  #' @return Vector of day-hour combinations corresponding to stations of interest
+  #'
+  #' @export
   # avoid CRAN notes
   . <- station <- NA
 
@@ -1356,36 +1696,32 @@ vpr_dayhour <- function(stations, file) {
 
 }
 
-
-
-#' Create a list of ctd files to be read
-#'
-#' Searches through typical VP directory structure
-#'
-#' Use with caution
-#'
-#'
-#' @param castdir root directory for ctd cast files
-#' @param cruise cruise name (exactly as in directory structure)
-#' @param day_hour vector of day-hour combinations (e.g, dXXX.hXX)
-#' @author E. Chisholm and K. Sorochan
-#'
-#' @return vector of ctd file paths matching days-hour combinations provided
-#'
-#' @export
 vpr_ctd_files <- function(castdir, cruise, day_hour) {
-
+  #' Create a list of ctd files to be read
+  #'
+  #' Searches through typical VP directory structure
+  #'
+  #' Use with caution
+  #'
+  #'
+  #' @param castdir root directory for ctd cast files
+  #' @param cruise cruise name (exactly as in directory structure)
+  #' @param day_hour vector of day-hour combinations (e.g, dXXX.hXX)
+  #' @author E. Chisholm and K. Sorochan
+  #'
+  #' @return vector of ctd file paths matching days-hour combinations provided
+  #'
+  #' @export
 
   # ADDED BY KS
   vpr_cast_folders <- list.files(castdir, pattern = '')
 
-  # find right vpr cast -- subset by tow number #
-  # folder <- grep(vpr_cast_folders, pattern = paste0('AD_', vprnum,'.VPR.', cruise,'*'), value = T) #ADDED BY KS, AD PATTERN IS NOT CONSISTENT?
-
   # not subset by tow number
-  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise,'*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
+  folder <- grep(vpr_cast_folders, pattern = paste0('VPR.', cruise, '*'), value = TRUE) # removed leading period before VPR to fit file naming scheme in COR2019002
 
-  if (length(folder) == 0){stop("No CTD files found!")}
+  if (length(folder) == 0) {
+    stop("No CTD files found!")
+    }
   folder_path <- paste0(castdir, folder)
 
   # grab all days
@@ -1406,25 +1742,23 @@ vpr_ctd_files <- function(castdir, cruise, day_hour) {
 
 }
 
-
-#' Get roi ids from string
-#'
-#' @author K Sorochan
-#' @param x A string specifying directory and file name of roi
-#'
-#' @return A string of only the 10 digit roi identifier
-#'
-#' @examples
-#'
-#' roi_string <- 'roi.0100000000.tif'
-#' vpr_roi(roi_string)
-#'
-#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_category}}
-#' @export
-#'
-#'
 vpr_roi <- function(x) {
-
+  #' Get roi ids from string
+  #'
+  #' @author K Sorochan
+  #' @param x A string specifying directory and file name of roi
+  #'
+  #' @return A string of only the 10 digit roi identifier
+  #'
+  #' @examples
+  #'
+  #' roi_string <- 'roi.0100000000.tif'
+  #' vpr_roi(roi_string)
+  #'
+  #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_category}}
+  #' @export
+  #'
+  #'
   m <- gregexpr("\\d{10}", x)
 
   y <- regmatches(x, m)
@@ -1433,67 +1767,56 @@ vpr_roi <- function(x) {
 
 }
 
-
-#' Get category ids from string
-#'
-#' @author K Sorochan
-#'
-#' @param x A chr string which represents file paths from which category should be extracted
-#' @param categories A list object with all the potential classification categories
-#' @return A chr string of only the category id
-#'
-#' @note This function searches for exact matches to categories within '/' file separators. You may encounter errors if
-#'
-#' @examples
-#' category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-#' categories <- list("Calanus", "marine_snow", "blurry", "other_copepod")
-#' vpr_category(category_string, categories)
-#'
-#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
-#' @export
-#'
-#'
 vpr_category <- function(x, categories) {
-
-  if(length(grep(x, pattern = "\\/")) == 0){
-    stop("x provided is not a valid file path! Please use'/' file seperators to properly catch category")
-  }
-  m <- NA
+  #' Get category ids from string
+  #'
+  #' @author K Sorochan
+  #'
+  #' @param x A chr string which represents file paths from which category should be extracted
+  #' @param categories A list object with all the potential classification categories
+  #' @return A chr string of only the category id
+  #'
+  #' @note This function searches for exact matches to categories within '/' file separators. You may encounter errors if
+  #'
+  #' @examples
+  #' category_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+  #' categories <- list("Calanus", "marine_snow", "blurry", "other_copepod")
+  #' vpr_category(category_string, categories)
+  #'
+  #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_day}}, \code{\link{vpr_roi}}
+  #' @export
+  #'
+  #'
+# updated to vpr_category_ks2 version
   for (i in seq_len(length(categories))) {
-    cat_id <- categories[i]
-    m_tmp <- gregexpr(paste0("\\/",cat_id, "\\/"), x)
+    category <- categories[i]
+    m_tmp <- gregexpr(category, x)
     if (m_tmp[[1]][1] > 0) {
       m <- m_tmp
+    }else {
     }
   }
-  if(anyNA(m)){
-    stop('category ID not found! Check list of category options!')
-  }
   y <- regmatches(x, m)
-  y <- gsub(y, pattern = "\\/", replacement = "")
   return(y)
 
 }
 
-
-
-#' Get day identifier
-#'
-#' @author K Sorochan
-#' @param x A string specifying the directory and file name of the size file
-#'
-#' @return A string of only the day identifier (i.e., "dXXX")
-#'
-#' @examples
-#' day_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
-#' vpr_day(day_string)
-#'
-#' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
-#' @export
-#'
-#'
 vpr_day <- function(x) {
-
+  #' Get day identifier
+  #'
+  #' @author K Sorochan
+  #' @param x A string specifying the directory and file name of the size file
+  #'
+  #' @return A string of only the day identifier (i.e., "dXXX")
+  #'
+  #' @examples
+  #' day_string <- 'C:/data/cruise/autoid/Calanus/d000/h00'
+  #' vpr_day(day_string)
+  #'
+  #' @seealso \code{\link{vpr_hour}}, \code{\link{vpr_roi}}, \code{\link{vpr_category}}
+  #' @export
+  #'
+  #'
   m <- gregexpr("[d]+\\d{3}", x)
 
   y <- regmatches(x, m)
@@ -1501,8 +1824,6 @@ vpr_day <- function(x) {
   return(y)
 
 }
-
-
 
 vpr_hour <- function(x) {
 
@@ -1530,148 +1851,38 @@ vpr_hour <- function(x) {
 
 }
 
-
-
-
-vpr_summary <- function(all_dat, fn, tow = tow, day = day, hour = hour){
-  #'  Data Summary Report
+# Checks ----
+vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
+  #' Checks manually created aid files for errors
   #'
-  #'  Part of VP easy plot processing, prints data summary report to give quantitative, exploratory analysis of data
+  #' Checks for empty files, with an option to delete them. Then checks all the
+  #' data for duplicated or missing ROIs which would indicate a problem with
+  #' `vpr_autoid_create()`
   #'
   #' @author E Chisholm
-  #' @param all_dat data frame containing VPR and CTD data including time_ms,
-  #'   time_hr, conductivity, temperature, pressure, salinity, fluorescence_mv,
-  #'   turbidity_mv, sigmaT
-  #' @param fn file name to save data summary, if not provided, summary will print to console
-  #' @param tow VPR tow number
-  #' @param day julian day
-  #' @param hour two digit hour (24 hr clock)
+  #'
+  #' @param new_autoid file path to autoid folder eg. C:/data/CRUISENAME/autoid/ (produced by `vpr_autoid_create()`)
+  #' @param original_autoid file path to original autoid folder (produced by automated classification)
+  #' @param cruise name of cruise which is being checked
+  #' @param dayhours chr vector, of unique day and hour values to check through (format d123.h12)
+  #'
+  #' @return text file (saved in working directory) named CRUISENAME_aid_file_check.txt
   #'
   #'
   #' @export
-
-  #prints a data summary report, part of VP easyPlot
-  if(!missing(fn)){sink(fn)} # TODO: update to use withr conventions
-
-  cat('                  Data Summary Report \n')
-  cat('Report processed:', as.character(Sys.time()), '\n')
-  cat('Cast: ', tow, '   Day: ', day, '   Hour: ', hour, '\n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Time \n')
-  cat('Data points: ', length(all_dat$time_ms),'\n')
-  cat('Range: ', min(all_dat$time_ms),' - ', max(all_dat$time_ms), ' (ms) \n')
-  cat('Range: ', min(all_dat$time_hr),' - ', max(all_dat$time_hr), ' (hr) \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Conductivity \n')
-  cat('Data points: ', length(all_dat$conductivity),'\n')
-  cat('Range: ', min(all_dat$conductivity),' - ', max(all_dat$conductivity), '  \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Temperature \n')
-  cat('Data points: ', length(all_dat$temperature),'\n')
-  cat('Range: ', min(all_dat$temperature),' - ', max(all_dat$temperature), ' (c) \n')
-  cat('QC: ', length(all_dat[all_dat$temperature < 0 ]), 'points below zero deg c \n')
-  cat('QC: ', length(all_dat[all_dat$temperature > 10]), 'points above ten deg c \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Pressure \n')
-  cat('Data points: ', length(all_dat$pressure),'\n')
-  cat('Range: ', min(all_dat$pressure),' - ', max(all_dat$pressure), ' (db) \n')
-  cat('QC: ', length(all_dat[all_dat$pressure < 0 ]), 'below zero db \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Salinity \n')
-  cat('Data points: ', length(all_dat$salinity),'\n')
-  cat('Range: ', min(all_dat$salinity),' - ', max(all_dat$salinity), ' (PSU) \n')
-  cat('QC: ', length(all_dat[all_dat$salinity < 28 ]), 'points below twenty-eight PSU \n')
-  cat('QC: ', length(all_dat[all_dat$salinity > 34 ]), 'points above thirty-four PSU \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Fluorescence \n')
-  cat('Data points: ', length(all_dat$fluorescence_mv),'\n')
-  cat('Range: ', min(all_dat$fluorescence_mv),' - ', max(all_dat$fluorescence_mv), ' (mv) \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Turbidity \n')
-  cat('Data points: ', length(all_dat$turbidity_mv),'\n')
-  cat('Range: ', min(all_dat$turbidity_mv),' - ', max(all_dat$turbidity_mv), ' (mv) \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  ROI count \n')
-  cat('Data points: ', length(all_dat$n_roi),'\n')
-  cat('Range: ', min(all_dat$n_roi),' - ', max(all_dat$n_roi), ' (counts) \n')
-  cat('\n')
-  cat('\n')
-  cat(' >>>>  Sigma T \n')
-  cat('Data points: ', length(all_dat$sigmaT),'\n')
-  cat('Range: ', min(all_dat$sigmaT),' - ', max(all_dat$sigmaT), '  \n')
-  cat('QC: ', length(all_dat[all_dat$sigmaT < 22 ]), 'points below twenty-two  \n')
-  cat('QC: ', length(all_dat[all_dat$sigmaT > 28 ]), 'points above twenty-eight  \n')
-
-  if(!missing(fn)){sink()}
-
-}
-
-
-
-#' INTERNAL USE ONLY
-#' quick data frame function from github to insert row inside dat frame
-#'
-#'
-#' @param existingDF data frame
-#' @param newrow new row of data
-#' @param r index of new row
-#'
-insertRow <- function(existingDF, newrow, r) {
-
-
-  existingDF[seq(r+1,nrow(existingDF)+1),] <- existingDF[seq(r,nrow(existingDF)),]
-  existingDF[r,] <- newrow
-  existingDF
-}
-
-
-
-
-##check through new aid files and fix errors
-
-#outputs vpr_autoid_check report with any errors
-
-
-#' Checks manually created aid files for errors
-#'
-#' Removes any empty aid files after manual reclassification, checks for tow
-#' numbers and other metadata to match. Performs check to ensure measurement and
-#' ROI files are the same length
-#'
-#' WARNING: This function will delete empty aid and aidmeas files, permanently changing your directory. Consider making a back up copy before running this function.
-#'
-#' @author E Chisholm
-#'
-#' @param basepath basepath to autoid folder eg. C:/data/CRUISENAME/autoid/
-#' @param cruise name of cruise which is being checked
-#' @param del Logical value, if `TRUE`, empty files will be deleted (see warning), if `FALSE`, files WILL NOT be deleted (they will be listed in output)
-#'
-#' @return text file (saved in working directory) named CRUISENAME_aid_file_check.txt
-#'
-#'
-#' @export
-#'
-#'
-vpr_autoid_check <- function(basepath, cruise, del){
+  #'
+  #'
+  . <- category <- roi <- NA # remove global variable warnings
 
   on.exit(closeAllConnections()) # make sure text file gets closed
 
 
-  category_folders <- list.files(basepath, full.names = TRUE)
+  category_folders <- list.files(new_autoid, full.names = TRUE)
 
-  withr::with_output_sink(paste0(cruise,'_aid_file_check.txt'), code = {
-  # sink(paste0(cruise,'_aid_file_check.txt'))
-  # loop through each category
+  withr::with_output_sink(paste0(cruise, '_aid_file_check.txt'), code = {
+  # loop through each day.hour
 
-  for (i in seq_len(length(category_folders))){
+  for (i in seq_len(length(category_folders))) {
     path <- category_folders[i]
 
     # get all files (aid )
@@ -1682,378 +1893,327 @@ vpr_autoid_check <- function(basepath, cruise, del){
     empty_ind <- list()
     for (ii in seq_len(length(aid_fns))){
       fn <- readLines(aid_fns[ii])
-      if(length(fn) == 0){
+      if (length(fn) == 0) {
         cat('\n')
         cat(aid_fns[ii], '\n')
-        cat('File is empty, please delete! \n')
+        cat('File is empty! \n')
         cat('\n')
 
         empty_ind[ii] <- TRUE
-      }else{
+      }else {
         empty_ind[ii] <- FALSE
       }
     }
     cat('Empty file check complete for', category_folders[i], '\n')
-
-    if (del == TRUE){
-    # automated deleteion of empty files
-
-    empty_aids <- aid_fns[empty_ind == TRUE]
-
-    # find corresponding aid meas files
-    # get all files (aidmea )
-    aidmea_fns <- list.files(file.path(path, 'aidmea'), full.names = TRUE)
-
-    empty_aidmeas <- aidmea_fns[empty_ind == TRUE]
-
-    # double check that files are empty
-    empty_files <- c(empty_aids, empty_aidmeas)
-
-    if (length(empty_files) != 0){ # only if empty files exist
-      for (ii in seq_len(length(empty_files))){
-
-        check <- readLines(empty_files[ii])
-
-        if (length(check) != 0){
-
-          stop('Attempting to delete file which is not empty!')
-        }else{
-          cat('\n')
-          cat('Deleteing empty aid and aidmea files! \n')
-          cat(empty_files[ii], 'deleted! \n')
-
-          unlink(empty_files[ii])
-
-        }
-      }
-    }
-
-    }
-    # remove any empty files from data frame before running next check
-
-    aid_fns <- aid_fns[empty_ind == FALSE]
-
-    if(length(aid_fns) != 0){
-      #### VPR TOW NUMBER CHECK
-      # check that all vpr two numbers are the same
-
-
-      # read each aid file
-      for (ii in seq_len(length(aid_fns))){
-        fn <- readLines(aid_fns[ii])
-        # check vpr tow number
-
-        v_loc <- stringr::str_locate(fn, 'vpr')
-
-        vpr_num <- list()
-        for (iii in seq_len(length(v_loc[,1]))){
-          fn_str <- fn[iii]
-          fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
-          vpr_num[iii] <- fn_str_split[[1]][5]
-
-        }
-
-        # test that they are all the same
-
-        un_num_vpr <- unique(vpr_num)
-        if(length(un_num_vpr) > 1){
-          cat('\n')
-          cat('Warning, multiple vpr tow numbers present in', aid_fns[ii], '\n')
-          cat(unlist(un_num_vpr), '\n')
-
-          # get numeric tow numbers
-          tow_num <- as.numeric(substr(un_num_vpr,4,  nchar(un_num_vpr)))
-
-          # should be less than 14 if duplicated
-          tow_num_final <- tow_num[tow_num <14]
-
-          final_vpr <- paste0('vpr', tow_num_final)
-          cat('Changing', aid_fns[ii], '\n')
-          cat(final_vpr, '\n')
-          cat('\n')
-          # put strings back together and save file
-
-          for(iii in seq_len(length(fn))){
-            fn_str <- fn[iii]
-            fn_str_split <- stringr::str_split(fn_str, pattern = '\\\\')
-            fn_str_split[[1]][5] <- final_vpr
-            # paste string back together
-            s_str <- paste(fn_str_split[[1]][1], fn_str_split[[1]][2], fn_str_split[[1]][3], fn_str_split[[1]][4], fn_str_split[[1]][5], fn_str_split[[1]][6], fn_str_split[[1]][7], fn_str_split[[1]][8], sep = '\\')
-
-            fn[iii] <- s_str
-
-          }
-          write.table(file = aid_fns[ii], fn, quote = FALSE, col.names = FALSE, row.names = FALSE)
-
-
-        }
-
-
-      }
-      cat('VPR tow number check complete, ', category_folders[i], '\n')
-
-
-      #### SIZE / ROI FILE LENGTH CHECK
-
-      # check that aid and aid mea files are same length
-      # find files
-      sizefiles <- list.files(paste(category_folders[i],'aidmea',sep='\\'), full.names = TRUE)
-      roifiles <- list.files(paste(category_folders[i],'aid',sep='\\'), full.names=TRUE)
-
-      if(length(sizefiles) != length(roifiles)){
-        cat('Mismatched number of size and roi files! \n')
-      }
-
-      for (ii in seq_len(length(sizefiles))){
-        s_fn <- readLines(sizefiles[[ii]])
-        r_fn <- readLines(roifiles[[ii]])
-        if (length(s_fn > 0)){
-
-          if (length(s_fn[[1]]) != length(r_fn[[1]])){
-            cat('Warning mismatched file lengths! \n')
-            cat(sizefiles[[ii]], ',', roifiles[[ii]], '\n')
-            cat(length(s_fn[[1]]), ',', length(r_fn[[1]]), '\n')
-          }
-        }
-      }
-
-      cat('File size check complete, ', category_folders[i], '\n')
-      cat('\n')
-      cat('------------ \n')
-      cat('\n')
-
-    }else{
-      cat('All files are empty, ', category_folders[i], '\n')
-      cat('No other checks completed \n')
-      cat('\n')
-      cat('------------ \n')
-      cat('\n')
-
-
-    } # end if all files are empty for category
-
   }
 
+    new_aid_fn <- list.files(path = new_autoid, pattern = 'new_aid', recursive = TRUE, full.names = TRUE)
 
-  # sink()
+    categories <- list.files(path = new_autoid)
+
+    cat_list <- lapply(FUN = vpr_category, new_aid_fn, categories)
+
+    new_aids <- data.frame(fn = new_aid_fn,
+                           category = unlist(cat_list),
+                           day = unlist(vpr_day(new_aid_fn)),
+                           hour = unlist(vpr_hour(new_aid_fn))
+    )
+
+    # check for and remove empty files
+    empty_files <- list()
+    for(j in seq_along(new_aids$fn)){
+      mtry <- try(read.table(new_aids$fn[j], sep = ",", header = TRUE),
+                  silent = TRUE)
+
+      if ( inherits(mtry, 'try-error')) {
+        empty_files[j] <- TRUE
+      } else {
+        empty_files[j] <- FALSE
+      }
+    }
+    new_aids <- new_aids[empty_files == FALSE, ]
+
+
+    for (i in seq_along(dayhours)) {
+
+      dh <- dayhours[i]
+
+      aid_fns <- new_aids$fn[paste0(new_aids$day, ".", new_aids$hour) == dh]
+
+      if (length(aid_fns) == 0) {
+        cat('WARNING: ', dh, 'skipped, no valid data found! \n')
+      }else {
+
+        # get test dh  aid cnn data into single table
+        all_cnn_aid <- list.files(original_autoid, pattern = dh,
+                                  full.names = TRUE, recursive = TRUE)
+        aid_dat_cnn <- list()
+        for (l in seq_along(all_cnn_aid)) {
+          aid_dat_cnn[[l]] <- read_aid_cnn(all_cnn_aid[l])
+          cn <- stringr::str_split(all_cnn_aid[l], pattern = '/')
+          cn <- cn[[1]][6]
+          names(aid_dat_cnn)[l] <- cn
+        }
+
+        aid_dat_cnn <- data.table::rbindlist(aid_dat_cnn, idcol = TRUE) %>%
+          dplyr::rename(., 'category' = '.id')
+        aid_dat_cnn <- aid_dat_cnn %>%
+          dplyr::mutate(roi_num = unlist(vpr_roi(aid_dat_cnn$roi)))
+
+
+
+        # read all aid files in
+        aid_dat <- list()
+        for (l in seq_along(aid_fns)) {
+          aid_dat[[l]] <- read.table(aid_fns[l], sep = " ")
+          names(aid_dat[[l]]) <- 'file_path'
+          names(aid_dat)[l] <- vpr_category(aid_fns[l], categories)
+          aid_dat[[l]] <- aid_dat[[l]] %>%
+            mutate(., roi = unlist(vpr_roi(aid_dat[[l]]$file_path)))
+        }
+
+        aid_dat_c <- data.table::rbindlist(aid_dat, idcol = TRUE, fill = TRUE) %>%
+          dplyr::rename(., 'category' = '.id')
+        aid_dat_c <- aid_dat_c %>%
+          dplyr::select(., category, roi)
+
+        #### check for duplicated ROIs ----
+        dupcheck <- duplicated(aid_dat_c$roi)
+
+        cat(length(dupcheck[dupcheck == TRUE]), "/", length(dupcheck), "ROIs are duplicated in ", dh, "\n")
+
+
+        #### check for missing ROIs ----
+        newaidrois <- unique(aid_dat_c$roi)
+
+        cnnaidrois <- aid_dat_cnn$roi
+
+        missingrois <- length(cnnaidrois) - length(newaidrois)
+
+        cat(missingrois, "ROIs are missing in ", dh, "\n")
+      }
+    }
+
   }) # end sink output
 
 }
 
-
-
-#deprecated ----------------------------------------------------------------------------------------------------------------------
-getRoiMeasurements <- function(categoryfolder, nchar_folder, unit = 'mm', opticalSetting) {
-
-  #' THIS FUNCTION HAS BEEN DEPRECATED
+# internal (not exported) ----
+insertRow <- function(existingDF, newrow, r) {
+  #' INTERNAL USE ONLY
+  #' quick data frame function from github to insert row inside dat frame
   #'
-  #' pull roi measurements from all category, all files
   #'
-  #' @param categoryfolder path to category folder (base -- autoid folder)
-  #' @param nchar_folder number of characters in basepath
-  #' @param unit unit data will be output in, 'mm' (default -- millimetres) or 'px' (pixels)
-  #' @param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
+  #' @param existingDF data frame
+  #' @param newrow new row of data
+  #' @param r index of new row
   #'
-  #' @note This function is very finicky, easily broken because it relies on character string splitting.
-  #' categoryFolder argument should not end in a backslash, please check output carefully to
-  #' ensure category names or ROI numbers have been properly sub string'd
-  #' @export
-  #browser()
 
-  # avoid CRAN notes
-  . <- day <- hour <- NA
+  existingDF[seq(r + 1, nrow(existingDF) + 1), ] <- existingDF[seq(r, nrow(existingDF)), ]
+  existingDF[r, ] <- newrow
+  existingDF
+}
 
-  .Deprecated('vpr_autoid_read')
+normalize_matrix <- function(mat) {
+  #' Normalize a matrix
+  #'
+  #' take each element of matrix dived by column total
+  #'
+  #' Make sure to remove total rows before using with VP data
+  #'
+  #' @note used internally for visualization of confusion matrices
+  #'
+  #' @param mat a matrix to normalize
+  #'
+  #'
 
-  auto_measure_mm_allcategory_ls <- list()
-  # browser()
-  for (i in seq_len(length(categoryfolder))) {
-    # print(paste( 'i = ',i))
-    #find files
-    sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = TRUE)
-    roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=TRUE)
-
-    #remove dummy files for vpr_manual_classification
-    #check for dummy files
-    sfd <-  grep(sizefiles, pattern = 'dummy')
-    rfd <-  grep(roifiles, pattern = 'dummy')
-
-    if (length(rfd) != 0){
-      # print('dummy files removed')
-      #remove dummy files from meas consideration to avoid error
-      sizefiles <- sizefiles[-sfd]
-      roifiles <- roifiles[-rfd]
-
-    }
-    #skip for blank category
-    #browser()
-    if(length(roifiles) == 0){
-      SKIP = TRUE
-      # print(paste(i , ': SKIP == TRUE'))
-      #browser()
-      #i = i+1
-      #find files
-      # sizefiles <- list.files(paste(categoryfolder[i],'aidmea',sep='\\'), full.names = T)
-      # roifiles <- list.files(paste(categoryfolder[i],'aid',sep='\\'), full.names=T)
-
-    } else{
-      SKIP = FALSE
-      # print(paste(i, 'SKIP == FALSE'))
-
-      #prevent mixing of category in same list where some hours were not properly being overwirtten
-      auto_measure_mm_ls <- list() #moved from before i loop, attempt to correct bug
-
-
-      for(j in seq_len(length(sizefiles))) {
-        #print(paste('j = ', j))
-        sizefile <- sizefiles[j]
-        roifile <- roifiles[j]
-
-        ##make sure file will not produce error
-        mtry <- try(read.table(sizefile, sep = ",", header = TRUE),
-                    silent = TRUE)
-
-        if (inherits(mtry, what = 'try-error')) {
-          # print('try error == FALSE')
-          #Get info
-          roi_ID <- read.table(roifile, stringsAsFactors = FALSE)
-          auto_measure_px <- read.table(sizefile, stringsAsFactors = FALSE, col.names = c('Perimeter','Area','width1','width2','width3','short_axis_length','long_axis_length'))
-
-        } else {
-          # print(paste('cannot open roi file from ', categoryfolder[i]))
-          #      print(roifiles)
-          stop(paste("File [", roifile, "] doesn't exist or is empty, please check!"))
-        }
-
-        #convert to mm
-        if (unit == 'mm'){
-          auto_measure_mm_tmp <- px_to_mm(auto_measure_px, opticalSetting) #Convert to mm
-        }else{
-          #or leave in pixels
-          auto_measure_mm_tmp <- auto_measure_px
-        }
-
-        #auto_measure_mm$roi_ID <- (roi_ID$V1) #Get roi ids
-
-        #!!!!!!!!!!!!!!!!!!!!!!!!!#
-        #!! WARNING HARD CODING !!#
-        #!!!!!!!!!!!!!!!!!!!!!!!!!#
-
-        #auto_measure_mm$roi_ID <- substr(auto_measure_mm$roi_ID, nchar(auto_measure_mm$roi_ID)-13, nchar(auto_measure_mm$roi_ID)-4) #Remove path information for rois
-        #auto_measure_mm$roi_ID <- lapply(auto_measure_mm$roi_ID, vpr_roi)
-
-        #category <- substr(categoryfolder[i], nchar_folder + 2, nchar(categoryfolder[i])) #Get category label
-        #category <- substr(categoryfolder[i], nchar_folder + 1, nchar(categoryfolder[i])) #Get category label
-
-        #auto_measure_mm$category <- rep(category, nrow(auto_measure_mm)) #add category to dataset
-
-
-        #day_hour <- substr(sizefile, nchar(sizefile) - 7, nchar(sizefile))
-        #auto_measure_mm$day_hour <- rep(day_hour, nrow(auto_measure_mm))
-        #saveRDS(auto_measure_mm, paste(categoryfolder, "/", "measurements_mm_", category[i], ".RDS", sep=""))
-
-        categoryfolder_tmp <- categoryfolder[i]
-        # browser()
-        auto_measure_mm <- auto_measure_mm_tmp %>%
-          dplyr::mutate(., roi_ID = unlist(lapply(roi_ID$V1, vpr_roi))) %>%
-          dplyr::mutate(., category = unlist(lapply(categoryfolder_tmp, vpr_category))) %>%
-          dplyr::mutate(., day = unlist(lapply(sizefile, vpr_day))) %>%
-          dplyr::mutate(., hour = unlist(lapply(sizefile, vpr_hour))) %>%
-          dplyr::mutate(., day_hour = paste(as.character(day), as.character(hour), sep = ".")) %>%
-          dplyr::select(., -day, -hour)
-
-        auto_measure_mm_ls[[j]] <- auto_measure_mm
-
-        if(auto_measure_mm$day[1] == 'd240.h09' ){
-          # browser()
-          #cat('d240.h09')
-          # cat(categoryfolder[i], '\n')
-          #cat('number of ROIs: ', length(auto_measure_mm$roi_ID), '\n')
-          #cat('number of unique ROIs: ', length(unique(auto_measure_mm$roi_ID)), '\n')
-
-        }
-        #print(paste('completed', roifiles))
-
-      }
-
-      auto_measure_mm_allcategory_ls[[i]] <- do.call(rbind, auto_measure_mm_ls)
-      #browser()
-
-      # print(paste('completed', categoryfolder[i]))
+  nm <- matrix(nrow = dim(mat)[1], ncol = dim(mat)[2])
+  for (i in seq_len(length(nm[, 1]))) { # 1:length(nm[,1])
+    for (j in seq_len(length(nm[1, ]))) { # 1:length(nm[1,])
+      nm[i, j] <- mat[i, j] / colSums(mat)[j]
     }
   }
-
-
-
-  auto_measure_mm_allcategory_df <- do.call(rbind, auto_measure_mm_allcategory_ls)
-  #browser()
-  return(auto_measure_mm_allcategory_df)
-
-
+  return(nm)
 
 }
 
-# deprecated ? ----------------------------------------------------------------------------------------------------------
+### Size (not exported) ----
+
+vpr_ctdroisize_merge <- function(data, data_mea, category_of_interest) {
+  #' Format CTD and Size data from VPR
+  #'
+  #' Format CTD and Meas data frames into combined data frame for analysis and plotting of size data
+  #'
+  #' @param data VPR dataframe from \code{\link{vpr_ctdroi_merge}}, with calculated variable sigmaT
+  #' @param data_mea VPR size data frame from \code{\link{vpr_autoid_read}}
+  #' @param category_of_interest a list of category of interest to be included in output dataframe
+  #'
+  #' @return A dataframe containing VPR CTD and size data
+  #'
+  #' @examples
+  #' \dontrun{
+  #' data("ctd_roi_merge")
+  #' data("roimeas_dat_combine")
+  #' category_of_interest = 'Calanus'
+  #'
+  #'ctd_roi_merge$time_hr <- ctd_roi_merge$time_ms /3.6e+06
+  #'
+  #' size_df_f <- vpr_ctdroisize_merge(ctd_roi_merge, data_mea = roimeas_dat_combine,
+  #'  category_of_interest = category_of_interest)
+  #'}
+  #'
+  #'
+  # INPUT VALIDATION
+  # Check that the data argument is a data frame
+  if (!is.data.frame(data)) {
+    stop("Data must be a data frame")
+  }
+
+  # Check that the data_mea argument is a data frame
+  if (!is.data.frame(data_mea)) {
+    stop("Data_mea must be a data frame")
+  }
+
+  # Check that the category_of_interest argument is a character vector
+  if (!is.character(category_of_interest)) {
+    stop("Category_of_interest must be a character vector")
+  }
+
+  # Check that the category_of_interest argument is not empty
+  if (length(category_of_interest) == 0) {
+    stop("Category_of_interest cannot be empty")
+  }
+
+  # Check that the category_of_interest argument contains valid categories
+  valid_categories <- unique(data_mea$category)
+  invalid_categories <- setdiff(category_of_interest, valid_categories)
+  if (length(invalid_categories) > 0) {
+    stop(paste("Invalid categories:", paste(invalid_categories, collapse = ", ")))
+  }
+
+  # avoid CRAN notes
+  . <- time_ms <- day <- hour <- roi_ID <- day_hour <- frame_ID <- pressure <- temperature <- salinity <- sigmaT <- fluorescence_mv <- turbidity_mv <- Perimeter <- Area <- width1 <- width2 <- width3 <- short_axis_length <- long_axis_length <- category <- NA
+
+  data <- data[!duplicated(data$time_ms), ]
+
+  #get CTD data and format
+  data_ctd <- data %>%
+    dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+    dplyr::mutate(., day_hour = paste(day, hour, sep = ".")) %>%
+    dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+    dplyr::select(., frame_ID, pressure, temperature, salinity, sigmaT, fluorescence_mv, turbidity_mv)
+
+  #get measurement data
+  data_mea <- data_mea %>%
+    dplyr::mutate(., roi_ID = as.character(time_ms)) %>%
+    dplyr::mutate(., frame_ID = paste(roi_ID, day_hour, sep = "_")) %>%
+    dplyr::select(., -Perimeter, -Area, -width1, -width2, -width3, -short_axis_length)
+
+  #combine measurement and ctd data
+  data_all <- right_join(data_ctd, data_mea) %>%
+    dplyr::filter(., !(is.na(pressure))) %>% #There are NAs at the beginning of CAP3.1 (i.e. measurements that are not in the ctd data)
+    dplyr::mutate(., long_axis_length = as.numeric(long_axis_length)) %>%
+    dplyr::filter(., category %in% category_of_interest)
+
+  return(data_all)
+
+}
+
+vpr_trrois_size <- function(directory, category, opticalSetting) {
+  #' Get size data from idsize files
+  #'
+  #'
+  #' useful for getting size distribution of known rois from each category. gathers
+  #' size information from idsize text files produced when training a new
+  #' classifier in VP (Visual Plankton)
+  #'
+  #'
+  #'@param directory cruise directory eg. 'C:/data/IML2018051/'
+  #'@param category list of character elements containing category of interest
+  #'@param opticalSetting VPR optical setting determining conversion between pixels and millimetres (options are 'S0', 'S1', 'S2', or 'S3')
+  #'
+  #'
+
+
+  # @examples
+  # \dontrun{
+  #
+  # }
+
+  #loop for each category of interest
+  for (t in category) {
+    size_file <- list.files(path = paste0(directory, '/idsize'), pattern = paste0('mea.', t))
+    #Get info
+    auto_measure_px <- read.table(paste0(directory, '/idsize/', size_file), stringsAsFactors = FALSE,
+                                  col.names = c('Perimeter', 'Area', 'width1', 'width2', 'width3', 'short_axis_length', 'long_axis_length'))
+    eval(parse(text = paste0('auto_measure_', t,'_mm <- px_to_mm(auto_measure_px, opticalSetting )'))) #Convert to mm
+  }
+  #returns a data frame with size information and named columns
+  eval(parse(text = paste0('return(auto_measure_', t, '_mm)')))
+}
+
+vpr_size_bin <- function(data_all, bin_mea) {
+  #' Bin VPR size data
+  #'
+  #' Calculates statistics for VPR measurement data in depth averaged bins for analysis and visualization
+  #'
+  #' @param data_all a VPR CTD and measurement dataframe from \code{\link{vpr_ctdroisize_merge}}
+  #' @param bin_mea Numerical value representing size of depth bins over which data will be combined, unit is metres, typical values range from 1 - 5
+  #'
+  #' @return a dataframe of binned VPR size data statistics including number of observations, median, interquartile ranges, salinity and pressure, useful for making boxplots
+  #'
+  #' @examples
+  #' \dontrun{
+  #' data('size_df_f')
+  #' vpr_size_bin(size_df_f, bin_mea = 5)
+  #' }
+  #'
+  #'
+  #'
+  #'
+  #Bin by depth
+  p <- data_all$pressure
+  max_pressure <- max(p, na.rm = TRUE)
+  min_pressure <- min(p, na.rm = TRUE)
+  x_breaks <- seq(from = floor(min_pressure), to = ceiling(max_pressure), by = bin_mea)
+
+  #Get variables of interest using oce bin functions
+
+  med <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, median)$result
+  iqr3 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.75)$result
+  iqr1 <- oce::binApply1D(p, data_all$long_axis_length,  xbreaks = x_breaks, quantile, probs = 0.25)$result
+  n_obs <- oce::binApply1D(p, data_all$long_axis_length, xbreaks = x_breaks, length)$result
+  temperature <- oce::binApply1D(p, data_all$temperature, xbreaks = x_breaks, mean)$result
+  salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
+  pressure <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$xmids #Could be any of the variables computed, but I just went with salinity
+
+  if (!(length(pressure) == length(salinity))) {
+
+    salinity_mean <- binMean1D(p, data_all$salinity, xbreaks = x_breaks)$result
+
+    idx_rm <- which(is.na(salinity_mean))
+
+    #informs user where bins were removed due to NAs
+    #note if a bin is 'NA' typically because there is no valid data in that depth range,
+    #if you have a lot of NA bins, think about increasing your binSize
+    print(paste('Removed bins at', pressure[idx_rm]))
+
+    pressure <- pressure[-idx_rm]
+
+  }
+
+  dfs <- data.frame('median' = med, 'IQR1' = iqr1,
+                    'IQR3' = iqr3, 'n_obs' = n_obs,
+                    'temperature' = temperature, 'salinity' = salinity,
+                    'pressure' = pressure)
+  return(dfs)
+}
 
 
 #####PLOTTING FUNCTIONS#####
+#### not exported ####
 
-
-#' Size Frequency plots for VPR data
-#'
-#' This uses the \code{\link{hist}} plot function in base R to give a histogram of size (long axis length) frequency within a category.
-#' \strong{!!WARNING:} this function uses hard coded plot attributes
-#'
-#' @author K. Sorochan
-#'
-#' @param x a data frame with columns 'category', 'long_axis_length'
-#' @param number_of_classes numeric value passed to nclass argument in hist()
-#' @param colour_of_bar character value defining colour of plotted bars
-#'
-#'
-#' @export
-#'
-#'
-vpr_plot_sizefreq <- function(x, number_of_classes, colour_of_bar) {
-
-  #oldpar <- par(no.readonly = TRUE)
-  #on.exit(par(oldpar))
-
-  # avoid CRAN notes
-  . <- NA
-  data <- x
-  category <- unique(data$category)
-
-  for(i in seq_len(length(category))) {
-
-    # par(mfrow = c(1,2))
-    withr::with_par(mfrow = c(1,2), code = {
-
-    category_id <- category[i]
-
-    data_hist <- data %>%
-      dplyr::filter(., category == category_id)
-
-    data_hist2 <- data_hist$long_axis_length
-
-    hist(data_hist2, nclass = number_of_classes, col = colour_of_bar, xlab = "Long axis of bug (mm)", main = category_id) #Eventually you will want to loop through category
-
-    if(length(category) == 1) {
-
-      plot.new()
-
-    }
-    })
-  }
-
-
-}
-
-
-#balloon plot with isopycnals final
-
-#create TS data frame
-isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
+isopycnal_calculate <- function(sal, pot.temp, reference.p = 0) {
   #' Get vector to draw isopycnal lines on TS plot
   #' Used internally to create TS plots
   #' @author E. Chisholm
@@ -2064,7 +2224,7 @@ isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
   #'
   #'
   #' @note: modified from source:\url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
-  #' @export
+  #'
 
   # avoid CRAN notes
   density <- NA
@@ -2079,25 +2239,25 @@ isopycnal_calculate<- function(sal, pot.temp, reference.p = 0){
   # +- horizontal isopycnals
   h.isopycnals <- subset(TS,
                          sal == ceiling(max(TS$sal)) & # selects all rows where "sal" is the max limit of the x axis
-                           round(density,1) %in% seq(min(round(TS$density*2)/2, na.rm = TRUE),
-                                                     max(round(TS$density*2)/2, na.rm = TRUE),
+                           round(density, 1) %in% seq(min(round(TS$density * 2) / 2, na.rm = TRUE),
+                                                     max(round(TS$density * 2) / 2, na.rm = TRUE),
                                                      by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
-  if(nrow(h.isopycnals)>0){
+  if (nrow(h.isopycnals) > 0) {
     h.isopycnals$density <- round(h.isopycnals$density, 1) # rounds the density
-    h.isopycnals <- aggregate(pot.temp~density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+    h.isopycnals <- aggregate(pot.temp ~ density, h.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
   }
 
   # +- vertical isopycnals
-  if(nrow(h.isopycnals)==0){ # if the isopycnals are not +- horizontal then the df will have no rows
+  if (nrow(h.isopycnals) == 0) { # if the isopycnals are not +- horizontal then the df will have no rows
     rm(h.isopycnals) # remove the no-line df
 
     v.isopycnals <- subset(TS, # make a df for labeling vertical isopycnals
                            pot.temp == ceiling(max(TS$pot.temp)) & # selects all rows where "sal" is the max limit of the x axis
-                             round(density,1) %in% seq(min(round(TS$density*2)/2),
-                                                       max(round(TS$density*2)/2),
+                             round(density, 1) %in% seq(min(round(TS$density * 2) / 2),
+                                                       max(round(TS$density * 2) / 2),
                                                        by = .5)) # selects any line where the rounded denisty is equal to density represented by any isopycnal in the plot
     v.isopycnals$density <- round(v.isopycnals$density, 1) # rounds the density
-    v.isopycnals <- aggregate(sal~density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
+    v.isopycnals <- aggregate(sal ~ density, v.isopycnals, mean) # reduces number of "pot.temp" values to 1 per each unique "density" value
   }
 
 
@@ -2121,7 +2281,7 @@ vpr_plot_TS <- function(x, reference.p = 0, var){
   #'
   #' @note modified from source: \url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
   #'
-  #'@export
+  #'
 
 # avoid CRAN notes
   p <- NA
@@ -2207,7 +2367,6 @@ vpr_plot_TS <- function(x, reference.p = 0, var){
   return(p)
 }
 
-
 vpr_plot_TScat <- function(x, reference.p = 0){
 
   #' Make a balloon plot
@@ -2227,7 +2386,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
   #'
   #' @note modified from source: \url{https://github.com/Davidatlarge/ggTS/blob/master/ggTS_DK.R}
   #'
-  #'@export
+  #'
 
 # avoid CRAN notes
   density <- salinity <- temperature <- calanus <- chaetognaths <- small_copepod <- krill <- echinoderm_larvae <- NA
@@ -2271,7 +2430,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
   #initialize category
   #WARNING HARD CODING, 5 category
   cols <- c('t1' = 'darkorchid3', 't2' = 'deeppink3', 't3' = 'dodgerblue3', 't4' = 'tomato3', 't5' = 'gold3')
-  categorys <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
+  categories <- c('calanus', 'chaetognaths', 'small_copepod', 'krill', 'echinoderm_larvae')
   #plot
   p <- ggplot()+
     #isopycnal lines
@@ -2287,7 +2446,7 @@ vpr_plot_TScat <- function(x, reference.p = 0){
     geom_point(data = x, aes(x = salinity, y = temperature, size = small_copepod, col = 't3'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = krill, col = 't4'), shape = 21) +
     geom_point(data = x, aes(x = salinity, y = temperature, size = echinoderm_larvae, col = 't5'), shape = 21) +
-    scale_colour_manual(name = 'categorys', values = cols, guide = guide_legend(), labels = categorys) +
+    scale_colour_manual(name = 'categories', values = cols, guide = guide_legend(), labels = categories) +
     scale_size_area(max_size=10)+ #make balloons bigger
     #label legends
     labs(size = 'Number of \n ROIs') +
@@ -2318,251 +2477,12 @@ vpr_plot_TScat <- function(x, reference.p = 0){
   return(p)
 }
 
-
-
-vp_plot_matrix <- function(cm, classes, type, addLabels = TRUE, threshold = NULL){
-  #' Plots normalized confusion matrix
-  #'
-  #' @author E. Chisholm
-  #'
-  #' @param cm Confusion matrix (numeric)
-  #' @param classes character list of classes present in confusion matrix
-  #'   (ordered)
-  #' @param type character value 'NN', 'SVM' or 'Dual', appended to 'Confusion
-  #'   Matrix' to create title
-  #' @param addLabels logical value whether to add percentage accuracy labels to
-  #'   plot (defaults to TRUE)
-  #' @param threshold numeric value which determines the minimum value of
-  #'   frequency labelled on the plot on a normalized scale of 0-1 (useful for highlighting significant
-  #'   disagreement)
-  #'
-  #' @return  a visualization of the confusion matrix, normalized
-  #'
-  #' @export
-
-  #check dimensions
-
-  # avoid CRAN notes
-  Var1 <- Var2 <- Freq <- NA
-
-  # TODO check that this function runs , removed require(stringr), cant find stringr function
-
-  dimcm <- dim(cm)
-  if (dimcm[1] != length(classes) +1){
-    stop(' Incorrect dimensions, matrix does not match classes given!')
-  }
-
-
-
-  #remove total columns
-  conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
-  #create matrix and normalize
-  input.matrix.normalized <- data.matrix(normalize_matrix(conf))
-
-
-  #add labels
-  colnames(input.matrix.normalized) = classes
-  rownames(input.matrix.normalized) = classes
-
-  #build conf mat
-  confusion <- as.data.frame(as.table(input.matrix.normalized))
-
-  #basic plot
-  plot <- ggplot(confusion)
-
-  #add data
-  p <- plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq)) +  #adds data fill
-    theme(axis.text.x=element_text(angle=45, hjust=1)) + #fixes x axis labels
-    scale_x_discrete(name="Actual Class") + #names x axis
-    scale_y_discrete(name="Predicted Class") + #names y axis
-    scale_fill_gradient(breaks=seq(from=-.5, to=4, by=.2)) + #creates colour scale
-    labs(fill="Normalized\nFrequency") + #legend title
-    #theme(legend.position = "none" ) +  #removes legend
-    ggtitle(label = paste(type, 'Confusion Matrix'))
-
-  #accuracy labels along diagonal
-
-  if (addLabels == TRUE){
-    #find diagonal values
-    acc <- confusion$Freq[confusion$Var1 == confusion$Var2]
-    #for each category
-    for (i in seq_len(length(unique(confusion$Var1)))){
-      #add text label
-      p <- p + annotate('text', x = i, y = i, #position on diagonal
-                        #label with frequency as percent rounded to 2 digits
-                        label = paste0(round(acc[i], digits = 2)*100, '%'),
-                        #text formatting
-                        colour = 'white',
-                        size = 3)
-    }
-  }
-
-  #threshold labels
-
-  if ( !is.null(threshold)){
-    for (i in seq_len(length(confusion$Var1))){
-      #if frequency is above threshold
-      if (confusion$Freq[i] > threshold ){
-        #find x and y locations to plot
-        x <- grep(levels(confusion$Var1), pattern = as.character(confusion$Var1[i]) )
-        y <- grep(levels(confusion$Var2), pattern = as.character(confusion$Var2[i]) )
-        #not already labelled on diagonal
-        if( x != y){
-          #add text
-          p <- p + annotate('text', x = x, y = y,
-                            #label - frequency as percent, rounded
-                            label = paste0(round(confusion$Freq[i], digits = 2)*100, '%'),
-                            #text formatting
-                            colour = 'white',
-                            size = 3)
-        }
-      }
-    }
-  }
-
-  return(p)
-
-
-  #end of function
-}
-
-
-
-
-vpr_plot_histsize <- function(data, param, title = NULL , bw = 0.1, xlim = NULL){
-  #' Plot size frequency histogram
-  #'
-  #'@author E. Chisholm
-  #' @param param size parameter of interest (corresponds to sub lists within data argument)
-  #' @param data  size data from auto_measure_mm subset into categorys
-  #' @param title main title for plot, if left null will default based on parameter and category
-  #' @param bw bin width, defines width of bars on histogram, defaults to 0.1, decrease for more detail
-  #' @param xlim plot xlimit, defaults to min max of data if not provided
-  #'
-  #'
-  #' @note  param options are typically 'Perimeter', 'Area', 'width1','width2',
-  #'   'width3', 'short_axis_length', 'long_axis_length'
-  #'
-  #' @export
-  #'
-
-
-
-  if (is.null(title)){
-    title <- paste(param , ':', data$category[1])
-  }
-  if(is.null(xlim)){
-    xlim <- c(min(data[[param]]), max(data[[param]]))
-  }
-  qplot(data[[param]], geom = 'histogram',
-        binwidth = bw,
-        main = title,
-        xlab = 'length (mm)',
-        ylab = 'Frequency',
-        fill = I('green'),
-        col = I('green'),
-        alpha = I(.2),
-        xlim = xlim)
-}
-
-
-vp_plot_unkn <- function(cm, classes, threshold = 0, summary = TRUE, sample_size = NULL){
-
-  #' Function to visualize losses to unknown category due to disagreement in Dual classifier
-  #'
-  #' Makes confusion matrix like plot, where x axis represent SVM classification, y axis represent NN classification
-  #' Allows visual summary of data lost to unknown category
-  #'
-  #'
-  #' @param cm dual unknown confusion matrix from VP
-  #' @param classes category groups in order, from VP
-  #' @param threshold minimum value which will be labelled in plot
-  #' @param sample_size character string describes the sample size used to train the model being plotted (optional)
-  #' @param summary logical to add text summary to plot
-  #' E. Chisholm May 2019
-  #'
-  #'
-  #' @export
-
-  # avoid CRAN notes
-  Var1 <- Var2 <- Freq <- categorys <- NA
-  dimcm <- dim(cm)
-  #remove total columns
-  conf <- cm[1:dimcm[1]-1,1:dimcm[2]-1]
-  #create matrix and normalize
-  input.matrix<- data.matrix(conf)
-
-
-  #add labels
-  colnames(input.matrix) = classes
-  rownames(input.matrix) = classes
-
-  #build conf mat
-  confusion <- as.data.frame(as.table(input.matrix))
-
-  #basic plot
-  plot <- ggplot(confusion)
-
-  #add data
-  p<- plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq, col = 'black')) +  #adds data fill
-    theme(axis.text.x=element_text(angle=90, hjust=1)) + #fixes x axis labels
-    scale_x_discrete(name="SVM Class") + #names x axis
-    scale_y_discrete(name="NN Class") + #names y axis
-    scale_fill_gradient(low = 'orchid', high = 'darkorchid4',breaks=seq(from=-.5, to=4, by=.2)) + #creates colour scale
-    #labs(fill="Normalized\nFrequency") + #legend title
-    theme(legend.position = "none" ) +  #removes legend
-    ggtitle(label = 'Disagreement in Dual Classifier')
-
-
-  threshold<- 0
-  #labels
-  for (i in seq_len(length(confusion$Var1))){
-    #if frequency is above threshold
-    if (confusion$Freq[i] > threshold ){
-      #find x and y locations to plot
-      x <- grep(levels(confusion$Var1), pattern = as.character(confusion$Var1[i]) )
-      y <- grep(levels(confusion$Var2), pattern = as.character(confusion$Var2[i]) )
-      #not already labelled on diagonal
-
-      #add text
-      p <- p + annotate('text', x = x, y = y,
-                        #label - frequency as percent, rounded
-                        label = round(confusion$Freq[i], digits = 2),
-                        #text formatting
-                        colour = 'white',
-                        size = 3)
-
-    }
-  }
-
-  #add summary text
-  if (summary == TRUE){
-    tab <- as.data.frame(
-      c(
-        'Sample Size' = sample_size , #update for different sizes
-        'Total Disagreement' = sum(confusion$Freq),
-        'Average loss per category' = round(sum(confusion$Freq)/length(categorys), digits = 0)
-      )
-    )
-
-    # using gridExtra
-
-    p_tab <- tableGrob(unname(tab))
-    grid.arrange(p, p_tab, heights = c(1, 0.2))
-  }
-  return(p)
-
-}
-
 interp2xyz <- function(al, data.frame = FALSE) {
   stopifnot(is.list(al), identical(names(al), c("x","y","z")))
   xy <- expand.grid(x = al[["x"]], y = al[["y"]], KEEP.OUT.ATTRS=FALSE)
   cbind(if(!data.frame) data.matrix(xy) else xy,
         z = as.vector(al[["z"]]))
 }
-
-
-#contour plot with interpolation
 
 vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels = TRUE, bw = 1, cmo){
 
@@ -2582,7 +2502,7 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   #' @param bw bin width defining interval at which contours are labelled
   #' @param cmo name of a `cmocean` plotting theme, see `?cmocean` for more information
   #'
-  #' @export
+  #'
 
 
  # avoid CRAN notes
@@ -2682,33 +2602,28 @@ vpr_plot_contour <- function(data, var, dup= 'mean', method = 'interp', labels =
   return(p)
 }
 
+vpr_plot_profile <- function(category_conc_n, category_to_plot, plot_conc) {
 
+  #' Plots VPR profiles of temperature, salinity, density, fluorescence and concentration (by classification group)
+  #'
+  #'
+  #' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
+  #' Facet wrap is used to create distinct panels for each category provided
+  #'
+  #' @param category_conc_n A VPR data frame with hydrographic and concentration data separated by category (from \code{\link{vpr_roi_concentration}})
+  #' @param category_to_plot The specific classification groups which will be plotted, if NULL, will plot all category combined
+  #' @param plot_conc Logical value whether or not to include a concentration plot (FALSE just shows CTD data)
+  #'
+  #' @return A gridded object of at least 3 ggplot objects
+  #'
 
-
-
-# profile plotting
-
-#' Plots VPR profiles of temperature, salinity, density, fluorescence and concentration (by classification group)
-#'
-#'
-#' This plot allows a good overview of vertical distribution of individual classification groups along with reference to hydrographic parameters.
-#' Facet wrap is used to create distinct panels for each category provided
-#'
-#' @param category_conc_n A VPR data frame with hydrographic and concentration data separated by category (from \code{\link{vpr_roi_concentration}})
-#' @param category_to_plot The specific classification groups which will be plotted, if NULL, will plot all category combined
-#' @param plot_conc Logical value whether or not to include a concentration plot (FALSE just shows CTD data)
-#'
-#' @return A gridded object of at least 3 ggplot objects
-#' @export
-
-vpr_plot_profile <- function(category_conc_n, category_to_plot, plot_conc){
   # check that depth is present
   if(!'depth' %in% names(category_conc_n)){
     stop("These plots require a 'depth' variable!")
   }
 
   # avoid CRAN notes
-  temperature <- depth <- salinity <- fluorescence <- density <- conc_m3 <- pressure <- NA
+  temperature <- depth <- salinity <- fluorescence <- density <- conc_m3  <- NA
 # plot temp
 p <- ggplot(category_conc_n) +
   geom_point(aes(x = temperature, y = depth), col = 'red') +
@@ -2783,27 +2698,24 @@ p <- grid.arrange(p_TS, p_FD, pp , widths = c(1, 1, 2), heights = 2, nrow = 1, n
 return(p)
 }
 
-
-
-
 #### IMAGE ANALYSIS FUNCTIONS ####
+#### not exported ####
 
-#' Explore reclassified images
-#'
-#' Pull image from reclassified or misclassified files produced during \code{\link{vpr_manual_classification}}
-#'
-#' @param day Character string, 3 digit day of interest of VPR data
-#' @param hour Character string, 2 digit hour of interest of VPR data
-#' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
-#' @param category_of_interest Classification group from which to pull images
-#' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized
-#'
-#' @return folders of misclassified or reclassified images inside image_dir
-#' @export
-#'
-#'
 vpr_img_reclassified <- function(day, hour, base_dir, category_of_interest, image_dir){
-
+  #' Explore reclassified images
+  #'
+  #' Pull image from reclassified or misclassified files produced during \code{\link{vpr_manual_classification}}
+  #'
+  #' @param day Character string, 3 digit day of interest of VPR data
+  #' @param hour Character string, 2 digit hour of interest of VPR data
+  #' @param base_dir directory path to folder containing day/hour folders in which misclassified and reclassified files are organized (eg.'C:/VPR_PROJECT/r_project_data_vis/classification files/') which would contain 'd123.h01/reclassified_krill.txt' )
+  #' @param category_of_interest Classification group from which to pull images
+  #' @param image_dir directory path to ROI images, eg. "E:\\\\data\\\\cruise_IML2018051\\\\", file separator MUST BE "\\\\" in order to be recognized
+  #'
+  #' @return folders of misclassified or reclassified images inside image_dir
+  #'
+  #'
+  #'
   ####directory where misclassified/reclassified files
   ####base_dir <- 'C:/VPR_PROJECT/r_project_data_vis/classification files/'
 
@@ -2886,7 +2798,6 @@ message(paste('Images saved to ', roi_folder))
 
 }
 
-
 vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'list'){
 
   #' Explore VPR images by depth bin
@@ -2906,7 +2817,7 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #' @param format option of how images will be output, either as 'list' a list
   #'   of file names or 'image' where images will be displayed
   #'
-  #' @export
+  #'
   #'
 
 
@@ -2980,7 +2891,6 @@ vpr_img_depth <- function(data, min.depth , max.depth, roiFolder , format = 'lis
   #
 }
 
-
 vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = 'list', category_of_interest){
 
   #' Explore images by depth and classification
@@ -3003,7 +2913,7 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #' @param category_of_interest character string of classification group from which
   #'   to pull images
   #'
-  #' @export
+  #'
   #'
   #  ### examples
   # #determine range of interest
@@ -3078,22 +2988,23 @@ vpr_img_category <- function(data, min.depth , max.depth, roiFolder , format = '
   #
 }
 
-
-vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
+vpr_img_copy <- function(auto_id_folder, categories.of.interest, day, hour){
   #' Image copying function for specific category of interest
   #'
-  #' This function can be used to copy images from a particular category, day and hour into distinct folders within the auto id directory
-  #' This is useful for visualizing the ROIs of a particular classification group or for performing manual tertiary checks to remove
+  #' This function can be used to copy images from a particular category, day
+  #' and hour into distinct folders within the auto id directory
+  #' This is useful for visualizing the ROIs of a particular classification
+  #' group or for performing manual tertiary checks to remove
   #' images not matching classification group descriptions.
   #'
   #'
   #'
   #' @param auto_id_folder eg "D:/VP_data/IML2018051/autoid"
-  #' @param categorys.of.interest eg. categorys.of.interest <- c('Calanus')
+  #' @param categories.of.interest eg. categories.of.interest <- c('Calanus')
   #' @param day character, day of interest
   #' @param hour character, hour of interest
   #'
-  #' @export
+  #'
 
   #This code extracts ROIs from the VPR cast folder into folders corresponding to their autoID (from Visual Plankton)
 
@@ -3102,29 +3013,12 @@ vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
   folder_names <- list.files(auto_id_folder)
 
 
-  folder_names <- folder_names[folder_names %in% categorys.of.interest]
+  folder_names <- folder_names[folder_names %in% categories.of.interest]
 
 
 
   day_hour <- paste0('d', day, '.h', hour)
   aid_day_hour <- paste0('aid.', day_hour)
-
-  #read all days and hours
-
-  # st_dat <- read.csv('C:/VPR_PROJECT/vp_info/station_names_IML2018051.csv')
-  #
-  # day_list <- st_dat$day
-  # hour_list <- st_dat$hour
-  #
-
-  #
-  # for(j in 1:length(day_list)){
-  #
-  #   day <- day_list[[j]]
-  #   hour <- hour_list[[j]]
-  #
-  #   day_hour <- paste0('d', day, '.h', hour)
-  #   aid_day_hour <- paste0('aid.', day_hour)
 
 
   for (i in folder_names) {
@@ -3139,12 +3033,8 @@ vpr_img_copy <- function(auto_id_folder, categorys.of.interest, day, hour){
     subtxt <- grep(txt_roi, pattern = aid_day_hour, value = TRUE)
     txt_roi <- subtxt
 
-    #subtxt2 <- grep(txt_roi, pattern = clf_name, value = TRUE)
-    #txt_roi <- subtxt2
-
     for(ii in txt_roi) {
 
-      # setwd(dir_roi)
       withr::with_dir(dir_roi, code = {
 
       roi_path_str <- read.table(ii, stringsAsFactors = FALSE)
@@ -3205,7 +3095,7 @@ vpr_img_check <- function(folder_dir, basepath){
   #' @param basepath directory path to original Visual Plankton files, specified
   #'   down to the classification group. eg.
   #'   'C:/data/cruise_IML2018051/autoid/krill'
-  #'@export
+  #'
   #'
 # this function can be used to edit aid and aidmeas files based on the images contained in a folder
   #useful if images were reorganized into classifciation groups manually in file explorer and then

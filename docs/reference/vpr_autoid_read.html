@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">vprr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/sharing_vpr_data.html">Sharing VPR Data</a>
+    </li>
+    <li>
       <a href="../articles/VPR_processing.html">VPR_processing</a>
     </li>
   </ul></li>
@@ -57,24 +60,25 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">vpr_autoid_read</span><span class="op">(</span>
-  <span class="va">file_list_aid</span>,
-  <span class="va">file_list_aidmeas</span>,
-  <span class="va">export</span>,
-  <span class="va">station_of_interest</span>,
-  <span class="va">opticalSetting</span>,
-  warn <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">vpr_autoid_read</span><span class="op">(</span></span>
+<span>  <span class="va">file_list_aid</span>,</span>
+<span>  <span class="va">file_list_aidmeas</span>,</span>
+<span>  <span class="va">export</span>,</span>
+<span>  <span class="va">station_of_interest</span>,</span>
+<span>  <span class="va">opticalSetting</span>,</span>
+<span>  warn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">categories</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>file_list_aid</dt>
-<dd><p>a list object of aid text files, containing roi strings. Output from matlab Visual Plankton software.</p></dd>
+<dd><p>a list object of aid text files, containing ROI strings.</p></dd>
 
 
 <dt>file_list_aidmeas</dt>
-<dd><p>a list object of aidmea text files, containing ROI measurements. Output from matlab Visual Plankton software.</p></dd>
+<dd><p>a list object of aidmea text files, containing ROI measurements.</p></dd>
 
 
 <dt>export</dt>
@@ -92,6 +96,10 @@
 <dt>warn</dt>
 <dd><p>Logical, FALSE silences size data unit warnings</p></dd>
 
+
+<dt>categories</dt>
+<dd><p>A list object (of chr strings) with all the potential classification categories</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -108,58 +116,65 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="va">station_of_interest</span> <span class="op">&lt;-</span> <span class="st">'test'</span></span>
-<span class="r-in"><span class="va">dayhour</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'d222.h03'</span>, <span class="st">'d222.h04'</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)</span></span>
-<span class="r-in"><span class="va">opticalSetting</span> <span class="op">&lt;-</span> <span class="st">"S2"</span></span>
-<span class="r-in"><span class="va">imageVolume</span> <span class="op">&lt;-</span> <span class="fl">83663</span> <span class="co">#mm^3</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">auto_id_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">'extdata/COR2019002/autoid/'</span>, package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">auto_id_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_folder</span>, <span class="st">"/"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#'   # Path to aid for each taxa</span></span>
-<span class="r-in"><span class="va">aid_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_path</span>, <span class="st">'/aid/'</span><span class="op">)</span></span>
-<span class="r-in"><span class="co"># Path to mea for each taxa</span></span>
-<span class="r-in"><span class="va">aidmea_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_path</span>, <span class="st">'/aidmea/'</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># AUTO ID FILES</span></span>
-<span class="r-in"><span class="va">aid_file_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">aidmea_file_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dayhour</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in">  <span class="va">aid_file_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span></span>
-<span class="r-in">    <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">aid_path</span>, pattern <span class="op">=</span> <span class="va">dayhour</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in">  <span class="co"># SIZE DATA FILES</span></span>
-<span class="r-in">  <span class="va">aidmea_file_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span></span>
-<span class="r-in">    <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">aidmea_path</span>, pattern <span class="op">=</span> <span class="va">dayhour</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">aid_file_list_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">aid_file_list</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">aidmea_file_list_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">aidmea_file_list</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"> <span class="co"># ROIs</span></span>
-<span class="r-in"><span class="va">roi_dat_combine</span> <span class="op">&lt;-</span></span>
-<span class="r-in">  <span class="fu">vpr_autoid_read</span><span class="op">(</span></span>
-<span class="r-in">    file_list_aid <span class="op">=</span> <span class="va">aid_file_list_all</span>,</span>
-<span class="r-in">    file_list_aidmeas <span class="op">=</span> <span class="va">aidmea_file_list_all</span>,</span>
-<span class="r-in">    export <span class="op">=</span> <span class="st">'aid'</span>,</span>
-<span class="r-in">    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span>
-<span class="r-in">    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span>
-<span class="r-in">    warn <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span class="r-in">  <span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># MEASUREMENTS</span></span>
-<span class="r-in"><span class="va">roimeas_dat_combine</span> <span class="op">&lt;-</span></span>
-<span class="r-in">  <span class="fu">vpr_autoid_read</span><span class="op">(</span></span>
-<span class="r-in">    file_list_aid <span class="op">=</span> <span class="va">aid_file_list_all</span>,</span>
-<span class="r-in">    file_list_aidmeas <span class="op">=</span> <span class="va">aidmea_file_list_all</span>,</span>
-<span class="r-in">    export <span class="op">=</span> <span class="st">'aidmeas'</span>,</span>
-<span class="r-in">    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span>
-<span class="r-in">    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span>
-<span class="r-in">    warn <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span class="r-in"> <span class="op">)</span></span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">station_of_interest</span> <span class="op">&lt;-</span> <span class="st">'test'</span></span></span>
+<span class="r-in"><span><span class="va">dayhour</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'d222.h03'</span>, <span class="st">'d222.h04'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">categories</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bad_image_blurry"</span>, <span class="st">"bad_image_malfunction"</span>,</span></span>
+<span class="r-in"><span><span class="st">"bad_image_strobe"</span>, <span class="st">"Calanus"</span>, <span class="st">"chaetognaths"</span>,<span class="st">"ctenophores"</span>,<span class="st">"krill"</span>,</span></span>
+<span class="r-in"><span><span class="st">"marine_snow"</span>,<span class="st">"Other"</span>,<span class="st">"small_copepod"</span>, <span class="st">"stick"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#' #VPR OPTICAL SETTING (S0, S1, S2 OR S3)</span></span></span>
+<span class="r-in"><span><span class="va">opticalSetting</span> <span class="op">&lt;-</span> <span class="st">"S2"</span></span></span>
+<span class="r-in"><span><span class="va">imageVolume</span> <span class="op">&lt;-</span> <span class="fl">83663</span> <span class="co">#mm^3</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">auto_id_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">'extdata/COR2019002/autoid/'</span>, package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">auto_id_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_folder</span>, <span class="st">"/"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#'   # Path to aid for each category</span></span></span>
+<span class="r-in"><span><span class="va">aid_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_path</span>, <span class="st">'/aid/'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Path to mea for each category</span></span></span>
+<span class="r-in"><span><span class="va">aidmea_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">auto_id_path</span>, <span class="st">'/aidmea/'</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># AUTO ID FILES</span></span></span>
+<span class="r-in"><span><span class="va">aid_file_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">aidmea_file_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dayhour</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">aid_file_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">aid_path</span>, pattern <span class="op">=</span> <span class="va">dayhour</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># SIZE DATA FILES</span></span></span>
+<span class="r-in"><span>  <span class="va">aidmea_file_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">aidmea_path</span>, pattern <span class="op">=</span> <span class="va">dayhour</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">aid_file_list_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">aid_file_list</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">aidmea_file_list_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">aidmea_file_list</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span> <span class="co"># ROIs</span></span></span>
+<span class="r-in"><span><span class="va">roi_dat_combine</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">vpr_autoid_read</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    file_list_aid <span class="op">=</span> <span class="va">aid_file_list_all</span>,</span></span>
+<span class="r-in"><span>    file_list_aidmeas <span class="op">=</span> <span class="va">aidmea_file_list_all</span>,</span></span>
+<span class="r-in"><span>    export <span class="op">=</span> <span class="st">'aid'</span>,</span></span>
+<span class="r-in"><span>    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span></span>
+<span class="r-in"><span>    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span></span>
+<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>    categories <span class="op">=</span> <span class="va">categories</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in vpr_autoid_read(file_list_aid = aid_file_list_all, file_list_aidmeas = aidmea_file_list_all,     export = "aid", station_of_interest = station_of_interest,     opticalSetting = opticalSetting, warn = FALSE, categories = categories):</span> unused argument (categories = categories)</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># MEASUREMENTS</span></span></span>
+<span class="r-in"><span><span class="va">roimeas_dat_combine</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">vpr_autoid_read</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    file_list_aid <span class="op">=</span> <span class="va">aid_file_list_all</span>,</span></span>
+<span class="r-in"><span>    file_list_aidmeas <span class="op">=</span> <span class="va">aidmea_file_list_all</span>,</span></span>
+<span class="r-in"><span>    export <span class="op">=</span> <span class="st">'aidmeas'</span>,</span></span>
+<span class="r-in"><span>    station_of_interest <span class="op">=</span> <span class="va">station_of_interest</span>,</span></span>
+<span class="r-in"><span>    opticalSetting <span class="op">=</span> <span class="va">opticalSetting</span>,</span></span>
+<span class="r-in"><span>    warn <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>    categories <span class="op">=</span> <span class="va">categories</span></span></span>
+<span class="r-in"><span> <span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in vpr_autoid_read(file_list_aid = aid_file_list_all, file_list_aidmeas = aidmea_file_list_all,     export = "aidmeas", station_of_interest = station_of_interest,     opticalSetting = opticalSetting, warn = FALSE, categories = categories):</span> unused argument (categories = categories)</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -170,11 +185,11 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan dev, Catherine Johnson.</p>
+  <p></p><p>Developed by Emily O’Grady, Kevin Sorochan, Catherine Johnson.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

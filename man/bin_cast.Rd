@@ -4,7 +4,14 @@
 \alias{bin_cast}
 \title{Bin vpr data}
 \usage{
-bin_cast(ctd_roi_oce, imageVolume, binSize, rev = FALSE)
+bin_cast(
+  ctd_roi_oce,
+  imageVolume,
+  binSize,
+  rev = FALSE,
+  breaks = NULL,
+  cutoff = 0.1
+)
 }
 \arguments{
 \item{ctd_roi_oce}{\code{oce} ctd format VPR data from \code{\link{vpr_oce_create}}}
@@ -18,6 +25,10 @@ this controls data loss due to uneven binning over depth. If bins begin at
 bottom, small amounts of data may be lost at the surface of each cast, if
 binning begins at surface (rev = FALSE), small amounts of data may be lost
 at bottom of each cast}
+
+\item{breaks}{Argument passed to \link[oce]{ctdFindProfiles}}
+
+\item{cutoff}{Argument passed to \link[oce]{ctdFindProfiles}}
 }
 \value{
 A dataframe of depth averaged bins of VPR data over an entire cast with calculated concentration values
