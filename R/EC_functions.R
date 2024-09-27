@@ -1400,7 +1400,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 ### Image helpers ----
 
-vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold, org = 'dayhour') {
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold = NULL, org = 'dayhour') {
   #' Copy VPR images into folders
   #'
   #' Organize VPR images into folders based on classifications provided by visual plankton
