@@ -22,7 +22,7 @@ vpr_manual_classification <-
     #'
     #' @param day day of interest in autoid (3 chr)
     #' @param hour hour of interest in autoid (2 chr)
-    #' @param basepath file path to auto id folder eg 'E:/data/CAR2022299/autoid/'
+    #' @param basepath path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')
     #' @param category_of_interest list of category folders you wish you sort through
     #' @param gr logical indicating whether pop up graphic menus are used (user preference - defaults to TRUE)
     #' @param scale argument passed to \code{\link{image_scale}}, default = 'x300'
@@ -376,7 +376,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   #'
   #'@param reclassify list of reclassify files (output from vpr_manual_classification())
   #'@param misclassified list misclassify files (output from vpr_manual_classification())
-  #'@param basepath base path to auto ID folder eg 'E:/autoID_EC_07032019/'
+  #'@param basepath path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')
   #'@param day day identifier for relevant aid & aidmeas files
   #'@param hour  hour identifier for relevant aid & aidmeas files
   #'@param mea logical indicating whether or not there are accompanying measurement files to be created
@@ -658,7 +658,7 @@ vpr_category_create <- function(category, basepath) {
   #' creates empty directory structure to allow consideration of new category during vpr_manual_classification()
   #'
   #' @param category new category name to be added (can be a list of multiple category names)
-  #' @param basepath basepath used for vpr_manual_classification
+  #' @param basepath path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')
   #'
   #' @return empty directory structure using new category name inside basepath
   #' @export

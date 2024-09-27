@@ -1527,14 +1527,13 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
 vpr_ctd_ymd <- function(data, year, offset) {
   #' Add Year/ month/ day hour:minute:second information
   #'
-  #' Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
-  #' Will also add 'time_hr' parameter if not already present.
+  #' Obtain columns for date and time (i.e., column "ymdhms") and time in hours (i.e., column time_hr) for each row in VPR data frame by utilizing day-of-year, hour, and millisecond outputs from VPR data output.
   #'
   #' @param data VPR data frame from \code{\link{vpr_ctdroi_merge}}
   #' @param year Year of data collection
   #' @param offset time offset in hours between VPR CPU and processed data times (optional)
   #'
-  #' @return a VPR data frame with complete date/time information in a new row named 'ymdhms'
+  #' @return A VPR data frame with columns for date and time (i.e., column 'ymdhms') and hour (i.e., column time_hr)
   #'
   #' @examples
   #' year <- 2019
