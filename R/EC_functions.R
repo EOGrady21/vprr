@@ -1450,8 +1450,10 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
   }
 
   # Check that the threshold argument is a numeric value between 0 and 1 (if not NULL)
-  if (!is.null(threshold) && (!is.numeric(threshold) || threshold < 0 || threshold > 1)) {
-    stop("threshold must be a numeric value between 0 and 1")
+  if(!missing(threshold)){
+    if (!is.null(threshold) && (!is.numeric(threshold) || threshold < 0 || threshold > 1)) {
+      stop("threshold must be a numeric value between 0 and 1")
+    }
   }
 
   # Check that the org argument is either 'station' or 'dayhour' (if not NULL)
