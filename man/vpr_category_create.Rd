@@ -9,7 +9,7 @@ vpr_category_create(category, basepath)
 \arguments{
 \item{category}{new category name to be added (can be a list of multiple category names)}
 
-\item{basepath}{basepath used for vpr_manual_classification}
+\item{basepath}{path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')}
 }
 \value{
 empty directory structure using new category name inside basepath

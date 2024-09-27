@@ -19,7 +19,7 @@ vpr_autoid_create(
 
 \item{misclassified}{list misclassify files (output from vpr_manual_classification())}
 
-\item{basepath}{base path to auto ID folder eg 'E:/autoID_EC_07032019/'}
+\item{basepath}{path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')}
 
 \item{day}{day identifier for relevant aid & aidmeas files}
 

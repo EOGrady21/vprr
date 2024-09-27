@@ -22,7 +22,7 @@ vpr_manual_classification(
 
 \item{hour}{hour of interest in autoid (2 chr)}
 
-\item{basepath}{file path to auto id folder eg 'E:/data/CAR2022299/autoid/'}
+\item{basepath}{path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')}
 
 \item{category_of_interest}{list of category folders you wish you sort through}
 

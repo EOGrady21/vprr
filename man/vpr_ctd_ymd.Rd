@@ -14,11 +14,10 @@ vpr_ctd_ymd(data, year, offset)
 \item{offset}{time offset in hours between VPR CPU and processed data times (optional)}
 }
 \value{
-a VPR data frame with complete date/time information in a new row named 'ymdhms'
+A VPR data frame with columns for date and time (i.e., column 'ymdhms') and hour (i.e., column time_hr)
 }
 \description{
-Calculate and record calendar dates for vpr data from day-of-year, hour, and time (in milliseconds) info.
-Will also add 'time_hr' parameter if not already present.
+Obtain columns for date and time (i.e., column "ymdhms") and time in hours (i.e., column time_hr) for each row in VPR data frame by utilizing day-of-year, hour, and millisecond outputs from VPR data output.
 }
 \examples{
 year <- 2019
