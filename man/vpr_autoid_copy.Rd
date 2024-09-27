@@ -11,7 +11,7 @@ vpr_autoid_copy(
   hour,
   cast,
   station,
-  threshold,
+  threshold = NULL,
   org = "dayhour"
 )
 }
@@ -33,7 +33,8 @@ folder)}
 
 \item{threshold}{(optional) a numeric value, supplied only if you are
 copying images based on automated classifications, only images below this
-threshold of confidence will be copied for manual classification}
+threshold of confidence will be copied for manual classification.
+Default is set to NULL.}
 
 \item{org}{chr value, if 'station', images will be output in folders labelled
 by station, if 'dayhour', images will be output in folders labelled by day

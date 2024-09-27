@@ -1416,7 +1416,8 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
   #'   folder)
   #' @param threshold (optional) a numeric value, supplied only if you are
   #'     copying images based on automated classifications, only images below this
-  #'     threshold of confidence will be copied for manual classification
+  #'     threshold of confidence will be copied for manual classification.
+  #'     Default is set to NULL.
   #' @param org chr value, if 'station', images will be output in folders labelled
   #'   by station, if 'dayhour', images will be output in folders labelled by day
   #'   and hour
