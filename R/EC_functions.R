@@ -31,9 +31,19 @@ read_aid_cnn <- function(aid_file) {
   #' @export
   #'
   aid_table <- read.table(aid_file, sep = " ")
-  names(aid_table) <- c('roi', 'confidence')
+
+  if(ncol(aid_table) == 1) {
+
+    names(aid_table) <- c('roi')
+
+  } else {
+
+    names(aid_table) <- c('roi', 'confidence')
+
+  }
 
   return(aid_table)
+
 }
 
 vpr_pred_read <- function(filename) {
