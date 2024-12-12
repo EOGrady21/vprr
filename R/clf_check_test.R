@@ -374,28 +374,28 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
   #' Modifies aid and aid mea files based on manual reclassification
   #' @author E. Chisholm
   #'
-  #'@param reclassify list of reclassify files (output from vpr_manual_classification())
-  #'@param misclassified list misclassify files (output from vpr_manual_classification())
-  #'@param basepath path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')
-  #'@param day day identifier for relevant aid & aidmeas files
-  #'@param hour  hour identifier for relevant aid & aidmeas files
-  #'@param mea logical indicating whether or not there are accompanying measurement files to be created
-  #'@param categories A list object with all the potential classification categories
+  #' @param reclassify list of reclassify files (output from vpr_manual_classification())
+  #' @param misclassified list misclassify files (output from vpr_manual_classification())
+  #' @param basepath path to folder containing autoid files (e.g., 'extdata/COR2019002/autoid')
+  #' @param day day identifier for relevant aid & aidmeas files
+  #' @param hour hour identifier for relevant aid & aidmeas files
+  #' @param mea logical indicating whether or not there are accompanying measurement files to be created
+  #' @param categories A list object with all the potential classification categories
   #'
-  #'@examples
-  #'\dontrun{
-  #'basepath <- 'E:/autoID_EC_07032019/'
-  #'day <- '289'
-  #'hr <- '08'
-  #'categories <-
-  #'c("bad_image_blurry", "bad_image_malfunction", "bad_image_strobe", "Calanus", "chaetognaths",
-  #'"ctenophores", "krill", "marine_snow", "Other", "small_copepod", "stick")
-  #'day_hour_files <-  paste0('d', day, '.h', hr)
-  #'misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
-  #'reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
-  #'vpr_autoid_create(reclassify, misclassified, basepath, categories)
-  #'}
-  #'@export
+  #' @examples
+  #' \dontrun{
+  #' basepath <- 'E:/autoID_EC_07032019/'
+  #' day <- '289'
+  #' hr <- '08'
+  #' categories <-
+  #' c("bad_image_blurry", "bad_image_malfunction", "bad_image_strobe", "Calanus", "chaetognaths",
+  #' "ctenophores", "krill", "marine_snow", "Other", "small_copepod", "stick")
+  #' day_hour_files <-  paste0('d', day, '.h', hr)
+  #' misclassified <- list.files(day_hour_files, pattern = 'misclassified_', full.names = TRUE)
+  #' reclassify <- list.files(day_hour_files, pattern = 'reclassify_', full.names = TRUE)
+  #' vpr_autoid_create(reclassify, misclassified, basepath, categories)
+  #' }
+  #' @export
 
   . <- day <- hour <- NA
   # get day and hour values
@@ -465,15 +465,15 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     }
     # read in original aid file
     aids <- list.files(aidFolder, full.names = TRUE)
-    aid_list_old_fn <- grep(aids, pattern = day_hour, value = TRUE)
+    # Ensure backward compatibility with files that do not have .txt extension
+    # EO 12/12/24
+    aid_list_old_fn <- grep(aids, pattern = paste0(day_hour, "$|", day_hour, "\\.txt$"), value = TRUE)
     if (length(aid_list_old_fn) == 0) { # create a dummy file if no aid exists
-      aid_list_old_fn <- paste0(aidFolder, "/dummy_aid.",
-                                day_hour)
+      aid_list_old_fn <- paste0(aidFolder, "/dummy_aid.", day_hour, ".txt")  # Changed to .txt
       withr::with_output_sink(aid_list_old_fn, code = {
         cat("\n")
       })
-      print(paste("DUMMY FILE CREATED FOR", category,
-                  " : ", aid_list_old_fn))
+      print(paste("DUMMY FILE CREATED FOR", category, " : ", aid_list_old_fn))
       DUMMY = TRUE
       aid_new <- NULL
     } else {
@@ -500,11 +500,9 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     if (mea == TRUE) {
       aidMeaFolder <- list.files(categoryFolder, pattern = "^aidmea$",
                                  full.names = TRUE)
-      aidMeaFile <- list.files(aidMeaFolder, pattern = paste0("*",
-                                                              day_hour), full.names = TRUE)
+      aidMeaFile <- list.files(aidMeaFolder, pattern = paste0("*", day_hour, ".txt"), full.names = TRUE)  # Changed to .txt EO 12/12/24
       if (length(aidMeaFile) == 0) {
-        aidMeaFile <- paste0(aidMeaFolder, "/dummy_aid.mea.",
-                             day_hour)
+        aidMeaFile <- paste0(aidMeaFolder, "/dummy_aid.mea.", day_hour, ".txt")  # Changed to .txt EO 12/12/24
         withr::with_output_sink(aidMeaFile, code = {
           cat("\n")
         })
