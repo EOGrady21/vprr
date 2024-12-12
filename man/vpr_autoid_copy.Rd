@@ -9,10 +9,10 @@ vpr_autoid_copy(
   roi_path,
   day,
   hour,
-  cast,
-  station,
   threshold = NULL,
-  org = "dayhour"
+  org = "dayhour",
+  cast = NULL,
+  station = NULL
 )
 }
 \arguments{
@@ -27,10 +27,6 @@ folder)}
 
 \item{hour}{character string representing hour of interest (2 chr)}
 
-\item{cast}{character string, VPR cast number of interest (3 chr)}
-
-\item{station}{character string, station name of interest (eg. "Shediac")}
-
 \item{threshold}{(optional) a numeric value, supplied only if you are
 copying images based on automated classifications, only images below this
 threshold of confidence will be copied for manual classification.
@@ -39,6 +35,10 @@ Default is set to NULL.}
 \item{org}{chr value, if 'station', images will be output in folders labelled
 by station, if 'dayhour', images will be output in folders labelled by day
 and hour}
+
+\item{cast}{(optional) character string, VPR cast number of interest (3 chr), required if org is 'station'}
+
+\item{station}{(optional) character string, station name of interest (eg. "Shediac"), required if org is 'station'}
 }
 \value{
 organized file directory where VPR images are contained with folders, organized by day, hour and classification,

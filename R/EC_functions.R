@@ -1400,7 +1400,7 @@ ctd_cast <- function(data, cast_direction = 'ascending', data_type, cutoff = 0.1
 
 ### Image helpers ----
 
-vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, threshold = NULL, org = 'dayhour') {
+vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, threshold = NULL, org = 'dayhour', cast = NULL, station = NULL) {
   #' Copy VPR images into folders
   #'
   #' Organize VPR images into folders based on classifications provided by visual plankton
@@ -1408,8 +1408,8 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
   #' @param new_autoid A file path to your autoid folder where data is stored eg. "C:/data/cruise_X/autoid/"
   #' @param day character string representing numeric day of interest (3 chr)
   #' @param hour character string representing hour of interest (2 chr)
-  #' @param cast character string, VPR cast number of interest (3 chr)
-  #' @param station character string, station name of interest (eg. "Shediac")
+  #' @param cast (optional) character string, VPR cast number of interest (3 chr), required if org is 'station'
+  #' @param station (optional) character string, station name of interest (eg. "Shediac"), required if org is 'station'
   #' @param roi_path (optional) provide if ROI data has been moved since autoid
   #'   files were created (if path strings in aid files do not match where data
   #'   currently exists), a file path where ROI data is stored (up to "rois"
@@ -1440,16 +1440,6 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
     stop("hour must be a character string of length 2")
   }
 
-  # Check that the cast argument is a character string of length 3
-  if (!is.character(cast) || nchar(cast) != 3) {
-    stop("cast must be a character string of length 3")
-  }
-
-  # Check that the station argument is a character vector
-  if (!is.character(station)) {
-    stop("station must be a character vector")
-  }
-
   # Check that the threshold argument is a numeric value between 0 and 1 (if not NULL)
   if(!missing(threshold)){
     if (!is.null(threshold) && (!is.numeric(threshold) || threshold < 0 || threshold > 1)) {
@@ -1457,11 +1447,20 @@ vpr_autoid_copy <- function(new_autoid, roi_path, day, hour, cast, station, thre
     }
   }
 
-  # Check that the org argument is either 'station' or 'dayhour' (if not NULL)
-  if (!is.null(org) && org != 'station' && org != 'dayhour') {
+  # Check that the org argument is either 'station' or 'dayhour'
+  if (org != 'station' && org != 'dayhour') {
     stop("org must be either 'station' or 'dayhour'")
   }
-  #TODO update to use withr::with_dir to avoid CRAN complaints
+
+  # Check that cast and station are provided if org is 'station'
+  if (org == 'station') {
+    if (is.null(cast) || !is.character(cast) || nchar(cast) != 3) {
+      stop("cast must be a character string of length 3 when org is 'station'")
+    }
+    if (is.null(station) || !is.character(station)) {
+      stop("station must be a character vector when org is 'station'")
+    }
+  }
 
   # for each dh check which station it should be in
   dh <- paste0('d', day, '.h', hour)
