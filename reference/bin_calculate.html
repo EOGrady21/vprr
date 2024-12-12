@@ -68,9 +68,7 @@
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>ctd data frame object including scan, salinity, temperature,
-depth, conductivity, time, fluor_ref, turbidity_ref, turbidity_mv,
-altitude, cast_id, n_roi</p></dd>
+<dd><p>ctd data frame object</p></dd>
 
 
 <dt id="arg-binsize">binSize<a class="anchor" aria-label="anchor" href="#arg-binsize"></a></dt>
@@ -91,15 +89,15 @@ at bottom of each cast</p></dd>
 </dl></div>
     <div id="details">
     <h2>Details</h2>
-    <p>Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images
-For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches)
+    <p>Image volume calculations can change based on optical setting of VPR as well as autodeck setting used to process images.
+For IML2018051 (S2) image volume was calculated as 108155 mm^3 by seascan (6.6 cubic inches).
 For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3.
-Used internally ( <code><a href="bin_cast.html">bin_cast</a></code> ) after <code><a href="ctd_cast.html">ctd_cast</a></code> on a single ascending or descending section of VPR cast</p>
+Used internally (<code><a href="bin_cast.html">bin_cast</a></code>) after <code><a href="ctd_cast.html">ctd_cast</a></code> on a single ascending or descending section of VPR cast.</p>
     </div>
     <div id="note">
     <h2>Note</h2>
-    <p>binSize should be carefully considered for best results</p>
-<p>Depth is used for calculations! Please ensure depth is included in data frame using <a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">swDepth</a></p>
+    <p>binSize should be carefully considered for best results.</p>
+<p>Depth is used for calculations! Please ensure depth is included in data frame using <a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">swDepth</a>.</p>
     </div>
     <div id="author">
     <h2>Author</h2>
