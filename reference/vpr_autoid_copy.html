@@ -65,10 +65,10 @@
 <span>  <span class="va">roi_path</span>,</span>
 <span>  <span class="va">day</span>,</span>
 <span>  <span class="va">hour</span>,</span>
-<span>  <span class="va">cast</span>,</span>
-<span>  <span class="va">station</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  org <span class="op">=</span> <span class="st">"dayhour"</span></span>
+<span>  org <span class="op">=</span> <span class="st">"dayhour"</span>,</span>
+<span>  cast <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  station <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,14 +95,6 @@ folder)</p></dd>
 <dd><p>character string representing hour of interest (2 chr)</p></dd>
 
 
-<dt id="arg-cast">cast<a class="anchor" aria-label="anchor" href="#arg-cast"></a></dt>
-<dd><p>character string, VPR cast number of interest (3 chr)</p></dd>
-
-
-<dt id="arg-station">station<a class="anchor" aria-label="anchor" href="#arg-station"></a></dt>
-<dd><p>character string, station name of interest (eg. "Shediac")</p></dd>
-
-
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>(optional) a numeric value, supplied only if you are
 copying images based on automated classifications, only images below this
@@ -114,6 +106,14 @@ Default is set to NULL.</p></dd>
 <dd><p>chr value, if 'station', images will be output in folders labelled
 by station, if 'dayhour', images will be output in folders labelled by day
 and hour</p></dd>
+
+
+<dt id="arg-cast">cast<a class="anchor" aria-label="anchor" href="#arg-cast"></a></dt>
+<dd><p>(optional) character string, VPR cast number of interest (3 chr), required if org is 'station'</p></dd>
+
+
+<dt id="arg-station">station<a class="anchor" aria-label="anchor" href="#arg-station"></a></dt>
+<dd><p>(optional) character string, station name of interest (eg. "Shediac"), required if org is 'station'</p></dd>
 
 </dl></div>
     <div id="value">
