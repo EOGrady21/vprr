@@ -596,7 +596,11 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
   # calculate concentrations
   conc_dat <- list()
   for ( ii in seq_len(length(valid_category))){
-    conc_dat[[ii]] <- concentration_category(data, valid_category[ii], binSize, imageVolume, rev = rev) %>%
+    conc_dat[[ii]] <- concentration_category(data = data,
+                                             category = valid_category[ii],
+                                             category_list = valid_category,
+                                             binSize = binSize,
+                                             imageVolume = imageVolume, rev = rev) %>%
       dplyr::mutate(., category = valid_category[ii])
   }
 
@@ -610,7 +614,7 @@ vpr_roi_concentration <- function(data, category_list, station_of_interest, binS
   return(category_conc_n)
 }
 
-concentration_category <- function(data, category, binSize, imageVolume, rev = FALSE, breaks = NULL, cutoff = 0.1) {
+concentration_category <- function(data, category, category_list, binSize, imageVolume, rev = FALSE, breaks = NULL, cutoff = 0.1) {
   #' Binned concentrations
   #'
   #' This function produces depth binned concentrations for a specified category. Similar to \code{\link{bin_cast}} but calculates concentrations for only one category.
@@ -619,6 +623,7 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
   #'
   #' @param data dataframe produced by processing internal to vpr_roi_concentration
   #' @param category name of category isolated
+  #' @param category_list a vector of character strings representing category present in the station being processed
   #' @param binSize passed to \code{\link{bin_calculate}}, determines size of depth bins over which data is averaged
   #' @param imageVolume the volume of VPR images used for calculating concentrations (mm^3)
   #' @param rev Logical value defining direction of binning, FALSE - bins will be
@@ -663,36 +668,13 @@ concentration_category <- function(data, category, binSize, imageVolume, rev = F
 
   . <- NA # avoid CRAN notes
 
-  # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
-  # TODO remove hardcoding and instead use reference to ctd col_list or use reverse of categories
-  # remove other data rows #ADDED BY KS, DAY HOUR CHANGED TO DAY, HOUR
-  noncategory <-
-    c(
-      'time_ms',
-      'conductivity',
-      'temperature',
-      'pressure',
-      'salinity',
-      'sigmaT',
-      'fluor_ref',
-      'fluorescence_mv',
-      'turbidity_ref',
-      'turbidity_mv',
-      'altitude_NA',
-      'day',
-      'hour',
-      'station',
-      'time_hr',
-      'roi',
-      'depth'
-    )
-  dt <- data %>%
-    dplyr::select(., any_of(noncategory), all_of(category))
-
-
   # get n_roi of only one category
-  names(dt) <-
-    gsub(names(dt), pattern = category, replacement = 'n_roi')
+  cnames <- colnames(data)
+  cnames_idx <- which(cnames == category)
+  colnames(data)[cnames_idx] <- "n_roi"
+
+  dt <- data %>%
+    dplyr::select(., -any_of(category_list))
 
   # format into oce ctd
   ctd_roi_oce <- vpr_oce_create(dt)
