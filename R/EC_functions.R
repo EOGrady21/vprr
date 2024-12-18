@@ -1239,27 +1239,37 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
     data.frame(NULL)
   } else {
     # Get variables of interest using oce bin functions
-    min_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, min)$result
-    max_time_s <- oce::binApply1D(p, data$time_ms / 1000, xbreaks = x_breaks, max)$result
-    min_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, min)$result
-    max_depth <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, max)$result
+
     n_roi_bin <- oce::binApply1D(p, data$n_roi, xbreaks = x_breaks, sum)$result
     time_ms <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$result
-    time_hr <- oce::binApply1D(p, data$time_ms / (1000 * 3600), xbreaks = x_breaks, mean)$result # update time naming scheme May 2022
-    env1 <- data %>%
-      dplyr::select(., is.numeric) %>%
-      dplyr::select(., -n_roi, -depth)
-    env2 <- data.frame(lapply(env1, function(x) {oce::binApply1D(p, x, x_breaks, mean)$result}))
-    # temperature <- oce::binApply1D(p, data$temperature, xbreaks = x_breaks, mean)$result
-    # salinity <- oce::binApply1D(p, data$salinity, xbreaks = x_breaks, mean)$result
-    # density <- oce::binApply1D(p, data$sigmaT, xbreaks = x_breaks, mean)$result
-    # fluorescence <- oce::binApply1D(p, data$fluorescence_mv, xbreaks = x_breaks, mean)$result
-    # turbidity <- oce::binApply1D(p, data$turbidity_mv, xbreaks = x_breaks, mean)$result
+
     if (rev == TRUE) {
       depth <- rev(oce::binApply1D(p, data$depth, xbreaks = x_breaks, mean)$xmids)
     } else { # simplify?
       depth <- oce::binApply1D(p, data$time_ms, xbreaks = x_breaks, mean)$xmids
     }
+
+    env1 <- data %>%
+      dplyr::select(., where(is.numeric)) %>%
+      dplyr::select(., -n_roi, -depth)
+
+    avg_env0 <- data.frame(lapply(env1, function(x) {oce::binApply1D(p, x, x_breaks, mean)$result}))
+    min_env0 <- data.frame(lapply(env1, function(x) {oce::binApply1D(p, x, x_breaks, min)$result}))
+    max_env0 <- data.frame(lapply(env1, function(x) {oce::binApply1D(p, x, x_breaks, max)$result}))
+
+    avg_env <- avg_env0 %>%
+      dplyr::rename_with(~paste0(., "_mean"))
+
+    min_env <- min_env0 %>%
+      dplyr::rename_with(~paste0(., "_min"))
+
+    max_env <- max_env0 %>%
+      dplyr::rename_with(~paste0(., "_max"))
+
+    env2 <- data.frame(avg_env, min_env, max_env)
+
+    env3 <- env2[,order(colnames(env2))]
+
     # calculates number of frames captured per depth bin by counting number of pressure observations per bin
     n_frames <- oce::binApply1D(p, data$depth, xbreaks = x_breaks, length)$result # KS edit 10/9/19
     # WARNING
@@ -1295,20 +1305,16 @@ bin_calculate <- function(data, binSize = 1, imageVolume, rev = FALSE) {
       length(n_frames) <- length(depth)
     }
     # Get derived variables
-    time_diff_s <- max_time_s - min_time_s
+
     # calculate concentration
     vol_sampled_bin_m3 <- (imageVolume / 1e09) * n_frames
     conc_m3 <- n_roi_bin / (vol_sampled_bin_m3) # KS 10/9/19
-    depth_diff <- max_depth - min_depth
-    # Output
-    # data.frame(depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s,
-    #            n_roi_bin, conc_m3,
-    #            temperature, salinity, density, fluorescence, turbidity,
-    #            time_hr, n_frames, vol_sampled_bin_m3, time_ms,
-    #            towyo = cast_id, max_cast_depth)
-    data.frame(time_ms, time_hr, towyo = cast_id, depth, min_depth, max_depth, depth_diff, min_time_s, max_time_s, time_diff_s, n_roi_bin, conc_m3, n_frames,
-               vol_sampled_bin_m3, max_cast_depth, env2)
-    # MAX CAST PRESSURE ADDED BY KS
+
+    result <- data.frame(towyo = cast_id, max_cast_depth, n_roi_bin, conc_m3, n_frames,
+                         vol_sampled_bin_m3, env3)
+
+    return(result)
+
   } # end else loop for size error
 }
 
