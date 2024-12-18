@@ -265,13 +265,13 @@ see `dankelley/oce` on GitHub.
         "temperature",
         "pressure",
         "salinity",
-        "reserved_mv",
-        "turbidity_mv",
-        "fluorescence_mv",
-        "oxygen_mV",
+        "reserved1_mV",
+        "FLNTU1_mV",
+        "FLNTU2_mV",
+        "reserved2_mV",
         "pitch_degrees",
         "roll_degrees",
-        "frame_number"
+        "image_number"
       )
     )
 
@@ -344,9 +344,16 @@ stamp (ymdhms) with POSIXct signature in Y-M-D h:m:s format is added
 using the function `vpr_ctd_ymd`.
 
     ##### CALCULATED VARS -------------------------------------------------
-    # add time_hr and sigma T data and depth
+    
     data <- ctd_roi_merge %>%
-        dplyr::mutate(., time_hr = time_ms / 3.6e+06)
+    
+    # arrange data by image number to avoid processing errors downstream    
+        dplyr::arrange(., image_number) %>%
+    
+    # add optional variable time_hr
+        dplyr::mutate(., time_hr = time_ms / 3.6e+06) 
+        
+        
     data <- vpr_ctd_ymd(data, year)
 
 Average plankton concentration and environmental variables (e.g., temperature, salinity, density, etc.) are then computed along the path of the VPR  in depth bins. The width of the depth bin is set by the user.  In each bin plankton concentration,  C, is computed as follows for each classification category:
