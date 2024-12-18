@@ -546,7 +546,8 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       day_hour_re <- paste(day, hour, sep = ".")
       recl_roi_gen <- unlist(vpr_roi(recl_roi))
       if (length(unique(day_hour_re)) > 1) {
-        stop(paste(reclassify_category, "has more than one unique hour value!\n                                                     Please double check file."))
+        stop(paste(reclassify_category, "has more than one unique hour value!\n
+                   Please double check file."))
       }
       recl_roi_df <- data.frame(recl_roi_gen, day_hour_re,
                                 recl_roi, stringsAsFactors = FALSE)
@@ -608,7 +609,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     dirpath <- file.path("new_autoid", category[[1]])
     dir.create(dirpath, showWarnings = FALSE, recursive = TRUE)
     if (mea == TRUE) {
-      aidMea_final_nm <- paste0("new_aid.mea.", unique(day_hour))
+      aidMea_final_nm <- paste0("new_aid.mea.", unique(day_hour), '.txt')
       aidMea_final_fn <- file.path(dirpath, "aidmea",
                                    aidMea_final_nm)
       dir.create(file.path(category, "aidmea"), showWarnings = FALSE,
@@ -619,7 +620,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
       cat(paste(">>>> New aidmea file created for",
                 category, "in", unique(day_hour), "\n"))
     }
-    aid_final_nm <- paste0("new_aid.", unique(day_hour))
+    aid_final_nm <- paste0("new_aid.", unique(day_hour), '.txt')
     aid_final_fn <- file.path(dirpath, "aid", aid_final_nm)
     dir.create(file.path(dirpath, "aid"), showWarnings = FALSE,
                recursive = TRUE)
