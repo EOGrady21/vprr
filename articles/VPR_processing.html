@@ -445,13 +445,13 @@ function <code><a href="https://dankelley.github.io/oce/reference/swDepth.html" 
 <span>    <span class="st">"temperature"</span>,</span>
 <span>    <span class="st">"pressure"</span>,</span>
 <span>    <span class="st">"salinity"</span>,</span>
-<span>    <span class="st">"reserved_mv"</span>,</span>
-<span>    <span class="st">"turbidity_mv"</span>,</span>
-<span>    <span class="st">"fluorescence_mv"</span>,</span>
-<span>    <span class="st">"oxygen_mV"</span>,</span>
+<span>    <span class="st">"reserved1_mV"</span>,</span>
+<span>    <span class="st">"FLNTU1_mV"</span>,</span>
+<span>    <span class="st">"FLNTU2_mV"</span>,</span>
+<span>    <span class="st">"reserved2_mV"</span>,</span>
 <span>    <span class="st">"pitch_degrees"</span>,</span>
 <span>    <span class="st">"roll_degrees"</span>,</span>
-<span>    <span class="st">"frame_number"</span></span>
+<span>    <span class="st">"image_number"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre>
 <p>The aid (and aidmeas) files, which reflect manual classification (if
@@ -514,9 +514,16 @@ added to the data frame: time in hours (time_hr) is calculated, and a
 time stamp (ymdhms) with POSIXct signature in Y-M-D h:m:s format is
 added using the function <code>vpr_ctd_ymd</code>.</p>
 <pre><code><span><span class="co">##### CALCULATED VARS -------------------------------------------------</span></span>
-<span><span class="co"># add time_hr and sigma T data and depth</span></span>
+<span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">ctd_roi_merge</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, time_hr <span class="op">=</span> <span class="va">time_ms</span> <span class="op">/</span> <span class="fl">3.6e+06</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># arrange data by image number to avoid processing errors downstream    </span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">.</span>, <span class="va">image_number</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span></span>
+<span><span class="co"># add optional variable time_hr</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, time_hr <span class="op">=</span> <span class="va">time_ms</span> <span class="op">/</span> <span class="fl">3.6e+06</span><span class="op">)</span> </span>
+<span>    </span>
+<span>    </span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_ctd_ymd.html">vpr_ctd_ymd</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">year</span><span class="op">)</span></span></code></pre>
 <p>Average plankton concentration and environmental variables (e.g.,
 temperature, salinity, density, etc.) are then computed along the path
