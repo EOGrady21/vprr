@@ -103,12 +103,12 @@ vpr_manual_classification <-
       # clear existing files
       path <- categoryFolders[i]
 
-      if(!missing(path_score)){
-      #ensure that the autoid and score folders match... can mismatch if extra categories are added to autoid directory in manual re-classification step
-      path_cat <- basename(path)
-      path_scr <- paste(path_score, path_cat, sep = "/")
-      path_scr_logical <- dir.exists(path_scr) # it will not exist if it is a newly added category (after cnn classification)
-      }
+      # if(!missing(path_score)){
+      # #ensure that the autoid and score folders match... can mismatch if extra categories are added to autoid directory in manual re-classification step
+      # path_cat <- basename(path)
+      # path_scr <- paste(path_score, path_cat, sep = "/")
+      # path_scr_logical <- dir.exists(path_scr) # it will not exist if it is a newly added category (after cnn classification)
+      # }
 
       if (t_f[i] == FALSE) {
         print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
