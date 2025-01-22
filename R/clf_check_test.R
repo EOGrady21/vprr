@@ -58,6 +58,43 @@ vpr_manual_classification <-
     #   threshold_score <- 1
     # }
 
+
+    # Initialize settings for converting pixels to length for different VPR optical settings
+
+    if (opticalSetting == 'S0') {
+      # px to mm conversion factor
+      frame_mm <- 7
+      mm_px <-
+        frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
+      pxtomm <- 1 / mm_px
+    }
+
+    if (opticalSetting == 'S1') {
+      # px to mm conversion factor
+      frame_mm <- 14
+      mm_px <-
+        frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
+      pxtomm <- 1 / mm_px
+    }
+
+    if (opticalSetting == 'S2') {
+      # px to mm conversion factor
+      frame_mm <- 24
+      mm_px <-
+        frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
+      pxtomm <- 1 / mm_px
+    }
+
+    if (opticalSetting == 'S3') {
+      # px to mm conversion factor
+      frame_mm <- 42 # correct conversion factor (7/11/2022)
+      mm_px <-
+        frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
+      pxtomm <- 1 / mm_px
+    }
+
+    #Start image classification process
+
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
     dir.create(path = dirpath, showWarnings = FALSE, recursive = TRUE)
@@ -180,36 +217,6 @@ vpr_manual_classification <-
         }
 
           rois <- list.files(dayHrFolder, full.names = TRUE)
-
-          # find correct conversion factor based on VPR optical setting
-          if (opticalSetting == 'S0') {
-            # px to mm conversion factor
-            frame_mm <- 7
-            mm_px <-
-              frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
-            pxtomm <- 1 / mm_px
-          }
-          if (opticalSetting == 'S1') {
-            # px to mm conversion factor
-            frame_mm <- 14
-            mm_px <-
-              frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
-            pxtomm <- 1 / mm_px
-          }
-          if (opticalSetting == 'S2') {
-            # px to mm conversion factor
-            frame_mm <- 24
-            mm_px <-
-              frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
-            pxtomm <- 1 / mm_px
-          }
-          if (opticalSetting == 'S3') {
-            # px to mm conversion factor
-            frame_mm <- 42 # correct conversion factor (7/11/2022)
-            mm_px <-
-              frame_mm / 1024 # 1024 is resolution of VPR images (p.4 DAVPR manual)
-            pxtomm <- 1 / mm_px
-          }
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
