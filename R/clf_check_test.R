@@ -36,9 +36,8 @@ vpr_manual_classification <-
     #'   value, under which automatic classifications will be passed through
     #'   manual reclassification. This argument should match the threshold
     #'   provided in `vpr_autoid_copy()`
-    #' @param path_score (optional) file path to the autoid_cnn_scr folder
-    #'   (autoid files with confidence values produced by automated
-    #'   classification)
+    #' @param path_score (optional) file path to folder containing autoid files with confidence values produced by automated
+    #'   classification
     #'
     #' @details Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
     #'   24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
@@ -54,10 +53,10 @@ vpr_manual_classification <-
     #'
     #'@export
 
-    # if no threshold score is provided, check through all images
-    if(missing(threshold_score)){
-      threshold_score <- 1
-    }
+    # # if no threshold score is provided, check through all images
+    # if(missing(threshold_score)){
+    #   threshold_score <- 1
+    # }
 
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
@@ -83,7 +82,7 @@ vpr_manual_classification <-
    categoryNames <- list.files(basepath)
     allcategory <- list.files(basepath)
 
-   categoryFolders <-categoryFolders_og[categoryNames %in%category_of_interest]
+   categoryFolders <-categoryFolders_og[categoryNames %in% category_of_interest]
    categoryNames <- categoryNames[categoryNames %in% category_of_interest]
     if (length(categoryFolders) == 0) {
       stop('No category folders match category of interest!
@@ -156,7 +155,8 @@ vpr_manual_classification <-
           aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
           aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
 
-          aid_dat_t <- aid_dat_threshold$V1
+          #aid_dat_t <- aid_dat_threshold$V1
+          aid_dat_t <- aid_dat_threshold
           aid_dat_t_roi <- basename(aid_dat_t)
           aid_scr_t <- aid_dat_threshold$V2
 
@@ -625,7 +625,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     dir.create(file.path(dirpath, "aid"), showWarnings = FALSE,
                recursive = TRUE)
 
-    aid_final <- sub(" .*", "", aid_final) #####
+    #aid_final <- sub(" .*", "", aid_final) #####
 
 
     write.table(file = aid_final_fn, aid_final, quote = FALSE,
