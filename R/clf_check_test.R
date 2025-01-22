@@ -94,11 +94,11 @@ vpr_manual_classification <-
     }
 
     #Start image classification process
-
     day_hour <- paste0('d', day, '.h', hour)
     dirpath <- file.path("manual_reclassification_record",day_hour)
     dir.create(path = dirpath, showWarnings = FALSE, recursive = TRUE)
     existingFiles <- list.files(dirpath, full.names = TRUE)
+
     ans <-
       menu(
         c('Yes', 'No'),
@@ -108,6 +108,7 @@ vpr_manual_classification <-
           'ARE ABOUT TO BE DELETED. DO YOU WISH TO PROCEED?'
         )
       )
+
     if (ans == 1) {
       file.remove(existingFiles)
     } else{
@@ -117,11 +118,12 @@ vpr_manual_classification <-
 
    categoryFolders_og <- list.files(basepath, full.names = TRUE)
    categoryNames <- list.files(basepath)
-    allcategory <- list.files(basepath)
+   allcategory <- list.files(basepath)
 
    categoryFolders <-categoryFolders_og[categoryNames %in% category_of_interest]
    categoryNames <- categoryNames[categoryNames %in% category_of_interest]
-    if (length(categoryFolders) == 0) {
+
+   if (length(categoryFolders) == 0) {
       stop('No category folders match category of interest!
                                      Caution of capitalization!')
     }
@@ -136,7 +138,9 @@ vpr_manual_classification <-
       misclassified <- vector()
 
       print(paste('CATEGORY START : ', categoryFolders[i]))
+
       y <- readline(paste('CONFIRM NEW CATEGORY : ', categoryFolders[i]))
+
       # clear existing files
       path <- categoryFolders[i]
 
@@ -150,7 +154,7 @@ vpr_manual_classification <-
       if (t_f[i] == FALSE) {
         print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
         SKIP = TRUE
-      } else{
+      } else {
         dayHrFolders <- list.files(path, full.names = TRUE)
 
         dayHrFolder <-
@@ -164,10 +168,11 @@ vpr_manual_classification <-
         if (length(dayHrFolder) == 0) {
           print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
           SKIP = TRUE
-        } else{
+        } else {
           SKIP = FALSE
 
         if(missing(threshold_score)){
+
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
@@ -176,7 +181,7 @@ vpr_manual_classification <-
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
 
-        }else{
+        } else {
           # SKIP = FALSE
           # aidFolder <- grep(dayHrFolders, pattern = "aid$",
           #                   value = TRUE)
@@ -300,8 +305,10 @@ vpr_manual_classification <-
 
               print(img_f)
 
-            } else{
+            } else {
+
               print(img)
+
             }
 
 
@@ -319,8 +326,7 @@ vpr_manual_classification <-
 
             if (ans == 1) {
 
-
-            } else{
+            } else {
               # original method
               # sink(file = paste0(day_hour,'/misclassified_', categoryNames[i], '.txt'), append = TRUE)
               # cat(aid_dat[[ii]], '\n')
