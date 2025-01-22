@@ -138,7 +138,7 @@ vpr_manual_classification <-
             list.files(aidFolder, pattern = day_hour, full.names = TRUE)
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
-          rois <- list.files(dayHrFolder, full.names = TRUE)
+
         }else{
           # SKIP = FALSE
           # aidFolder <- grep(dayHrFolders, pattern = "aid$",
@@ -161,23 +161,27 @@ vpr_manual_classification <-
           aid_dat_t <- subset(aid_dat, aid_dat$V2 < threshold_score)
           aid_scr_t <- aid_dat_t$V2
 
-          rois_all_bn <- basename(rois_all)
-          # remove file extension in case of comparing .tif and .png
-            if(stringr::str_sub(rois_all_bn, start = -3, end = -1)[[1]] !=
-              stringr::str_sub(aid_dat_t_roi, start = -3, end = -1)[[1]]){
-              rois_all_bn <- stringr::str_sub(rois_all_bn, start = 1, end = -5) # remove file extension
-              aid_dat_t_roi <- stringr::str_sub(aid_dat_t_roi, start = 1, end = -5) # remove file extension
-              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi) # compare for index
+          # rois_all_bn <- basename(rois_all)
+          # # remove file extension in case of comparing .tif and .png
+          #   if(stringr::str_sub(rois_all_bn, start = -3, end = -1)[[1]] !=
+          #     stringr::str_sub(aid_dat_t_roi, start = -3, end = -1)[[1]]){
+          #     rois_all_bn <- stringr::str_sub(rois_all_bn, start = 1, end = -5) # remove file extension
+          #     aid_dat_t_roi <- stringr::str_sub(aid_dat_t_roi, start = 1, end = -5) # remove file extension
+          #     rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi) # compare for index
+          #
+          #   }else{
+          #     rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi)
+          #     }
+          # rois <- rois_all[rois_threshold_idx]
+          # if(length(rois) == 0){
+          #   stop('No ROIs found!')
+          # }
 
-            }else{
-              rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi)
-              }
-          rois <- rois_all[rois_threshold_idx]
-          if(length(rois) == 0){
-            stop('No ROIs found!')
-          }
+        }
 
-          }
+          rois <- list.files(dayHrFolder, full.names = TRUE)
+
+
 
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
