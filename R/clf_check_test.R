@@ -9,8 +9,7 @@ vpr_manual_classification <-
            scale = 'x300',
            opticalSetting = 'S2',
            img_bright = TRUE,
-           threshold_score,
-           path_score) {
+           threshold_score) {
 
     #' Function to check results of classification manually
     #'
@@ -36,8 +35,6 @@ vpr_manual_classification <-
     #'   value, under which automatic classifications will be passed through
     #'   manual reclassification. This argument should match the threshold
     #'   provided in `vpr_autoid_copy()`
-    #' @param path_score (optional) file path to folder containing autoid files with confidence values produced by automated
-    #'   classification
     #'
     #' @details Optical Setting frame sizes: S0 = 7x7 mm, S1 = 14x14mm, S2 =
     #'   24x24mm, S3 = 48x48 mm. These settings define the conversion factor from
