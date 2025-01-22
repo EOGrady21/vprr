@@ -181,8 +181,6 @@ vpr_manual_classification <-
 
           rois <- list.files(dayHrFolder, full.names = TRUE)
 
-
-
           # find correct conversion factor based on VPR optical setting
           if (opticalSetting == 'S0') {
             # px to mm conversion factor
@@ -215,32 +213,63 @@ vpr_manual_classification <-
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
-            if(missing(path_score)){
-            img <- magick::image_read(rois[ii], strip = FALSE) %>%
-              magick::image_scale(scale) %>%
-              magick::image_annotate(categoryNames[i], color = 'red', size = 12)
-            # read in original image without scaling
-            img_o <- magick::image_read(rois[ii])
-            imgdat <- magick::image_info(img_o)
 
-            # annotate original image size
-            img <-
-              magick::image_annotate(
-                img,
-                text = paste(
-                  round(imgdat$width / pxtomm, digits = 2),
-                  'x',
-                  round(imgdat$height / pxtomm, digits = 2),
-                  'mm'
-                ),
-                location = '+0+10',
-                color = 'red'
-              )
-            }else{
+            if(missing(threshold_score)){
+
+              scr_tmp <- "no_score"
+
+            } else {
+
               scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
+
               if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
+
                 stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
+
               }
+
+            }
+
+
+          #     img <- magick::image_read(rois[ii], strip = FALSE) %>%
+          #       magick::image_scale(scale) %>%
+          #       magick::image_annotate(paste(categoryNames[i], "(roi.", unlist(vpr_roi(rois[ii])), ")"), color = "red", size = 12) %>%
+          #       magick::image_annotate(text = paste("scoreCNN = ", round(scr_tmp, digits = 2)),
+          #                              location = "+0+20",
+          #                              color = "red") %>%
+          #       magick::image_annotate(text = paste(round(imgdat$width/pxtomm, digits = 2), "x", round(imgdat$height/pxtomm, digits = 2), "mm"),
+          #                              location = "+0+10",
+          #                              color = "red")
+          #
+          #   }
+          #
+          #     img <- magick::image_read(rois[ii], strip = FALSE) %>%
+          #     magick::image_scale(scale) %>%
+          #     magick::image_annotate(categoryNames[i], color = 'red', size = 12)
+          #
+          #     # read in original image without scaling
+          #     img_o <- magick::image_read(rois[ii])
+          #     imgdat <- magick::image_info(img_o)
+          #
+          #   # annotate original image size
+          #     img <- magick::image_annotate(img, text = paste(round(imgdat$width / pxtomm, digits = 2), 'x', round(imgdat$height / pxtomm, digits = 2),
+          #         'mm'
+          #       ),
+          #       location = '+0+10',
+          #       color = 'red'
+          #     )
+          #
+          # #}
+          #
+          # else{
+          #
+          #     scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
+          #
+          #     if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
+          #       stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
+          #     }
+
+
               img_tmp <- magick::image_read(rois[ii])
               imgdat <- magick::image_info(img_tmp)
 
@@ -255,7 +284,8 @@ vpr_manual_classification <-
                                        location = "+0+10",
                                        color = "red")
 
-            }
+          }
+
             if (img_bright == TRUE) {
               img_n <- magick::image_modulate(img, brightness = 500)
 
