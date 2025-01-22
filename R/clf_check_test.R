@@ -624,6 +624,10 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     aid_final_fn <- file.path(dirpath, "aid", aid_final_nm)
     dir.create(file.path(dirpath, "aid"), showWarnings = FALSE,
                recursive = TRUE)
+
+    aid_final <- sub(" .*", "", aid_final) #####
+
+
     write.table(file = aid_final_fn, aid_final, quote = FALSE,
                 col.names = FALSE, row.names = FALSE)
     cat(paste(">>>> New aid file created for",
