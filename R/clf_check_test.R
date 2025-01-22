@@ -228,13 +228,13 @@ vpr_manual_classification <-
 
             if(missing(threshold_score)){
 
-              scr_tmp <- "no_score"
+              scr_tmp <- "9999"
 
             } else {
 
               scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
 
-              if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
+              if(unlist(vpr_roi(aid_dat_t$V1[ii])) != unlist(vpr_roi(rois[ii]))){
 
                 stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
 
@@ -327,17 +327,22 @@ vpr_manual_classification <-
             if (ans == 1) {
 
             } else {
+
               # original method
               # sink(file = paste0(day_hour,'/misclassified_', categoryNames[i], '.txt'), append = TRUE)
               # cat(aid_dat[[ii]], '\n')
               # sink()
 
-              if(missing(path_score)){
+              if(missing(threshold_score)){
+
                 misclassified <- c(misclassified, aid_dat[[ii]])
-              }else{
-                misclassified <- c(misclassified, aid_dat_t[[ii]]) # if threshold has been applied
-                # TODO test that this is pulling correctly
-              }
+
+                } else {
+
+                  misclassified <- c(misclassified, aid_dat_t[[ii]]) # if threshold has been applied
+                  # TODO test that this is pulling correctly
+
+                  }
 
 
               # update to create generic category options
@@ -347,13 +352,16 @@ vpr_manual_classification <-
                      graphics = gr,
                      title = "Appropriate Category Classification?")
 
-              if(missing(path_score)){
-              reclassified[[ans]] <-
-                c(reclassified[[ans]], aid_dat[[ii]])
-              }else{ # if threshold has been applied
+              if(missing(threshold_score)){
+
+                reclassified[[ans]] <- c(reclassified[[ans]], aid_dat[[ii]])
+
+                } else {
+
+                # if threshold has been applied
                 # TODO double check this pulling
-                reclassified[[ans]] <- c(reclassified[[ans]],
-                                         aid_dat_t[ii])
+                reclassified[[ans]] <- c(reclassified[[ans]], aid_dat_t[ii])
+
               }
 
               # original method
