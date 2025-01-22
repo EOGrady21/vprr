@@ -118,11 +118,11 @@ vpr_manual_classification <-
 
         dayHrFolder <-
           grep(dayHrFolders, pattern = day_hour, value = TRUE)
-        if(!missing(path_score)){
-          Folders_scr <- list.files(path_scr, full.names = TRUE)
-          Folders_scr2 <- list.files(Folders_scr, full.names = TRUE)
-
-        }
+        # if(!missing(path_score)){
+        #   Folders_scr <- list.files(path_scr, full.names = TRUE)
+        #   Folders_scr2 <- list.files(Folders_scr, full.names = TRUE)
+        #
+        # }
 
         if (length(dayHrFolder) == 0) {
           print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
@@ -130,7 +130,7 @@ vpr_manual_classification <-
         } else{
           SKIP = FALSE
 
-        if(missing(path_score)){
+        if(missing(threshold_score)){
           # grab aid file info
           aidFolder <-
             grep(dayHrFolders, pattern = 'aid$', value = TRUE)
@@ -140,25 +140,26 @@ vpr_manual_classification <-
           aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
           rois <- list.files(dayHrFolder, full.names = TRUE)
         }else{
-          SKIP = FALSE
-          aidFolder <- grep(dayHrFolders, pattern = "aid$",
-                            value = TRUE)
+          # SKIP = FALSE
+          # aidFolder <- grep(dayHrFolders, pattern = "aid$",
+          #                   value = TRUE)
+          #
+          # aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
+          # aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
+          # rois_all <- list.files(dayHrFolder, full.names = TRUE)
+          #
+          # aidFile_scr <- grep(Folders_scr2, pattern = day_hour, value = TRUE)
+          # if(length(aidFile_scr) == 0){
+          #   stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
+          # }
+          #aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
+          #aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
+          #aid_dat_t <- aid_dat_threshold
+          #aid_dat_t_roi <- basename(aid_dat_t)
+          #aid_scr_t <- aid_dat_threshold$V2
 
-          aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
-          aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
-          rois_all <- list.files(dayHrFolder, full.names = TRUE)
-
-          aidFile_scr <- grep(Folders_scr2, pattern = day_hour, value = TRUE)
-          if(length(aidFile_scr) == 0){
-            stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
-          }
-          aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
-          aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
-
-          #aid_dat_t <- aid_dat_threshold$V1
-          aid_dat_t <- aid_dat_threshold
-          aid_dat_t_roi <- basename(aid_dat_t)
-          aid_scr_t <- aid_dat_threshold$V2
+          aid_dat_t <- subset(aid_dat, aid_dat$V2 < threshold_score)
+          aid_scr_t <- aid_dat_t$V2
 
           rois_all_bn <- basename(rois_all)
           # remove file extension in case of comparing .tif and .png
