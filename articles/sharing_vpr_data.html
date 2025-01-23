@@ -76,7 +76,7 @@
       <h1 data-toc-skip>Sharing VPR Data</h1>
                         <h4 data-toc-skip class="author">E. O’Grady</h4>
             
-            <h4 data-toc-skip class="date">2024-12-18</h4>
+            <h4 data-toc-skip class="date">2025-01-23</h4>
       
 
       <div class="hidden name"><code>sharing_vpr_data.Rmd</code></div>
@@ -86,11 +86,8 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in get(paste0(generic, ".", class), envir = get_method_env()) : </span></span>
-<span><span class="co">##   object 'type_sum.accel' not found</span></span></code></pre>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Attaching package: 'dplyr'</span></span></code></pre>
 <pre><code><span><span class="co">## The following objects are masked from 'package:stats':</span></span>
@@ -99,7 +96,7 @@
 <pre><code><span><span class="co">## The following objects are masked from 'package:base':</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##     intersect, setdiff, setequal, union</span></span></code></pre>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># library(rjson)</span></span>
 <span><span class="co"># library(readxl)</span></span></code></pre></div>
 <div class="section level2">
@@ -140,7 +137,7 @@ focus on two formats of final data products, which include environmental
 has been calculated by classification category and some relevant
 metadata has been added.</p>
 <p>The long format of data looks like</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">category_conc_n</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">category_conc_n</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                    depth  min_depth max_depth depth_diff min_time_s max_time_s</span></span>
@@ -179,7 +176,7 @@ metadata has been added.</p>
 <span><span class="co">## bad_image_blurry.5    test</span></span>
 <span><span class="co">## bad_image_blurry.6    test</span></span></code></pre>
 <p>The wide format looks like</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ctd_roi_merge</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    time_ms conductivity temperature pressure salinity fluor_ref fluorescence_mv</span></span>
@@ -245,7 +242,7 @@ or series of VPR deployments, as well as at an event (station, or cast)
 level, representing a single VPR deployment. Each level has unique
 requirements but it should be ensured that the metadata files have a
 connection (in this example: dataset_ID).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># vpr_metadata_template &lt;- system.file("extdata", "vpr_metadata_template.xlsx",</span></span>
 <span><span class="co">#                                      package = "vprr")</span></span>
 <span><span class="co"># </span></span>
@@ -274,7 +271,7 @@ as well as units and definitions should be included in the metadata
 <div class="section level2">
 <h2 id="example-using-package-data">Example using package data<a class="anchor" aria-label="anchor" href="#example-using-package-data"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">category_conc_n</span><span class="op">)</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"station_level"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>     <span class="st">"title"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"en"</span> <span class="op">=</span> <span class="st">"VPR data from the Scotian Shelf"</span>,</span>
@@ -454,7 +451,7 @@ as well as units and definitions should be included in the metadata
 <h2 id="example-of-outputs">Example of outputs<a class="anchor" aria-label="anchor" href="#example-of-outputs"></a>
 </h2>
 <p>Here are the outputs from the above example.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># data &lt;- read.csv(system.file(</span></span>
 <span><span class="co">#   "extdata", "vpr123_station25.csv", package = "vprr"))</span></span>
 <span><span class="co"># head(data)</span></span>
