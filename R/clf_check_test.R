@@ -50,13 +50,7 @@ vpr_manual_classification <-
     #'
     #'@export
 
-    # # if no threshold score is provided, check through all images
-    # if(missing(threshold_score)){
-    #   threshold_score <- 1
-    # }
-
-
-    # Initialize settings for converting pixels to length for different VPR optical settings
+   # Initialize settings for converting pixels to length for different VPR optical settings
 
     if (opticalSetting == 'S0') {
       # px to mm conversion factor
@@ -107,125 +101,91 @@ vpr_manual_classification <-
       )
 
     if (ans == 1) {
+
       file.remove(existingFiles)
-    } else{
+
+    } else {
+
       warning(immediate. = TRUE,
               paste('CAUTION, FILES FOR', day_hour, 'ARE BEING APPENDED!!'))
     }
 
-   categoryFolders_og <- list.files(basepath, full.names = TRUE)
-   categoryNames <- list.files(basepath)
-   allcategory <- list.files(basepath)
+    categoryFolders_og <- list.files(basepath, full.names = TRUE)
+    categoryNames <- list.files(basepath)
+    allcategory <- list.files(basepath)
 
-   categoryFolders <-categoryFolders_og[categoryNames %in% category_of_interest]
-   categoryNames <- categoryNames[categoryNames %in% category_of_interest]
+    categoryFolders <-categoryFolders_og[categoryNames %in% category_of_interest]
+    categoryNames <- categoryNames[categoryNames %in% category_of_interest]
 
-   if (length(categoryFolders) == 0) {
-      stop('No category folders match category of interest!
-                                     Caution of capitalization!')
+    if (length(categoryFolders) == 0) {
+
+      stop('No category folders match category of interest!')
+
     }
 
     t_f <- dir.exists(categoryFolders)
 
-    # Make an empty list for reclassficiations with named elements for each category
+    # Make an empty list for re-classifications with named elements for each category
+
     reclassified <- vector("list", length(allcategory))
     names(reclassified) <- allcategory
 
+    #START FOR LOOP
     for (i in seq_len(length(categoryFolders))) {
+
       misclassified <- vector()
 
       print(paste('CATEGORY START : ', categoryFolders[i]))
 
       y <- readline(paste('CONFIRM NEW CATEGORY : ', categoryFolders[i]))
 
-      # clear existing files
-      path <- categoryFolders[i]
-
-      # if(!missing(path_score)){
-      # #ensure that the autoid and score folders match... can mismatch if extra categories are added to autoid directory in manual re-classification step
-      # path_cat <- basename(path)
-      # path_scr <- paste(path_score, path_cat, sep = "/")
-      # path_scr_logical <- dir.exists(path_scr) # it will not exist if it is a newly added category (after cnn classification)
-      # }
-
       if (t_f[i] == FALSE) {
+
         print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST!'))
         SKIP = TRUE
-      } else {
-        dayHrFolders <- list.files(path, full.names = TRUE)
 
-        dayHrFolder <-
-          grep(dayHrFolders, pattern = day_hour, value = TRUE)
-        # if(!missing(path_score)){
-        #   Folders_scr <- list.files(path_scr, full.names = TRUE)
-        #   Folders_scr2 <- list.files(Folders_scr, full.names = TRUE)
-        #
-        # }
+      } else {
+
+        dayHrFolders <- list.files(categoryFolders[i], full.names = TRUE)
+        dayHrFolder <- grep(dayHrFolders, pattern = day_hour, value = TRUE)
 
         if (length(dayHrFolder) == 0) {
+
           print(paste('category : ', categoryFolders[i], 'DOES NOT EXIST IN ', day_hour, '!'))
           SKIP = TRUE
+
         } else {
+
           SKIP = FALSE
 
-        if(missing(threshold_score)){
-
-          # grab aid file info
-          aidFolder <-
-            grep(dayHrFolders, pattern = 'aid$', value = TRUE)
-          aidFile <-
-            list.files(aidFolder, pattern = day_hour, full.names = TRUE)
+          aidFolder <- grep(dayHrFolders, pattern = 'aid$', value = TRUE)
+          aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
           aid_dat <- read.table(aidFile, stringsAsFactors = FALSE) # TODO read in pred_results instead of aid
-          aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
 
-        } else {
-          # SKIP = FALSE
-          # aidFolder <- grep(dayHrFolders, pattern = "aid$",
-          #                   value = TRUE)
-          #
-          # aidFile <- list.files(aidFolder, pattern = day_hour, full.names = TRUE)
-          # aid_dat <- read.table(aidFile, stringsAsFactors = FALSE)
-          # rois_all <- list.files(dayHrFolder, full.names = TRUE)
-          #
-          # aidFile_scr <- grep(Folders_scr2, pattern = day_hour, value = TRUE)
-          # if(length(aidFile_scr) == 0){
-          #   stop(paste('No CNN aid found for', day_hour, 'in', categoryFolders[i]))
-          # }
-          #aid_dat_scr <- read.table(aidFile_scr, stringsAsFactors = F)
-          #aid_dat_threshold <- subset(aid_dat_scr, aid_dat_scr$V2 < threshold_score)
-          #aid_dat_t <- aid_dat_threshold
-          #aid_dat_t_roi <- basename(aid_dat_t)
-          #aid_scr_t <- aid_dat_threshold$V2
+          if(missing(threshold_score)){
 
-          aid_dat_t <- subset(aid_dat, aid_dat$V2 < threshold_score)
-          aid_scr_t <- aid_dat_t$V2
+            # aid file info
+            aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
 
-          # rois_all_bn <- basename(rois_all)
-          # # remove file extension in case of comparing .tif and .png
-          #   if(stringr::str_sub(rois_all_bn, start = -3, end = -1)[[1]] !=
-          #     stringr::str_sub(aid_dat_t_roi, start = -3, end = -1)[[1]]){
-          #     rois_all_bn <- stringr::str_sub(rois_all_bn, start = 1, end = -5) # remove file extension
-          #     aid_dat_t_roi <- stringr::str_sub(aid_dat_t_roi, start = 1, end = -5) # remove file extension
-          #     rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi) # compare for index
-          #
-          #   }else{
-          #     rois_threshold_idx <- which(rois_all_bn %in% aid_dat_t_roi)
-          #     }
-          # rois <- rois_all[rois_threshold_idx]
-          # if(length(rois) == 0){
-          #   stop('No ROIs found!')
-          # }
+          } else {
 
-        }
+            aid_dat_t <- aid_dat %>%
+              dplyr::filter(., V2 < threshold_score) %>%
+              dplyr::arrange(., V1)
 
-          rois <- list.files(dayHrFolder, full.names = TRUE)
+            aid_scr_t <- aid_dat_t$V2
+
+          }
+
+          #Obtain ROI paths from the category, day, and hour of interest (from copied images)
+          rois <- sort(list.files(dayHrFolder, full.names = TRUE))
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
 
             if(missing(threshold_score)){
 
-              scr_tmp <- "9999"
+              scr_tmp <- 9999
 
             } else {
 
@@ -233,55 +193,12 @@ vpr_manual_classification <-
 
               if(unlist(vpr_roi(aid_dat_t$V1[ii])) != unlist(vpr_roi(rois[ii]))){
 
-                stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
+                stop('Mismatch between CNN score and copied ROI, verify autoid and ROI inputs!')
 
               }
 
-            }
-
-
-          #     img <- magick::image_read(rois[ii], strip = FALSE) %>%
-          #       magick::image_scale(scale) %>%
-          #       magick::image_annotate(paste(categoryNames[i], "(roi.", unlist(vpr_roi(rois[ii])), ")"), color = "red", size = 12) %>%
-          #       magick::image_annotate(text = paste("scoreCNN = ", round(scr_tmp, digits = 2)),
-          #                              location = "+0+20",
-          #                              color = "red") %>%
-          #       magick::image_annotate(text = paste(round(imgdat$width/pxtomm, digits = 2), "x", round(imgdat$height/pxtomm, digits = 2), "mm"),
-          #                              location = "+0+10",
-          #                              color = "red")
-          #
-          #   }
-          #
-          #     img <- magick::image_read(rois[ii], strip = FALSE) %>%
-          #     magick::image_scale(scale) %>%
-          #     magick::image_annotate(categoryNames[i], color = 'red', size = 12)
-          #
-          #     # read in original image without scaling
-          #     img_o <- magick::image_read(rois[ii])
-          #     imgdat <- magick::image_info(img_o)
-          #
-          #   # annotate original image size
-          #     img <- magick::image_annotate(img, text = paste(round(imgdat$width / pxtomm, digits = 2), 'x', round(imgdat$height / pxtomm, digits = 2),
-          #         'mm'
-          #       ),
-          #       location = '+0+10',
-          #       color = 'red'
-          #     )
-          #
-          # #}
-          #
-          # else{
-          #
-          #     scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
-          #
-          #     if(unlist(vpr_roi(aid_dat_threshold$V1[ii])) != unlist(vpr_roi(rois[ii]))){
-          #       stop('Mismatch between CNN scores and ROI images, check autoid folder inputs!')
-          #     }
-
-
               img_tmp <- magick::image_read(rois[ii])
               imgdat <- magick::image_info(img_tmp)
-
 
               img <- magick::image_read(rois[ii], strip = FALSE) %>%
                 magick::image_scale(scale) %>%
@@ -293,7 +210,7 @@ vpr_manual_classification <-
                                        location = "+0+10",
                                        color = "red")
 
-          }
+            }
 
             if (img_bright == TRUE) {
               img_n <- magick::image_modulate(img, brightness = 500)
@@ -308,8 +225,7 @@ vpr_manual_classification <-
 
             }
 
-
-            #pop up menu
+            #Pop up menu - perform classification
             ans <-
               menu(
                 choices = c('Yes', 'No'),
@@ -325,81 +241,61 @@ vpr_manual_classification <-
 
             } else {
 
-              # original method
-              # sink(file = paste0(day_hour,'/misclassified_', categoryNames[i], '.txt'), append = TRUE)
-              # cat(aid_dat[[ii]], '\n')
-              # sink()
-
               if(missing(threshold_score)){
 
                 misclassified <- c(misclassified, aid_dat[[ii]])
 
-                } else {
+              } else {
 
-                  misclassified <- c(misclassified, aid_dat_t[[ii]]) # if threshold has been applied
-                  # TODO test that this is pulling correctly
+                misclassified <- c(misclassified,
+                                   paste(aid_dat_t[ii,], collapse = " ")) # if threshold has been applied
+                # TODO test that this is pulling correctly
 
-                  }
-
+              }
 
               # update to create generic category options
               # EC 2019 October 30
-              ans <-
-                menu(c(allcategory),
-                     graphics = gr,
-                     title = "Appropriate Category Classification?")
+              ans <- menu(c(allcategory),
+                          graphics = gr,
+                          title = "Appropriate Category Classification?")
 
               if(missing(threshold_score)){
 
                 reclassified[[ans]] <- c(reclassified[[ans]], aid_dat[[ii]])
 
-                } else {
+              } else {
 
                 # if threshold has been applied
-                # TODO double check this pulling
-                reclassified[[ans]] <- c(reclassified[[ans]], aid_dat_t[ii])
+                reclassified[[ans]] <- c(reclassified[[ans]],
+                                         paste(aid_dat_t[ii,], collapse = " "))
 
               }
 
-              # original method
-              # sink(file = paste0(day_hour,'/reclassify_', allcategory[[ans]], '.txt'), append = TRUE)
-              # cat(aid_dat[ii], '\n')
-              # sink()
-
             }
-
 
           }
 
           # Write information to file
-          # sink(
-          #   file = paste0(day_hour, '/misclassified_', categoryNames[i], '.txt'),
-          #   append = T
-          # )
           withr::with_output_sink(paste0(dirpath, '/misclassified_', categoryNames[i], '.txt'),
                                   append = TRUE,
                                   code = {
                                     cat(misclassified, sep = '\n')
                                   })
-          #sink()
 
-        }# skip = TRUE loop (category)
-      }# skip = TRUE loop (dayhr)
+        }
+      }
+
 
       if (SKIP == TRUE) {
-        # creates blank misclassified file if category of interest is not present in specified hour (so images reclassified as this category will be moved)
-        # sink(
-        #   file = paste0(day_hour, '/misclassified_', categoryNames[i], '.txt'),
-        #   append = TRUE
-        # )
-        # sink()
+
         withr::with_output_sink(paste0(dirpath, '/misclassified_', categoryNames[i], '.txt'),
                                 append = TRUE,
                                 code = {
                                   cat('\n')
                                 })
       }
-    }
+
+    } #end of category for loop
 
     # Write reclassified files for each category
     for (i in seq_len(length(reclassified))) {
@@ -408,20 +304,17 @@ vpr_manual_classification <-
 
       # Make a reclassify file only for category that need to be reclassified
       if (length(recl_tmp != 0)) {
-        # sink(
-        #   file = paste0(day_hour, '/reclassify_', category_id, '.txt'),
-        #   append = TRUE
-        # )
+
         withr::with_output_sink(paste0(dirpath, '/reclassify_', category_id, '.txt'), append = TRUE, code = {
           cat(recl_tmp, sep = '\n')
+
         })
-        # sink()
 
       }
 
     }
 
-  }
+}
 
 vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, mea = TRUE, categories) {
   #' Modifies aid and aid mea files based on manual reclassification
