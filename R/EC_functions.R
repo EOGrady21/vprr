@@ -1831,7 +1831,7 @@ vpr_hour <- function(x) {
 }
 
 # Checks ----
-vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
+vpr_autoid_check <-  function(new_autoid, original_autoid, cruise, dayhours) {
   #' Checks manually created aid files for errors
   #'
   #' Checks for empty files, with an option to delete them. Then checks all the
@@ -1855,36 +1855,35 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
 
   on.exit(closeAllConnections()) # make sure text file gets closed
 
-
   category_folders <- list.files(new_autoid, full.names = TRUE)
 
   withr::with_output_sink(paste0(cruise, '_aid_file_check.txt'), code = {
-  # loop through each day.hour
+    # loop through each day.hour
 
-  for (i in seq_len(length(category_folders))) {
-    path <- category_folders[i]
+    for (i in seq_len(length(category_folders))) {
+      path <- category_folders[i]
 
-    # get all files (aid )
-    aid_fns <- list.files(file.path(path, 'aid'), full.names = TRUE)
+      # get all files (aid )
+      aid_fns <- list.files(file.path(path, 'aid'), full.names = TRUE)
 
-    #### EMPTY FILE CHECK
-    # check for empty files
-    empty_ind <- list()
-    for (ii in seq_len(length(aid_fns))){
-      fn <- readLines(aid_fns[ii])
-      if (length(fn) == 0) {
-        cat('\n')
-        cat(aid_fns[ii], '\n')
-        cat('File is empty! \n')
-        cat('\n')
+      #### EMPTY FILE CHECK
+      # check for empty files
+      empty_ind <- list()
+      for (ii in seq_len(length(aid_fns))){
+        fn <- readLines(aid_fns[ii])
+        if (length(fn) == 0) {
+          cat('\n')
+          cat(aid_fns[ii], '\n')
+          cat('File is empty! \n')
+          cat('\n')
 
-        empty_ind[ii] <- TRUE
-      }else {
-        empty_ind[ii] <- FALSE
+          empty_ind[ii] <- TRUE
+        }else {
+          empty_ind[ii] <- FALSE
+        }
       }
+      cat('Empty file check complete for', category_folders[i], '\n')
     }
-    cat('Empty file check complete for', category_folders[i], '\n')
-  }
 
     new_aid_fn <- list.files(path = new_autoid, pattern = 'new_aid', recursive = TRUE, full.names = TRUE)
 
@@ -1913,9 +1912,9 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
     new_aids <- new_aids[empty_files == FALSE, ]
 
 
-    for (i in seq_along(dayhours)) {
+    for (k in seq_along(dayhours)) {
 
-      dh <- dayhours[i]
+      dh <- dayhours[k]
 
       aid_fns <- new_aids$fn[paste0(new_aids$day, ".", new_aids$hour) == dh]
 
@@ -1929,9 +1928,7 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
         aid_dat_cnn <- list()
         for (l in seq_along(all_cnn_aid)) {
           aid_dat_cnn[[l]] <- read_aid_cnn(all_cnn_aid[l])
-          cn <- stringr::str_split(all_cnn_aid[l], pattern = '/')
-          cn <- cn[[1]][6]
-          names(aid_dat_cnn)[l] <- cn
+          names(aid_dat_cnn)[l] <- vpr_category(all_cnn_aid[l], categories)
         }
 
         aid_dat_cnn <- data.table::rbindlist(aid_dat_cnn, idcol = TRUE) %>%
@@ -1943,12 +1940,22 @@ vpr_autoid_check <- function(new_autoid, original_autoid, cruise, dayhours) {
 
         # read all aid files in
         aid_dat <- list()
-        for (l in seq_along(aid_fns)) {
-          aid_dat[[l]] <- read.table(aid_fns[l], sep = " ")
-          names(aid_dat[[l]]) <- 'file_path'
-          names(aid_dat)[l] <- vpr_category(aid_fns[l], categories)
-          aid_dat[[l]] <- aid_dat[[l]] %>%
-            mutate(., roi = unlist(vpr_roi(aid_dat[[l]]$file_path)))
+        for (m in seq_along(aid_fns)) {
+          aid_dat[[m]] <- read.table(aid_fns[m], sep = " ")
+
+          if(ncol(aid_dat[[m]]) > 1) {
+
+            colnames(aid_dat[[m]]) <- c("file_path", "confidence")
+
+          } else {
+
+            colnames(aid_dat[[m]]) <- "file_path"
+
+          }
+
+          names(aid_dat)[m] <- vpr_category(aid_fns[m], categories)
+          aid_dat[[m]] <- aid_dat[[m]] %>%
+            mutate(., roi = unlist(vpr_roi(aid_dat[[m]]$file_path)))
         }
 
         aid_dat_c <- data.table::rbindlist(aid_dat, idcol = TRUE, fill = TRUE) %>%
