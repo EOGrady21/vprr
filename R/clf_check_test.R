@@ -197,6 +197,8 @@ vpr_manual_classification <-
 
               }
 
+            }
+
               img_tmp <- magick::image_read(rois[ii])
               imgdat <- magick::image_info(img_tmp)
 
@@ -209,8 +211,6 @@ vpr_manual_classification <-
                 magick::image_annotate(text = paste(round(imgdat$width/pxtomm, digits = 2), "x", round(imgdat$height/pxtomm, digits = 2), "mm"),
                                        location = "+0+10",
                                        color = "red")
-
-            }
 
             if (img_bright == TRUE) {
               img_n <- magick::image_modulate(img, brightness = 500)
