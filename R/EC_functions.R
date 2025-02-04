@@ -637,7 +637,7 @@ concentration_category <- function(data, category, category_list, binSize, image
   #' For COR2019002 S2 image volume was calculated as 83663 mm^3 and S3 image volume was calculated as 366082 mm^3
   #'
   #'
-  #' @author E. Chisholm
+  #' @author E. Chisholm, K. Sorochan
   #'
   #' @export
   #input validation
