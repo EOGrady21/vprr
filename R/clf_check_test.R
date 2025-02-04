@@ -28,7 +28,7 @@ vpr_manual_classification <-
     #' @param opticalSetting specifies optical setting of VPR, defining image frame
     #'   size, current options are 'S0', 'S1', 'S2' (default), 'S3', see further
     #'   info in details
-    #'@param img_bright logical value indicating whether or not to include a blown
+    #' @param img_bright logical value indicating whether or not to include a blown
     #'  out high brightness version of image (can be helpful for viewing dark field
     #'  fine appendages)
     #' @param threshold_score (optional) a numeric value defining the minimum confidence
