@@ -8,6 +8,9 @@ data(ctd_roi_merge)
   result <- expect_warning(
     concentration_category(data = ctd_roi_merge,
                            category = "Calanus",
+                           category_list = c("bad_image_blurry", "bad_image_malfunction", "bad_image_strobe",
+                                             "Calanus", "chaetognaths", "ctenophores", "krill", "marine_snow",
+                                             "Other", "small_copepod", "stick", "n_roi_total"),
                            binSize = 1,
                            imageVolume = 1000,
                            rev = FALSE,
