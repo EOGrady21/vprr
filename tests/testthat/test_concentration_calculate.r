@@ -6,7 +6,13 @@ test_that("concentration_category returns expected output", {
 data(ctd_roi_merge)
   # Call concentration_category with binSize = 1 and imageVolume = 1000
   result <- expect_warning(
-    concentration_category(ctd_roi_merge, "Calanus", 1, 1000, rev = FALSE, breaks = 1000)
+    concentration_category(data = ctd_roi_merge,
+                           category = "Calanus",
+                           binSize = 1,
+                           imageVolume = 1000,
+                           rev = FALSE,
+                           breaks = 1000,
+                           cutoff = 0.1)
   )
 
   # Check that the result is a data frame with the expected columns
