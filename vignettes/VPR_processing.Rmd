@@ -154,11 +154,10 @@ Manual re-classification of some categories after automated classification may b
     experience, notably `gr` which is a logical value determining
     whether or not manual re-classification options appear as pop ups or
     in the console, as well as `img_bright`, a logical which determines
-    whether or not the original image is appended with an extra bright
+    whether or not the original image is appended with a bright
     version of the image. Having a bright version of the image allows
-    the user to see the outline of the organism better, any thin
-    appendages become more clear and gelatinous organisms like
-    chaetognaths or ctenophores are easier to distinguish.
+    the user to see the outline of the organism better; thin
+    appendages become more clear, and gelatinous organisms may be easier to distinguish.
 -   If the output from automated classification includes a probability score for each ROI, the threshold argument in vpr_manual_classification() can be used to determine the minimum automated classification confidence required for images to be passed through without manual verification.
 
         #### MANUAL RE-CLASSIFICATION -------------------------------------
@@ -198,20 +197,19 @@ The function `vprr::vpr_manual_classification()` produces two files (‘misclass
     vpr_autoid_create(reclassify, misclassified, manual_class_basepath,
           mea = FALSE, categories = categories)
 
-The aid and aidmeas files are specifically formatted to record classification outputs for further processing. The aid files are text records of image paths, where each individual text file represents a classification category. Each line of the aid file is the full path to an image which was classified into the designated category. Note that the naming scheme of aid files does not include the category name in the file title and the category is only identifiable by the folder in which it is located. For example a ‘krill’ classification aid file might be named ‘oct10_1svmaid.d224.h01’ but be located within the ‘krill’ autoid folder. The aidmeas files are also text files which represent a variety of different measurements taken of the object(s) within a ROI image. The columns of the aidmeas files are c(‘Perimeter’, ‘Area’, ‘width1’, ‘width2’, ‘width3’, ‘short_axis_length’, ‘long_axis_length’). The aidmeas files are not created or required for processing with vprr. 
-Examples of each of these files can be found below.
+The aid and aidmeas files are specifically formatted to record classification outputs for further processing. The aid files are text records of image paths, where each individual text file represents a classification category. Each line of the aid file is the full path to an image which was classified into the designated category. Note that the naming scheme of aid files does not include the category name in the file title and the category is only identifiable by the folder in which it is located. For example, a ‘krill’ classification aid file might be named ‘oct10_1svmaid.d224.h01.txt’ and located within the ‘krill’ autoid folder (see example below). The aidmeas files are also text files which represent a variety of different measurements taken of the object(s) within a ROI image. The columns of the aidmeas files are c(‘Perimeter’, ‘Area’, ‘width1’, ‘width2’, ‘width3’, ‘short_axis_length’, ‘long_axis_length’). The aidmeas files are not created or required for processing with vprr. Examples of each of these files can be found below.
 
 
 
 ```{r, eval =  TRUE}
 
-aid <- read.table(file = system.file("extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04",
+aid <- read.table(file = system.file("extdata/COR2019002/autoid/krill/aid/oct10_1svmaid.d224.h01.txt",
                                      package = 'vprr', mustWork = TRUE))
 
 head(aid)
 
 aidmeas <- readLines(
-  system.file("extdata/COR2019002/autoid/bad_image_blurry/aidmea/sep20_2svmaid.mea.d222.h04",
+  system.file("extdata/COR2019002/autoid/krill/aidmea/oct10_1svmaid.d224.h01.txt",
                                  package = 'vprr', mustWork = TRUE))
 
 head(aidmeas)
@@ -219,24 +217,23 @@ head(aidmeas)
 
 ## Section 4.3: File check
 
-The last step of manual re-classification includes some manual file organization and final checks.  The user could also manually check the files.
+The last step of manual re-classification includes some manual file organization and final checks. The function `vprr::vpr_autoid_check()` produces a summary file in the working directory that indicates whether or not ROIs are duplicated or missing. It is recommended that the user also manually check some of the files to verify correct functionality.
 
 
     #### FILE CHECK ----------------------------------------------------------
-    # (outputs text file in working directory with check data)
     vpr_autoid_check(new_autoid, original_autoid = manual_class_basepath, 
                  cruise = cruise, dayhours = dh)
 
 # Section 5: Data Processing
 
 This is the main chunk of coding required to generate data products.
-This step does not require image copying (Section 3) or manual
-re-classification (Section 4) steps; however, if these steps were taken
-the aid and aidmeas files generated from manual re-classification and
-integrated into the directory structure (as specified in Section 4) are
-used as an input. The following is a walk-through of processing data
+Data processing step does not require image copying (Section 3) or manual
+re-classification (Section 4) steps. If these steps were taken,
+the aid and aidmeas files generated from manual re-classification, and
+integrated into the directory structure as specified in Section 4, are
+used as inputs. The following is a walk-through of the data processing step
 from a DFO field mission (i.e. mission COR2019002) in the southern Gulf
-of St. Lawrence in 2019. First, all libraries should be loaded and the
+of St. Lawrence in 2019. First, all libraries should be loaded. The
 processing environment, described in Section 2.4 should be loaded.
 
     ##### PROCESSING  ---------------------------------------------------------
@@ -248,7 +245,7 @@ processing environment, described in Section 2.4 should be loaded.
     load('COR2019002_env.RData')
 
 
-CTD data are loaded in using `vprr::vpr_ctd_read`. During CTD data read in, a
+CTD data (including data from other environmental sensors) are loaded in using `vprr::vpr_ctd_read()`. During CTD data read in, a
 seawater density variable `sigmaT` is derived using the function
 `oce::swSigmaT`, and `depth` (in meters) is derived from pressure using
 the function `oce::swDepth`. For more information on the `oce` package,
@@ -332,7 +329,7 @@ aid (and aidmeas) files are read in using `vprr::vpr_autoid_read()`.
       )
 
 Next, CTD and aid data are merged to create a data frame describing both
-environmental variables (eg. temperature, salinity) and classified
+environmental variables (e.g., temperature, salinity) and classified
 images. The function used is `vprr::vpr_ctdroi_merge()`.
 
     ##### MERGE CTD AND ROI DATA ------------------------------------------
@@ -394,7 +391,7 @@ Measurement data can also be binned to match the resolution of ROI data.
 Finally, data are saved as RData and csv files for export and plotting.
 Data are also saved as an `oce` object in order to preserve both data
 and metadata in an efficient format. This example shows gathering metadata from
-a csv but it could also be input manually.
+an object `vpr_summary_st` obtained from an external csv file, but it could also be input manually.
 
     ##### SAVE DATA --------------------------------------------------------
     #Metadata (from csv)
@@ -559,7 +556,7 @@ data was collected
 
 **ROI** - Images (regions of interest) identified by Autodeck software within VPR frames
 
-**station** - A named geographic location, where the VPR was deployed
+**station** - A named location, where the VPR was deployed
 
 **Tow-yo** - A VPR deployment method where the VPR is towed behind a
 vessel while being raised and lowered through the water column in order
