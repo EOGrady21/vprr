@@ -296,11 +296,10 @@ optional arguments to customize the manual re-classification experience,
 notably <code>gr</code> which is a logical value determining whether or
 not manual re-classification options appear as pop ups or in the
 console, as well as <code>img_bright</code>, a logical which determines
-whether or not the original image is appended with an extra bright
-version of the image. Having a bright version of the image allows the
-user to see the outline of the organism better, any thin appendages
-become more clear and gelatinous organisms like chaetognaths or
-ctenophores are easier to distinguish.</p></li>
+whether or not the original image is appended with a bright version of
+the image. Having a bright version of the image allows the user to see
+the outline of the organism better; thin appendages become more clear,
+and gelatinous organisms may be easier to distinguish.</p></li>
 <li>
 <p>If the output from automated classification includes a
 probability score for each ROI, the threshold argument in
@@ -363,48 +362,51 @@ classification category. Each line of the aid file is the full path to
 an image which was classified into the designated category. Note that
 the naming scheme of aid files does not include the category name in the
 file title and the category is only identifiable by the folder in which
-it is located. For example a ‘krill’ classification aid file might be
-named ‘oct10_1svmaid.d224.h01’ but be located within the ‘krill’ autoid
-folder. The aidmeas files are also text files which represent a variety
-of different measurements taken of the object(s) within a ROI image. The
-columns of the aidmeas files are c(‘Perimeter’, ‘Area’, ‘width1’,
-‘width2’, ‘width3’, ‘short_axis_length’, ‘long_axis_length’). The
-aidmeas files are not created or required for processing with vprr.
-Examples of each of these files can be found below.</p>
+it is located. For example, a ‘krill’ classification aid file might be
+named ‘sep20_2svmaid.d222.h03’ and located within the ‘krill’ autoid
+folder (see example below). The aidmeas files are also text files which
+represent a variety of different measurements taken of the object(s)
+within a ROI image. The columns of the aidmeas files are c(‘Perimeter’,
+‘Area’, ‘width1’, ‘width2’, ‘width3’, ‘short_axis_length’,
+‘long_axis_length’). The aidmeas files are not created or required for
+processing with vprr. Examples of each of these files can be found
+below.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">aid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/bad_image_blurry/aid/sep20_2svmaid.d222.h04"</span>,</span>
+<span><span class="va">aid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/krill/aid/sep20_2svmaid.d222.h03"</span>,</span>
 <span>                                     package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">aid</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                                                                       V1</span></span>
-<span><span class="co">#&gt; 1 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521078400.tif</span></span>
-<span><span class="co">#&gt; 2 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521624700.tif</span></span>
-<span><span class="co">#&gt; 3 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2521966500.tif</span></span>
-<span><span class="co">#&gt; 4 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2522439500.tif</span></span>
-<span><span class="co">#&gt; 5 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2523322300.tif</span></span>
-<span><span class="co">#&gt; 6 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h04\\roi.2524341800.tif</span></span>
+<span><span class="co">#&gt; 1 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2248682400.tif</span></span>
+<span><span class="co">#&gt; 2 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2250029400.tif</span></span>
+<span><span class="co">#&gt; 3 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2250197100.tif</span></span>
+<span><span class="co">#&gt; 4 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2250252500.tif</span></span>
+<span><span class="co">#&gt; 5 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2253587400.tif</span></span>
+<span><span class="co">#&gt; 6 c:\\data\\cruise_COR2019002\\rois\\vpr5\\d222\\h03\\roi.2254200600.tif</span></span>
 <span></span>
 <span><span class="va">aidmeas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/bad_image_blurry/aidmea/sep20_2svmaid.mea.d222.h04"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/COR2019002/autoid/krill/aidmea/sep20_2svmaid.mea.d222.h03"</span>,</span>
 <span>                                 package <span class="op">=</span> <span class="st">'vprr'</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">aidmeas</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "    166.37    807.00     10.44     11.40     31.95     32.64     48.20"</span></span>
-<span><span class="co">#&gt; [2] "    318.94   3737.00     29.07     36.12     32.06     50.60    113.08"</span></span>
-<span><span class="co">#&gt; [3] "    246.51   1370.00     14.32     14.32     13.60     19.66    106.03"</span></span>
-<span><span class="co">#&gt; [4] "    563.24   6062.00     38.48     72.45     36.24     85.87    166.81"</span></span>
-<span><span class="co">#&gt; [5] "    162.91    649.00      9.49      6.08     11.18     14.57     70.70"</span></span>
-<span><span class="co">#&gt; [6] "    228.94   1723.00     22.80     21.93     15.81     27.31     93.59"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "    964.99   8534.00     39.92     53.85     78.55    117.57    275.20"</span></span>
+<span><span class="co">#&gt; [2] "    637.57   6857.00     38.90     42.72     28.79     47.79    229.32"</span></span>
+<span><span class="co">#&gt; [3] "    373.38   1183.00      4.12      4.12     15.03     22.00    119.75"</span></span>
+<span><span class="co">#&gt; [4] "    290.11   2910.00     27.66     30.81     19.24     35.49    114.73"</span></span>
+<span><span class="co">#&gt; [5] "    660.80   6071.00     35.90     46.87     27.89     60.44    157.69"</span></span>
+<span><span class="co">#&gt; [6] "    204.12   1162.00      9.22     10.20     12.04     17.41     88.34"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="section-4-3-file-check">Section 4.3: File check<a class="anchor" aria-label="anchor" href="#section-4-3-file-check"></a>
 </h3>
 <p>The last step of manual re-classification includes some manual file
-organization and final checks. The user could also manually check the
-files.</p>
+organization and final checks. The function
+<code><a href="../reference/vpr_autoid_check.html">vprr::vpr_autoid_check()</a></code> produces a summary file in the
+working directory that indicates whether or not ROIs are duplicated or
+missing. It is recommended that the user also manually check some of the
+files to verify correct functionality.</p>
 <pre><code><span><span class="co">#### FILE CHECK ----------------------------------------------------------</span></span>
-<span><span class="co"># (outputs text file in working directory with check data)</span></span>
 <span><span class="fu"><a href="../reference/vpr_autoid_check.html">vpr_autoid_check</a></span><span class="op">(</span><span class="va">new_autoid</span>, original_autoid <span class="op">=</span> <span class="va">manual_class_basepath</span>, </span>
 <span>             cruise <span class="op">=</span> <span class="va">cruise</span>, dayhours <span class="op">=</span> <span class="va">dh</span><span class="op">)</span></span></code></pre>
 </div>
@@ -413,13 +415,13 @@ files.</p>
 <h2 id="section-5-data-processing">Section 5: Data Processing<a class="anchor" aria-label="anchor" href="#section-5-data-processing"></a>
 </h2>
 <p>This is the main chunk of coding required to generate data products.
-This step does not require image copying (Section 3) or manual
-re-classification (Section 4) steps; however, if these steps were taken
-the aid and aidmeas files generated from manual re-classification and
-integrated into the directory structure (as specified in Section 4) are
-used as an input. The following is a walk-through of processing data
-from a DFO field mission (i.e. mission COR2019002) in the southern Gulf
-of St. Lawrence in 2019. First, all libraries should be loaded and the
+Data processing step does not require image copying (Section 3) or
+manual re-classification (Section 4) steps. If these steps were taken,
+the aid and aidmeas files generated from manual re-classification, and
+integrated into the directory structure as specified in Section 4, are
+used as inputs. The following is a walk-through of the data processing
+step from a DFO field mission (i.e. mission COR2019002) in the southern
+Gulf of St. Lawrence in 2019. First, all libraries should be loaded. The
 processing environment, described in Section 2.4 should be loaded.</p>
 <pre><code><span><span class="co">##### PROCESSING  ---------------------------------------------------------</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://eogrady21.github.io/vprr/">vprr</a></span><span class="op">)</span></span>
@@ -428,12 +430,13 @@ processing environment, described in Section 2.4 should be loaded.</p>
 <span><span class="co"># loads processing environment specific to user</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">'COR2019002_env.RData'</span><span class="op">)</span></span></code></pre>
-<p>CTD data are loaded in using <code><a href="../reference/vpr_ctd_read.html">vprr::vpr_ctd_read</a></code>. During
-CTD data read in, a seawater density variable <code>sigmaT</code> is
-derived using the function <code><a href="https://dankelley.github.io/oce/reference/swSigmaT.html" class="external-link">oce::swSigmaT</a></code>, and
-<code>depth</code> (in meters) is derived from pressure using the
-function <code><a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">oce::swDepth</a></code>. For more information on the
-<code>oce</code> package, see <code>dankelley/oce</code> on GitHub.</p>
+<p>CTD data (including data from other environmental sensors) are loaded
+in using <code><a href="../reference/vpr_ctd_read.html">vprr::vpr_ctd_read()</a></code>. During CTD data read in, a
+seawater density variable <code>sigmaT</code> is derived using the
+function <code><a href="https://dankelley.github.io/oce/reference/swSigmaT.html" class="external-link">oce::swSigmaT</a></code>, and <code>depth</code> (in meters)
+is derived from pressure using the function <code><a href="https://dankelley.github.io/oce/reference/swDepth.html" class="external-link">oce::swDepth</a></code>.
+For more information on the <code>oce</code> package, see
+<code>dankelley/oce</code> on GitHub.</p>
 <pre><code><span><span class="co">#### READ CTD DATA --------------------------------------------------------</span></span>
 <span><span class="va">ctd_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">castdir</span>, pattern <span class="op">=</span> <span class="st">'.dat'</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">ctd_dat_combine</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_ctd_read.html">vpr_ctd_read</a></span><span class="op">(</span></span>
@@ -505,8 +508,9 @@ used, see Section 4), are then found</p>
 <span>      categories <span class="op">=</span> <span class="va">categories</span></span>
 <span>  <span class="op">)</span></span></code></pre>
 <p>Next, CTD and aid data are merged to create a data frame describing
-both environmental variables (eg. temperature, salinity) and classified
-images. The function used is <code><a href="../reference/vpr_ctdroi_merge.html">vprr::vpr_ctdroi_merge()</a></code>.</p>
+both environmental variables (e.g., temperature, salinity) and
+classified images. The function used is
+<code><a href="../reference/vpr_ctdroi_merge.html">vprr::vpr_ctdroi_merge()</a></code>.</p>
 <pre><code><span><span class="co">##### MERGE CTD AND ROI DATA ------------------------------------------</span></span>
 <span><span class="va">ctd_roi_merge</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vpr_ctdroi_merge.html">vpr_ctdroi_merge</a></span><span class="op">(</span><span class="va">ctd_dat_combine</span>, <span class="va">roi_dat_combine</span><span class="op">)</span></span></code></pre>
 <p>Before final export of data products, the following variables are
@@ -563,7 +567,8 @@ data.</p>
 <p>Finally, data are saved as RData and csv files for export and
 plotting. Data are also saved as an <code>oce</code> object in order to
 preserve both data and metadata in an efficient format. This example
-shows gathering metadata from a csv but it could also be input
+shows gathering metadata from an object <code>vpr_summary_st</code>
+obtained from an external csv file, but it could also be input
 manually.</p>
 <pre><code><span><span class="co">##### SAVE DATA --------------------------------------------------------</span></span>
 <span><span class="co">#Metadata (from csv)</span></span>
@@ -764,8 +769,8 @@ S2 or S3, where S0 has the greatest magnification and smallest image
 volume, and S3 has the least magnification and largest image volume.</p>
 <p><strong>ROI</strong> - Images (regions of interest) identified by
 Autodeck software within VPR frames</p>
-<p><strong>station</strong> - A named geographic location, where the VPR
-was deployed</p>
+<p><strong>station</strong> - A named location, where the VPR was
+deployed</p>
 <p><strong>Tow-yo</strong> - A VPR deployment method where the VPR is
 towed behind a vessel while being raised and lowered through the water
 column in order to sample over both depth and distance</p>
