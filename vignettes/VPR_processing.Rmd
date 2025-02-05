@@ -197,19 +197,19 @@ The function `vprr::vpr_manual_classification()` produces two files (‘misclass
     vpr_autoid_create(reclassify, misclassified, manual_class_basepath,
           mea = FALSE, categories = categories)
 
-The aid and aidmeas files are specifically formatted to record classification outputs for further processing. The aid files are text records of image paths, where each individual text file represents a classification category. Each line of the aid file is the full path to an image which was classified into the designated category. Note that the naming scheme of aid files does not include the category name in the file title and the category is only identifiable by the folder in which it is located. For example, a ‘krill’ classification aid file might be named ‘oct10_1svmaid.d224.h01.txt’ and located within the ‘krill’ autoid folder (see example below). The aidmeas files are also text files which represent a variety of different measurements taken of the object(s) within a ROI image. The columns of the aidmeas files are c(‘Perimeter’, ‘Area’, ‘width1’, ‘width2’, ‘width3’, ‘short_axis_length’, ‘long_axis_length’). The aidmeas files are not created or required for processing with vprr. Examples of each of these files can be found below.
+The aid and aidmeas files are specifically formatted to record classification outputs for further processing. The aid files are text records of image paths, where each individual text file represents a classification category. Each line of the aid file is the full path to an image which was classified into the designated category. Note that the naming scheme of aid files does not include the category name in the file title and the category is only identifiable by the folder in which it is located. For example, a ‘krill’ classification aid file might be named ‘sep20_2svmaid.d222.h03’ and located within the ‘krill’ autoid folder (see example below). The aidmeas files are also text files which represent a variety of different measurements taken of the object(s) within a ROI image. The columns of the aidmeas files are c(‘Perimeter’, ‘Area’, ‘width1’, ‘width2’, ‘width3’, ‘short_axis_length’, ‘long_axis_length’). The aidmeas files are not created or required for processing with vprr. Examples of each of these files can be found below.
 
 
 
 ```{r, eval =  TRUE}
 
-aid <- read.table(file = system.file("extdata/COR2019002/autoid/krill/aid/oct10_1svmaid.d224.h01.txt",
+aid <- read.table(file = system.file("extdata/COR2019002/autoid/krill/aid/sep20_2svmaid.d222.h03",
                                      package = 'vprr', mustWork = TRUE))
 
 head(aid)
 
 aidmeas <- readLines(
-  system.file("extdata/COR2019002/autoid/krill/aidmea/oct10_1svmaid.d224.h01.txt",
+  system.file("extdata/COR2019002/autoid/krill/aidmea/sep20_2svmaid.mea.d222.h03",
                                  package = 'vprr', mustWork = TRUE))
 
 head(aidmeas)
