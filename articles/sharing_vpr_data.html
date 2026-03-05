@@ -76,7 +76,7 @@
       <h1 data-toc-skip>Sharing VPR Data</h1>
                         <h4 data-toc-skip class="author">E. O’Grady</h4>
             
-            <h4 data-toc-skip class="date">2025-02-05</h4>
+            <h4 data-toc-skip class="date">2026-03-05</h4>
       
 
       <div class="hidden name"><code>sharing_vpr_data.Rmd</code></div>
@@ -438,7 +438,7 @@ as well as units and definitions should be included in the metadata
 <span></span>
 <span><span class="co"># Create a new column of data called scientificName based on matches to category</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, scientificName <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">.</span>, scientificName <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>    <span class="va">category</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">scientificName</span><span class="op">[[</span><span class="st">"blurry"</span><span class="op">]</span><span class="op">]</span> <span class="op">~</span> <span class="st">"blurry"</span>,</span>
 <span>    <span class="va">category</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">scientificName</span><span class="op">[[</span><span class="st">"artefact"</span><span class="op">]</span><span class="op">]</span> <span class="op">~</span> <span class="st">"artefact"</span>,</span>
 <span>    <span class="va">category</span> <span class="op">==</span> <span class="va">scientificName</span><span class="op">[[</span><span class="st">"Calanus"</span><span class="op">]</span><span class="op">]</span> <span class="op">~</span> <span class="st">"Calanus"</span>,</span>
@@ -492,7 +492,7 @@ Principles for scientific data management and stewardship. Sci Data 3,
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>
