@@ -389,8 +389,7 @@ vpr_autoid_create <- function(reclassify, misclassified, basepath, day, hour, me
     if (length(mis_roi) != 0) { # if there are ROIs that were misclassified
       day_hour <- unique(substr(sub(mis_roi, pattern = ".*d",
                                     replacement = "d"), 1, 8))
-      day_hour <- gsub(pattern = "\\\\", replacement = ".",
-                       x = day_hour)
+      day_hour <- gsub("[/\\\\:*?\"<>| ]", ".", day_hour)
       mis_roi_gen <- unlist(vpr_roi(mis_roi))
       mis_roi_df <- data.frame(mis_roi_gen, day_hour, category,
                                stringsAsFactors = FALSE)
