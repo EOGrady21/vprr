@@ -1031,17 +1031,19 @@ vpr_autoid_read <- function(file_list_aid, file_list_aidmeas, export, station_of
   }
   file_list_aid <- file_list_aid[empty_files == FALSE]
 
-  col_names <- "roi"
   dat <- list()
 
   for (i in seq_len(length(file_list_aid))) {
 
-    data_tmp <- read.table(file = file_list_aid[i], stringsAsFactors = FALSE, col.names = col_names)
+    lines_tmp <- readLines(con = file_list_aid[i])
+    lines_tmp <- sub(
+      "(?i)\\.(tif|tiff|jpe?g|png|bmp).*$",
+      ".\\1", lines_tmp,
+      perl = TRUE)
+
+    data_tmp <- data.frame(roi = lines_tmp)
 
     data_tmp$roi <- unlist(vpr_roi(data_tmp$roi))
-
-
-
 
     data_tmp$category <- unlist(unique(vpr_category(file_list_aid[i], categories)[[1]]))
     day <- unlist(vpr_day(file_list_aid[i]))
