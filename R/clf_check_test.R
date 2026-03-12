@@ -303,7 +303,6 @@ vpr_manual_classification <-
       recl_tmp <- reclassified[[i]]
 
       # Make a reclassify file only for category that need to be reclassified
-      #if (length(recl_tmp != 0)) {
       if (length(recl_tmp) > 0) {
 
         withr::with_output_sink(paste0(dirpath, '/reclassify_', category_id, '.txt'), append = TRUE, code = {
