@@ -167,18 +167,22 @@ vpr_manual_classification <-
             # aid file info
             aid_dat <- unique(aid_dat$V1) # KS added unique to duplicate bug fix
 
+            #Obtain ROI paths from the category, day, and hour of interest (from copied images)
+            rois <- sort(list.files(dayHrFolder, full.names = TRUE))
+
           } else {
 
             aid_dat_t <- aid_dat %>%
               dplyr::filter(., V2 < threshold_score) %>%
               dplyr::arrange(., V1)
 
-            aid_scr_t <- aid_dat_t$V2
+            #aid_scr_t <- aid_dat_t$V2
+            #Obtain ROI paths from the category, day, and hour of interest (from copied images)
+            rois_tmp <- sort(list.files(dayHrFolder, full.names = TRUE))
+            rois_idx <- which(unlist(vpr_roi(rois_tmp)) %in% unlist(vpr_roi(aid_dat_t$V1)))
+            rois <- rois_tmp[rois_idx]
 
           }
-
-          #Obtain ROI paths from the category, day, and hour of interest (from copied images)
-          rois <- sort(list.files(dayHrFolder, full.names = TRUE))
 
           for (ii in seq_len(length(rois))) {
             print(paste(ii, '/', length(rois)))
