@@ -176,7 +176,6 @@ vpr_manual_classification <-
               dplyr::filter(., V2 < threshold_score) %>%
               dplyr::arrange(., V1)
 
-            #aid_scr_t <- aid_dat_t$V2
             #Obtain ROI paths from the category, day, and hour of interest (from copied images)
             rois_tmp <- sort(list.files(dayHrFolder, full.names = TRUE))
             rois_idx <- which(unlist(vpr_roi(rois_tmp)) %in% unlist(vpr_roi(aid_dat_t$V1)))
@@ -193,7 +192,7 @@ vpr_manual_classification <-
 
             } else {
 
-              scr_tmp <- aid_scr_t[ii] # check to make sure ROI image matches score displayed
+              scr_tmp <- aid_dat_t$V2[ii]
 
               if(unlist(vpr_roi(aid_dat_t$V1[ii])) != unlist(vpr_roi(rois[ii]))){
 
